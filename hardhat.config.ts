@@ -32,7 +32,12 @@ const DEFAULT_COMPILER_SETTINGS: SolcUserConfig = {
 const config: HardhatUserConfig = {
   networks: {
     hardhat: {
-      allowUnlimitedContractSize: false, // NOTE: you may need to turn this off!
+      chainId: 100,
+      forking: {
+        url: "https://xdai-archive.blockscout.com/",
+        blockNumber: 22319000,
+      },
+      
     },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
@@ -76,6 +81,9 @@ const config: HardhatUserConfig = {
     disambiguatePaths: true,
     runOnCompile: false,
   },
+  mocha: {
+    timeout: 0,
+  }
 };
 
 if (process.env.ETHERSCAN_API_KEY) {

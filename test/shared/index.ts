@@ -4,7 +4,6 @@ export * from './bigNumber';
 export * from './block';
 export * from './constants';
 export * from './expect';
-export * from './fixtures';
 export * from './linkLibraries';
 export * from './logging';
 export * from './maxGasLimit';
