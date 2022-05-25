@@ -6,6 +6,7 @@ import 'hardhat-contract-sizer';
 import { HardhatUserConfig } from 'hardhat/config';
 import { SolcUserConfig } from 'hardhat/types';
 import 'solidity-coverage';
+import '@openzeppelin/hardhat-upgrades';
 
 const DEFAULT_COMPILER_SETTINGS: SolcUserConfig = {
   version: '0.8.6',

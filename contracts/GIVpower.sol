@@ -10,7 +10,7 @@ contract GIVpower is GardenTokenLock, GIVUnipool {
 
     mapping(address => mapping(uint256 => uint256)) public _powerUntilRound;
 
-    function __GIVpower_init(
+    function initialize(
         uint256 _initialDate,
         uint256 _roundDuration,
         address _tokenManager,
