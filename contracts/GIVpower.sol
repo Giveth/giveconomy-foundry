@@ -10,6 +10,9 @@ contract GIVpower is GardenTokenLock, GIVUnipool {
 
     mapping(address => mapping(uint256 => uint256)) public _powerUntilRound;
 
+    event PowerLocked(address account, uint256 powerAmount, uint256 rounds, uint256 untilRound);
+    event PowerUnlocked(address account, uint256 powerAmount, uint256 round);
+
     function initialize(
         uint256 _initialDate,
         uint256 _roundDuration,
@@ -28,6 +31,7 @@ contract GIVpower is GardenTokenLock, GIVUnipool {
         uint256 powerAmount = calculatePower(_amount, _rounds);
         _powerUntilRound[msg.sender][round] = _powerUntilRound[msg.sender][round].add(powerAmount);
         super.stake(msg.sender, powerAmount);
+        emit PowerLocked(msg.sender, powerAmount, _rounds, round);
     }
 
 
@@ -39,6 +43,7 @@ contract GIVpower is GardenTokenLock, GIVUnipool {
             uint256 powerAmount = _powerUntilRound[_lock][_round];
             super.withdraw(_lock, powerAmount);
             _powerUntilRound[_lock][_round] = 0;
+            emit PowerUnlocked(_lock, powerAmount, _round);
         }
     }
 

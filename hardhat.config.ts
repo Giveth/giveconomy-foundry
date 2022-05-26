@@ -7,6 +7,7 @@ import { HardhatUserConfig } from 'hardhat/config';
 import { SolcUserConfig } from 'hardhat/types';
 import 'solidity-coverage';
 import '@openzeppelin/hardhat-upgrades';
+import 'hardhat-abi-exporter';
 
 const DEFAULT_COMPILER_SETTINGS: SolcUserConfig = {
   version: '0.8.6',
