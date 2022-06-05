@@ -47,7 +47,7 @@ contract GardenTokenLock is TokenManagerHook {
     }
 
     function unlock(address[] calldata _locks, uint256 _round) public virtual {
-        if (_round >= currentRound()) {
+        if (_round > currentRound()) {
             revert CannotUnlockUntilRoundIsFinished();
         }
         for (uint i = 0; i < _locks.length; i++) {
@@ -63,12 +63,17 @@ contract GardenTokenLock is TokenManagerHook {
         return uint256(block.timestamp).sub(initialDate).div(roundDuration); // currentRound = (now - initialDate) / roundDuration
     }
 
+    /**
+     * @dev This function is called everytime a gGIV is wrapped/unwrapped
+     * @param _from 0x0 if we are wrapping gGIV
+     * @param _amount Number of gGIV that is wrapped/unwrapped
+     */
     function _onTransfer(
         address _from,
         address/* _to*/,
         uint256 _amount
     ) internal view override returns (bool) {
-        if (token.balanceOf(_from).sub(_amount) < lockedTokens[_from].totalAmountLocked) {
+        if (_from != address(0) && token.balanceOf(_from).sub(_amount) < lockedTokens[_from].totalAmountLocked) {
             revert TokensAreLocked();
         }
         return true;

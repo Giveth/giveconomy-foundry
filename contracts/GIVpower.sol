@@ -48,7 +48,7 @@ contract GIVpower is GardenTokenLock, GIVUnipool {
     }
 
     function calculatePower(uint256 _amount, uint256 _rounds) public pure returns (uint256) {
-        return _amount.mul(_sqrt(_rounds.add(1)));
+        return _amount.mul(_sqrt(_rounds.add(1).mul(10**18))).div(10**9);
     }
 
     /**

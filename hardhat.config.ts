@@ -37,7 +37,7 @@ const config: HardhatUserConfig = {
       chainId: 100,
       forking: {
         url: "https://xdai-archive.blockscout.com/",
-        blockNumber: 22319000,
+        blockNumber: 22501098,
       },
       
     },
