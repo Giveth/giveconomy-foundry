@@ -23,7 +23,7 @@ describe('unit/GIVpower', () => {
     evm = await EVMcrispr.create(dao, signer);
     const voting = evm.app('disputable-voting.open');
 
-    const initialDate = Math.floor(new Date().getTime() / 1000);
+    const initialDate = (await signer.provider.getBlock('latest')).timestamp;
     const roundDuration = evm.resolver.resolveNumber('14d');
     tokenManager = evm.app('wrappable-hooked-token-manager.open');
     const duration = evm.resolver.resolveNumber('14d');
@@ -40,7 +40,7 @@ describe('unit/GIVpower', () => {
 
     const tx = await evmcl`
       connect ${dao} disputable-voting.open --context Install GIVpower
-      exec wrappable-hooked-token-manager.open revokeHook 1
+      exec wrappable-hooked-token-manager.open revokeHook 2
       exec wrappable-hooked-token-manager.open registerHook ${instance.address}
     `.forward(signer);
   
