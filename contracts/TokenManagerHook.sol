@@ -11,41 +11,25 @@ pragma solidity ^0.8.6;
  */
 
 library UnstructuredStorage {
-    function getStorageBool(bytes32 position)
-        internal
-        view
-        returns (bool data)
-    {
+    function getStorageBool(bytes32 position) internal view returns (bool data) {
         assembly {
             data := sload(position)
         }
     }
 
-    function getStorageAddress(bytes32 position)
-        internal
-        view
-        returns (address data)
-    {
+    function getStorageAddress(bytes32 position) internal view returns (address data) {
         assembly {
             data := sload(position)
         }
     }
 
-    function getStorageBytes32(bytes32 position)
-        internal
-        view
-        returns (bytes32 data)
-    {
+    function getStorageBytes32(bytes32 position) internal view returns (bytes32 data) {
         assembly {
             data := sload(position)
         }
     }
 
-    function getStorageUint256(bytes32 position)
-        internal
-        view
-        returns (uint256 data)
-    {
+    function getStorageUint256(bytes32 position) internal view returns (uint256 data) {
         assembly {
             data := sload(position)
         }
@@ -85,7 +69,7 @@ contract ReentrancyGuard {
     bytes32 private constant REENTRANCY_MUTEX_POSITION =
         0xe855346402235fdd185c890e68d2c4ecad599b88587635ee285bce2fda58dacb;
 
-    string private constant ERROR_REENTRANT = "REENTRANCY_REENTRANT_CALL";
+    string private constant ERROR_REENTRANT = 'REENTRANCY_REENTRANT_CALL';
 
     modifier nonReentrant() {
         // Ensure mutex is unlocked
@@ -102,7 +86,7 @@ contract ReentrancyGuard {
     }
 }
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
 /**
  * @dev When creating a subcontract, we recommend overriding the _internal_ functions that you want to hook.
@@ -117,10 +101,7 @@ contract TokenManagerHook is ReentrancyGuard, Initializable {
         0x5c513b2347f66d33af9d68f4a0ed7fbb73ce364889b2af7f3ee5764440da6a8a;
 
     modifier onlyTokenManager() {
-        require(
-            getTokenManager() == msg.sender,
-            "Hooks must be called from Token Manager"
-        );
+        require(getTokenManager() == msg.sender, 'Hooks must be called from Token Manager');
         _;
     }
 
@@ -130,10 +111,7 @@ contract TokenManagerHook is ReentrancyGuard, Initializable {
      * token manager address is set in the initialization.
      * @param tokenManager Token manager address
      */
-    function __TokenManagerHook_initialize(address tokenManager)
-        public
-        initializer
-    {
+    function __TokenManagerHook_initialize(address tokenManager) public initializer {
         TOKEN_MANAGER_POSITION.setStorageAddress(tokenManager);
     }
 
@@ -147,11 +125,7 @@ contract TokenManagerHook is ReentrancyGuard, Initializable {
      * @param _hookId The position in which the hook is going to be called
      * @param _token The token controlled by the Token Manager
      */
-    function onRegisterAsHook(uint256 _hookId, address _token)
-        external
-        nonReentrant
-        onlyTokenManager
-    {
+    function onRegisterAsHook(uint256 _hookId, address _token) external nonReentrant onlyTokenManager {
         _onRegisterAsHook(msg.sender, _hookId, _token);
     }
 
@@ -160,11 +134,7 @@ contract TokenManagerHook is ReentrancyGuard, Initializable {
      * @param _hookId The position in which the hook is going to be called
      * @param _token The token controlled by the Token Manager
      */
-    function onRevokeAsHook(uint256 _hookId, address _token)
-        external
-        onlyTokenManager
-        nonReentrant
-    {
+    function onRevokeAsHook(uint256 _hookId, address _token) external onlyTokenManager nonReentrant {
         _onRevokeAsHook(msg.sender, _hookId, _token);
     }
 
@@ -203,33 +173,33 @@ contract TokenManagerHook is ReentrancyGuard, Initializable {
     // Function to override if necessary:
 
     function _onRegisterAsHook(
-        address/* _tokenManager*/,
-        uint256/* _hookId*/,
-        address/* _token*/
+        address, /* _tokenManager*/
+        uint256, /* _hookId*/
+        address /* _token*/
     ) internal virtual {
         return;
     }
 
     function _onRevokeAsHook(
-        address/* _tokenManager*/,
-        uint256/* _hookId*/,
-        address/* _token*/
+        address, /* _tokenManager*/
+        uint256, /* _hookId*/
+        address /* _token*/
     ) internal virtual {
         return;
     }
 
     function _onTransfer(
-        address/* _from*/,
-        address/* _to*/,
-        uint256/* _amount*/
+        address, /* _from*/
+        address, /* _to*/
+        uint256 /* _amount*/
     ) internal virtual returns (bool) {
         return true;
     }
 
     function _onApprove(
-        address/* _holder*/,
-        address/* _spender*/,
-        uint256/* _amount*/
+        address, /* _holder*/
+        address, /* _spender*/
+        uint256 /* _amount*/
     ) internal virtual returns (bool) {
         return true;
     }

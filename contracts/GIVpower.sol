@@ -2,8 +2,8 @@
 
 pragma solidity =0.8.6;
 
-import "./GIVUnipool.sol";
-import "./GardenTokenLock.sol";
+import './GIVUnipool.sol';
+import './GardenTokenLock.sol';
 
 contract GIVpower is GardenTokenLock, GIVUnipool {
     using SafeMathUpgradeable for uint256;
@@ -19,9 +19,9 @@ contract GIVpower is GardenTokenLock, GIVUnipool {
         address _tokenManager,
         address _tokenDistribution,
         uint256 _duration
-    ) initializer public {
-      __GardenTokenLock_init(_initialDate, _roundDuration, _tokenManager);
-      __GIVUnipool_init(_tokenDistribution, _duration);
+    ) public initializer {
+        __GardenTokenLock_init(_initialDate, _roundDuration, _tokenManager);
+        __GIVUnipool_init(_tokenDistribution, _duration);
     }
 
     function lock(uint256 _amount, uint256 _rounds) public virtual override {
@@ -34,11 +34,10 @@ contract GIVpower is GardenTokenLock, GIVUnipool {
         emit PowerLocked(msg.sender, powerAmount, _rounds, round);
     }
 
-
     function unlock(address[] calldata _locks, uint256 _round) public virtual override {
         // we check the round has passed in the parent's function
         super.unlock(_locks, _round);
-        for (uint i = 0; i < _locks.length; i++) {
+        for (uint256 i = 0; i < _locks.length; i++) {
             address _lock = _locks[i];
             uint256 powerAmount = _powerUntilRound[_lock][_round];
             super.withdraw(_lock, powerAmount);
@@ -54,7 +53,7 @@ contract GIVpower is GardenTokenLock, GIVUnipool {
     /**
      * @dev Same sqrt implementation as Uniswap v2
      */
-    function _sqrt(uint y) internal pure returns (uint256 z) {
+    function _sqrt(uint256 y) internal pure returns (uint256 z) {
         if (y > 3) {
             z = y;
             uint256 x = y / 2 + 1;

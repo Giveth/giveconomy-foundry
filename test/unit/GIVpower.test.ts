@@ -1,9 +1,11 @@
 import { evmcl, EVMcrispr } from '@1hive/evmcrispr';
 import { Contract } from 'ethers';
-// import { expect } from 'chai';
 import { ethers, upgrades } from 'hardhat';
+import { getImplementationAddress } from '@openzeppelin/upgrades-core';
 
 import { impersonateAddress, increase } from '../helpers/rpc';
+import {GardenUnipoolTokenDistributor__factory} from "../../typechain-types";
+import {expect} from "../shared";
 
 
 describe('unit/GIVpower', () => {
@@ -11,6 +13,77 @@ describe('unit/GIVpower', () => {
   let instance
   let tokenManager
   let evm
+
+  it('upgrade GardenUnipoolTokenDistributor', async () => {
+    const gardenUnipoolProxyAdminAddress = '0x076C250700D210e6cf8A27D1EB1Fd754FB487986';
+    const gardenUnipoolAddress = '0xD93d3bDBa18ebcB3317a57119ea44ed2Cf41C2F2';
+
+    const testUsers = [
+      '0xB8306b6d3BA7BaB841C02f0F92b8880a4760199A',
+      '0x975f6807E8406191D1C951331eEa4B26199b37ff'
+    ]
+
+    signer = (await ethers.getSigners())[0];
+    const GardenUnipoolProxyAdmin = new Contract(gardenUnipoolProxyAdminAddress, [
+      'function owner() public view returns (address)',
+    ], signer)
+    signer = await impersonateAddress(await GardenUnipoolProxyAdmin.owner());
+
+    const GardenUnipoolTokenDistributor =
+        await ethers.getContractFactory("GardenUnipoolTokenDistributor", signer) as GardenUnipoolTokenDistributor__factory;
+
+
+    const gardenUnipool = GardenUnipoolTokenDistributor.attach(gardenUnipoolAddress);
+
+    console.log('implementation address: ', await getImplementationAddress(ethers.provider, gardenUnipoolAddress))
+    const beforeContractValues = await Promise.all([
+      gardenUnipool.tokenDistro(),
+      gardenUnipool.duration(),
+      gardenUnipool.rewardDistribution(),
+      gardenUnipool.periodFinish(),
+      gardenUnipool.rewardRate(),
+      gardenUnipool.lastUpdateTime(),
+      gardenUnipool.rewardPerTokenStored(),
+      gardenUnipool.totalSupply()
+    ]);
+
+    const beforeUsersValues = {};
+    for (const testUser of testUsers) {
+      beforeUsersValues[testUser] = await Promise.all([
+          gardenUnipool.balanceOf(testUser),
+          gardenUnipool.userRewardPerTokenPaid(testUser),
+          gardenUnipool.rewards(testUser),
+      ])
+    }
+
+    await upgrades.upgradeProxy(gardenUnipoolAddress, GardenUnipoolTokenDistributor, {
+      unsafeSkipStorageCheck: true,
+    });
+
+    console.log('new implementation address: ', await getImplementationAddress(ethers.provider, gardenUnipoolAddress))
+    const afterContractValues = await Promise.all([
+      gardenUnipool.tokenDistro(),
+      gardenUnipool.duration(),
+      gardenUnipool.rewardDistribution(),
+      gardenUnipool.periodFinish(),
+      gardenUnipool.rewardRate(),
+      gardenUnipool.lastUpdateTime(),
+      gardenUnipool.rewardPerTokenStored(),
+      gardenUnipool.totalSupply()
+    ]);
+
+    const afterUsersValues = {};
+    for (const testUser of testUsers) {
+      afterUsersValues[testUser] = await Promise.all([
+        gardenUnipool.balanceOf(testUser),
+        gardenUnipool.userRewardPerTokenPaid(testUser),
+        gardenUnipool.rewards(testUser),
+      ])
+    }
+
+    expect(beforeContractValues).to.deep.eq(afterContractValues);
+    expect(beforeUsersValues).to.deep.eq(afterUsersValues);
+  })
 
   it('deploys properly', async () => {
 
@@ -23,7 +96,7 @@ describe('unit/GIVpower', () => {
     evm = await EVMcrispr.create(dao, signer);
     const voting = evm.app('disputable-voting.open');
 
-    const initialDate = (await signer.provider.getBlock('latest')).timestamp;
+    const initialDate = (await ethers.provider.getBlock('latest')).timestamp;
     const roundDuration = evm.resolver.resolveNumber('14d');
     tokenManager = evm.app('wrappable-hooked-token-manager.open');
     const duration = evm.resolver.resolveNumber('14d');
@@ -43,10 +116,10 @@ describe('unit/GIVpower', () => {
       exec wrappable-hooked-token-manager.open revokeHook 2
       exec wrappable-hooked-token-manager.open registerHook ${instance.address}
     `.forward(signer);
-  
+
     const voteId = parseInt(tx[0].logs[2].topics[1], 16);
     const executionScript = voting.interface.decodeEventLog('StartVote', tx[0].logs[2].data).executionScript;
-    
+
     await voting.connect(await impersonateAddress('0xECb179EA5910D652eDa6988E919c7930F5Ffcf11')).vote(voteId, true);
     await voting.connect(await impersonateAddress('0x839395e20bbB182fa440d08F850E6c7A8f6F0780')).vote(voteId, true);
 
