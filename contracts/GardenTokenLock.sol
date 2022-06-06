@@ -2,10 +2,10 @@
 
 pragma solidity =0.8.6;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
-import "./TokenManagerHook.sol";
-import "./interfaces/ITokenManager.sol";
+import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol';
+import './TokenManagerHook.sol';
+import './interfaces/ITokenManager.sol';
 
 contract GardenTokenLock is TokenManagerHook {
     using SafeMathUpgradeable for uint256;
@@ -27,8 +27,12 @@ contract GardenTokenLock is TokenManagerHook {
 
     event GardenTokenLocked(address account, uint256 amount, uint256 rounds, uint256 untilRound);
     event GardenTokenUnlocked(address account, uint256 amount, uint256 round);
-    
-    function __GardenTokenLock_init(uint256 _initialDate, uint256 _roundDuration, address _tokenManager) public initializer {
+
+    function __GardenTokenLock_init(
+        uint256 _initialDate,
+        uint256 _roundDuration,
+        address _tokenManager
+    ) public initializer {
         __TokenManagerHook_initialize(_tokenManager);
         initialDate = _initialDate;
         roundDuration = _roundDuration;
@@ -50,7 +54,7 @@ contract GardenTokenLock is TokenManagerHook {
         if (_round > currentRound()) {
             revert CannotUnlockUntilRoundIsFinished();
         }
-        for (uint i = 0; i < _locks.length; i++) {
+        for (uint256 i = 0; i < _locks.length; i++) {
             Lock storage _lock = lockedTokens[_locks[i]];
             uint256 amount = _lock.amountLockedUntilRound[_round];
             _lock.totalAmountLocked = _lock.totalAmountLocked.sub(amount);
@@ -70,7 +74,7 @@ contract GardenTokenLock is TokenManagerHook {
      */
     function _onTransfer(
         address _from,
-        address/* _to*/,
+        address, /* _to*/
         uint256 _amount
     ) internal view override returns (bool) {
         if (_from != address(0) && token.balanceOf(_from).sub(_amount) < lockedTokens[_from].totalAmountLocked) {
