@@ -70,6 +70,12 @@ contract GardenUnipoolTokenDistributor is LPTokenWrapper, TokenManagerHook, Owna
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
 
+    /**
+     * Upgrade to support GIVPower
+     */
+    // GIVPower smart contract
+    address public givPowerManager;
+
     event RewardAdded(uint256 reward);
     event Staked(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
@@ -87,6 +93,11 @@ contract GardenUnipoolTokenDistributor is LPTokenWrapper, TokenManagerHook, Owna
             rewards[account] = claimableStream(account);
             userRewardPerTokenPaid[account] = rewardPerTokenStored;
         }
+        _;
+    }
+
+    modifier onlyGivPowerManager() {
+        require(_msgSender() == givPowerManager, 'Caller is not GIVPower manager');
         _;
     }
 
@@ -217,6 +228,22 @@ contract GardenUnipoolTokenDistributor is LPTokenWrapper, TokenManagerHook, Owna
             withdraw(_from, _amount);
             stake(_to, _amount);
             return true;
+        }
+    }
+
+    function setGivPowerManager(address _givPowerManager) external onlyOwner {
+        givPowerManager = _givPowerManager;
+    }
+
+    function stakeGivPower(address user, uint256 amount) external onlyGivPowerManager {
+        if (amount > 0) {
+            stake(user, amount);
+        }
+    }
+
+    function withdrawGivPower(address user, uint256 amount) external onlyGivPowerManager {
+        if (amount > 0) {
+            withdraw(user, amount);
         }
     }
 }

@@ -2,11 +2,13 @@
 
 pragma solidity =0.8.6;
 
-import './GIVUnipool.sol';
 import './GardenTokenLock.sol';
+import './interfaces/IGardenUnipool.sol';
 
-contract GIVpower is GardenTokenLock, GIVUnipool {
+contract GIVpower is GardenTokenLock {
     using SafeMathUpgradeable for uint256;
+
+    IGardenUnipool public gardenUnipool;
 
     mapping(address => mapping(uint256 => uint256)) public _powerUntilRound;
 
@@ -17,11 +19,10 @@ contract GIVpower is GardenTokenLock, GIVUnipool {
         uint256 _initialDate,
         uint256 _roundDuration,
         address _tokenManager,
-        address _tokenDistribution,
-        uint256 _duration
+        address _gardenUnipool
     ) public initializer {
         __GardenTokenLock_init(_initialDate, _roundDuration, _tokenManager);
-        __GIVUnipool_init(_tokenDistribution, _duration);
+        gardenUnipool = IGardenUnipool(_gardenUnipool);
     }
 
     function lock(uint256 _amount, uint256 _rounds) public virtual override {
@@ -30,20 +31,26 @@ contract GIVpower is GardenTokenLock, GIVUnipool {
         uint256 round = currentRound().add(_rounds);
         uint256 powerAmount = calculatePower(_amount, _rounds);
         _powerUntilRound[msg.sender][round] = _powerUntilRound[msg.sender][round].add(powerAmount);
-        super.stake(msg.sender, powerAmount);
+        if (powerAmount > _amount) {
+            gardenUnipool.stakeGivPower(msg.sender, powerAmount - _amount);
+        }
         emit PowerLocked(msg.sender, powerAmount, _rounds, round);
     }
 
     function unlock(address[] calldata _locks, uint256 _round) public virtual override {
         // we check the round has passed in the parent's function
-        super.unlock(_locks, _round);
         for (uint256 i = 0; i < _locks.length; i++) {
             address _lock = _locks[i];
             uint256 powerAmount = _powerUntilRound[_lock][_round];
-            super.withdraw(_lock, powerAmount);
+            uint256 lockedAmount = lockedTokens[_lock].amountLockedUntilRound[_round];
+            if (powerAmount > lockedAmount) {
+                gardenUnipool.withdrawGivPower(_lock, powerAmount - lockedAmount);
+            }
             _powerUntilRound[_lock][_round] = 0;
             emit PowerUnlocked(_lock, powerAmount, _round);
         }
+
+        super.unlock(_locks, _round);
     }
 
     function calculatePower(uint256 _amount, uint256 _rounds) public pure returns (uint256) {
