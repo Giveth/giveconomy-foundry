@@ -6,5 +6,6 @@ import '@openzeppelin/contracts/interfaces/IERC20.sol';
 
 interface IGardenUnipool {
     function stakeGivPower(address user, uint256 amount) external;
+
     function withdrawGivPower(address user, uint256 amount) external;
 }

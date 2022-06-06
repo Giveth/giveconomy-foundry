@@ -37,20 +37,24 @@ contract GIVpower is GardenTokenLock {
         emit PowerLocked(msg.sender, powerAmount, _rounds, round);
     }
 
-    function unlock(address[] calldata _locks, uint256 _round) public virtual override {
+    function unlock(address[] calldata _locks, uint256 _round)
+        public
+        virtual
+        override
+        returns (uint256[] memory unlockedAmounts)
+    {
+        unlockedAmounts = super.unlock(_locks, _round);
         // we check the round has passed in the parent's function
         for (uint256 i = 0; i < _locks.length; i++) {
             address _lock = _locks[i];
             uint256 powerAmount = _powerUntilRound[_lock][_round];
-            uint256 lockedAmount = lockedTokens[_lock].amountLockedUntilRound[_round];
-            if (powerAmount > lockedAmount) {
-                gardenUnipool.withdrawGivPower(_lock, powerAmount - lockedAmount);
+            uint256 unlockedAmount = unlockedAmounts[i];
+            if (powerAmount > unlockedAmount) {
+                gardenUnipool.withdrawGivPower(_lock, powerAmount - unlockedAmount);
             }
             _powerUntilRound[_lock][_round] = 0;
             emit PowerUnlocked(_lock, powerAmount, _round);
         }
-
-        super.unlock(_locks, _round);
     }
 
     function calculatePower(uint256 _amount, uint256 _rounds) public pure returns (uint256) {
