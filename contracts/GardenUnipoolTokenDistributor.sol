@@ -32,26 +32,26 @@ import './TokenManagerHook.sol';
 contract LPTokenWrapper is Initializable {
     using SafeMathUpgradeable for uint256;
 
-    uint256 private _totalSupply;
-    mapping(address => uint256) internal _balances;
+    uint256 private _totalStaked;
+    mapping(address => uint256) private _balances;
 
     function __LPTokenWrapper_initialize() public initializer {}
 
-    function totalSupply() public view returns (uint256) {
-        return _totalSupply;
+    function _totalSupply() internal view returns (uint256) {
+        return _totalStaked;
     }
 
-    function balanceOf(address account) public view returns (uint256) {
+    function _balanceOf(address account) internal view returns (uint256) {
         return _balances[account];
     }
 
     function stake(address user, uint256 amount) internal virtual {
-        _totalSupply = _totalSupply.add(amount);
+        _totalStaked = _totalStaked.add(amount);
         _balances[user] = _balances[user].add(amount);
     }
 
     function withdraw(address user, uint256 amount) internal virtual {
-        _totalSupply = _totalSupply.sub(amount);
+        _totalStaked = _totalStaked.sub(amount);
         _balances[user] = _balances[user].sub(amount);
     }
 }
@@ -120,12 +120,12 @@ contract GardenUnipoolTokenDistributor is LPTokenWrapper, TokenManagerHook, Owna
     }
 
     function rewardPerToken() public view returns (uint256) {
-        if (totalSupply() == 0) {
+        if (_totalSupply() == 0) {
             return rewardPerTokenStored;
         }
         return
             rewardPerTokenStored.add(
-                lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(1e18).div(totalSupply())
+                lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(1e18).div(_totalSupply())
             );
     }
 
@@ -153,7 +153,7 @@ contract GardenUnipoolTokenDistributor is LPTokenWrapper, TokenManagerHook, Owna
     // Returns the exact amount will be allocated on TokenDistro
     function claimableStream(address account) public view returns (uint256) {
         return
-            balanceOf(account).mul(rewardPerToken().sub(userRewardPerTokenPaid[account])).div(1e18).add(
+            _balanceOf(account).mul(rewardPerToken().sub(userRewardPerTokenPaid[account])).div(1e18).add(
                 rewards[account]
             );
     }
@@ -167,7 +167,7 @@ contract GardenUnipoolTokenDistributor is LPTokenWrapper, TokenManagerHook, Owna
     function withdraw(address user, uint256 amount) internal override updateReward(user) {
         require(amount > 0, 'Cannot withdraw 0');
         super.withdraw(user, amount);
-        if (_balances[user] == 0) {
+        if (_balanceOf(user) == 0) {
             _getReward(user);
         }
         emit Withdrawn(user, amount);
@@ -214,7 +214,7 @@ contract GardenUnipoolTokenDistributor is LPTokenWrapper, TokenManagerHook, Owna
         address _from,
         address _to,
         uint256 _amount
-    ) internal override returns (bool) {
+    ) internal virtual override returns (bool) {
         if (_from == address(0)) {
             // Token mintings (wrapping tokens)
             stake(_to, _amount);
