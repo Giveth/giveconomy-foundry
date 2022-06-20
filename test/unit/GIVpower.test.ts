@@ -7,6 +7,7 @@ import { impersonateAddress, increase } from '../helpers/rpc';
 import { GIVpower__factory } from '../../typechain-types';
 import { expect } from '../shared';
 import GardenUnipoolTokenDistributorAbiOrigin from '../abi/GardenUnipoolTokenDistributor_original.json';
+import BigNumberJs from 'bignumber.js';
 
 describe('unit/GIVpower', () => {
   let signer;
@@ -89,15 +90,23 @@ describe('unit/GIVpower', () => {
 
   it('Wraps, locks, unlocks, and unwraps properly', async () => {
     const dao = '0xb25f0ee2d26461e2b5b3d3ddafe197a0da677b98';
+    const sqrtPrecision = 1 / Math.pow(10, 9);
     evm = await EVMcrispr.create(dao, signer);
     tokenManager = evm.app('wrappable-hooked-token-manager.open');
 
     const _lockAmount = ethers.utils.parseEther('100');
     const _numberOfRounds = 1;
-    const _powerIncreaseAfterLock = _lockAmount
-      .mul(Math.floor(Math.sqrt((1 + _numberOfRounds) * Math.pow(10, 18))))
-      .div(Math.pow(10, 9))
-      .sub(_lockAmount);
+    const _powerIncreaseAfterLockExpected = new BigNumberJs(_lockAmount.toString())
+      .times(new BigNumberJs(1 + _numberOfRounds).sqrt())
+      .minus(_lockAmount.toString());
+
+    const _powerIncreaseAfterLock = (await givPower.calculatePower(_lockAmount, _numberOfRounds)).sub(_lockAmount);
+
+    expect(_powerIncreaseAfterLockExpected.div(_powerIncreaseAfterLock.toString()).toNumber()).to.be.within(
+      1 - sqrtPrecision,
+      1 + sqrtPrecision
+    );
+
     const _wrapAmount = _lockAmount.mul(2);
     const signerAddress = await signer.getAddress();
     const _initialUnipoolBalance = (await givPower.balanceOf(signerAddress)) as BigNumber;
