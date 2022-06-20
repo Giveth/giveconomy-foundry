@@ -57,7 +57,7 @@ describe('unit/GIVpower', () => {
     const GIVPower = (await ethers.getContractFactory('GIVpower', signer)) as GIVpower__factory;
 
     await upgrades.upgradeProxy(gardenUnipoolAddress, GIVPower, {
-      unsafeSkipStorageCheck: true,
+      unsafeAllowRenames: true,
     });
 
     console.log('new implementation address: ', await getImplementationAddress(ethers.provider, gardenUnipoolAddress));
