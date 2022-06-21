@@ -17,7 +17,6 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20Upgradeable {
     struct RoundBalance {
         uint256 unlockableTokenAmount;
         uint256 releasablePowerAmount;
-        bool initialized;
     }
 
     struct UserLock {
@@ -54,11 +53,6 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20Upgradeable {
         uint256 _endRound = currentRound().add(_rounds);
         RoundBalance storage _roundBalance = _userLock.roundBalances[_endRound];
 
-        if (!_roundBalance.initialized) {
-            _roundBalance.initialized = true;
-            _userLock.roundBalances[_endRound] = _roundBalance;
-        }
-
         _userLock.totalAmountLocked = _userLock.totalAmountLocked.add(_amount);
         _roundBalance.unlockableTokenAmount = _roundBalance.unlockableTokenAmount.add(_amount);
 
@@ -82,7 +76,8 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20Upgradeable {
             UserLock storage _userLock = userLocks[_account];
             RoundBalance storage _roundBalance = _userLock.roundBalances[_round];
 
-            if (!_roundBalance.initialized) {
+            // @dev Based on the design, unlockableTokenAmount and releasablePowerAmount are both zero or both positive
+            if (_roundBalance.unlockableTokenAmount == 0) { // && _roundBalance._releasablePowerAmount == 0
                 continue;
             }
 
