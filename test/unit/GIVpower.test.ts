@@ -1,7 +1,6 @@
 import { EVMcrispr } from '@1hive/evmcrispr';
 import { BigNumber, Contract } from 'ethers';
-import { ethers, upgrades } from 'hardhat';
-import { getImplementationAddress } from '@openzeppelin/upgrades-core';
+import { ethers, deployments } from 'hardhat';
 
 import { impersonateAddress, increase } from '../helpers/rpc';
 import { GIVpower__factory } from '../../typechain-types';
@@ -13,7 +12,6 @@ describe('unit/GIVpower', () => {
   let signer;
   let tokenManager;
   let evm;
-  const gardenUnipoolProxyAdminAddress = '0x076C250700D210e6cf8A27D1EB1Fd754FB487986';
   const gardenUnipoolAddress = '0xD93d3bDBa18ebcB3317a57119ea44ed2Cf41C2F2';
   let gardenUnipool;
   let givPower;
@@ -26,13 +24,6 @@ describe('unit/GIVpower', () => {
   it('upgrade GardenUnipoolTokenDistributor', async () => {
     const testUsers = ['0xB8306b6d3BA7BaB841C02f0F92b8880a4760199A', '0x975f6807E8406191D1C951331eEa4B26199b37ff'];
 
-    const GardenUnipoolProxyAdmin = new Contract(
-      gardenUnipoolProxyAdminAddress,
-      ['function owner() public view returns (address)'],
-      signer
-    );
-
-    console.log('implementation address: ', await getImplementationAddress(ethers.provider, gardenUnipoolAddress));
     const beforeContractValues = await Promise.all([
       gardenUnipool.tokenDistro(),
       gardenUnipool.duration(),
@@ -53,15 +44,9 @@ describe('unit/GIVpower', () => {
       ]);
     }
 
-    signer = await impersonateAddress(await GardenUnipoolProxyAdmin.owner());
+    await deployments.fixture(['UpgradeUnipool']);
 
     const GIVPower = (await ethers.getContractFactory('GIVpower', signer)) as GIVpower__factory;
-
-    await upgrades.upgradeProxy(gardenUnipoolAddress, GIVPower, {
-      unsafeAllowRenames: true,
-    });
-
-    console.log('new implementation address: ', await getImplementationAddress(ethers.provider, gardenUnipoolAddress));
     givPower = GIVPower.attach(gardenUnipoolAddress);
 
     const afterContractValues = await Promise.all([
@@ -90,8 +75,12 @@ describe('unit/GIVpower', () => {
 
   it('Wraps, locks, unlocks, and unwraps properly', async () => {
     const dao = '0xb25f0ee2d26461e2b5b3d3ddafe197a0da677b98';
+    const GivethMultisig = '0x4D9339dd97db55e3B9bCBE65dE39fF9c04d1C2cd';
     const sqrtPrecision = 1 / Math.pow(10, 9);
-    evm = await EVMcrispr.create(dao, signer);
+
+    const multisigSigner = await impersonateAddress(GivethMultisig);
+
+    evm = await EVMcrispr.create(dao, multisigSigner);
     tokenManager = evm.app('wrappable-hooked-token-manager.open');
 
     const _lockAmount = ethers.utils.parseEther('100');
@@ -108,8 +97,7 @@ describe('unit/GIVpower', () => {
     );
 
     const _wrapAmount = _lockAmount.mul(2);
-    const signerAddress = await signer.getAddress();
-    const _initialUnipoolBalance = (await givPower.balanceOf(signerAddress)) as BigNumber;
+    const _initialUnipoolBalance = (await givPower.balanceOf(GivethMultisig)) as BigNumber;
 
     const givToken = new Contract(
       await tokenManager.wrappableToken(),
@@ -119,45 +107,45 @@ describe('unit/GIVpower', () => {
       ],
       signer
     );
-    await (await givToken.approve(tokenManager.address, _wrapAmount)).wait();
-    await expect(tokenManager.wrap(_wrapAmount))
+    await (await givToken.connect(multisigSigner).approve(tokenManager.address, _wrapAmount)).wait();
+    await expect(tokenManager.connect(multisigSigner).wrap(_wrapAmount))
       .to.emit(givPower, 'Staked')
-      .withArgs(signerAddress, _wrapAmount)
+      .withArgs(GivethMultisig, _wrapAmount)
       .to.emit(givPower, 'Transfer')
-      .withArgs(ethers.constants.AddressZero, signerAddress, _wrapAmount);
-    expect(await givPower.balanceOf(signerAddress)).to.be.eq(_initialUnipoolBalance.add(_wrapAmount));
+      .withArgs(ethers.constants.AddressZero, GivethMultisig, _wrapAmount);
+    expect(await givPower.balanceOf(GivethMultisig)).to.be.eq(_initialUnipoolBalance.add(_wrapAmount));
 
     // const lockTx = await (await givPower.lock(_lockAmount, _numberOfRounds)).wait();
     // const untilRound = givPower.interface.decodeEventLog('TokenLocked', lockTx.logs[1].data).untilRound;
 
     const currentRound: BigNumber = await givPower.currentRound();
     const untilRound = currentRound.add(_numberOfRounds);
-    await expect(givPower.lock(_lockAmount, _numberOfRounds))
+    await expect(givPower.connect(multisigSigner).lock(_lockAmount, _numberOfRounds))
       .to.emit(givPower, 'Staked')
-      .withArgs(signerAddress, _powerIncreaseAfterLock)
+      .withArgs(GivethMultisig, _powerIncreaseAfterLock)
       .to.emit(givPower, 'Transfer')
-      .withArgs(ethers.constants.AddressZero, signerAddress, _powerIncreaseAfterLock)
+      .withArgs(ethers.constants.AddressZero, GivethMultisig, _powerIncreaseAfterLock)
       .to.emit(givPower, 'TokenLocked')
-      .withArgs(signerAddress, _lockAmount, _numberOfRounds, untilRound);
-    expect(await givPower.balanceOf(signerAddress)).to.be.eq(_wrapAmount.add(_powerIncreaseAfterLock));
+      .withArgs(GivethMultisig, _lockAmount, _numberOfRounds, untilRound);
+    expect(await givPower.balanceOf(GivethMultisig)).to.be.eq(_wrapAmount.add(_powerIncreaseAfterLock));
 
-    await expect(tokenManager.unwrap(_wrapAmount.sub(_lockAmount)))
+    await expect(tokenManager.connect(multisigSigner).unwrap(_wrapAmount.sub(_lockAmount)))
       .to.emit(givPower, 'Withdrawn')
-      .withArgs(signerAddress, _wrapAmount.sub(_lockAmount))
+      .withArgs(GivethMultisig, _wrapAmount.sub(_lockAmount))
       .to.emit(givPower, 'Transfer')
-      .withArgs(signerAddress, ethers.constants.AddressZero, _wrapAmount.sub(_lockAmount));
+      .withArgs(GivethMultisig, ethers.constants.AddressZero, _wrapAmount.sub(_lockAmount));
 
     await increase(evm.resolver.resolveNumber(`${(_numberOfRounds + 1) * 14}d`));
 
-    await expect(givPower.unlock([await signer.getAddress()], untilRound))
+    await expect(givPower.unlock([GivethMultisig], untilRound))
       .to.emit(givPower, 'Withdrawn')
-      .withArgs(signerAddress, _powerIncreaseAfterLock)
+      .withArgs(GivethMultisig, _powerIncreaseAfterLock)
       .to.emit(givPower, 'Transfer')
-      .withArgs(signerAddress, ethers.constants.AddressZero, _powerIncreaseAfterLock)
+      .withArgs(GivethMultisig, ethers.constants.AddressZero, _powerIncreaseAfterLock)
       .to.emit(givPower, 'TokenUnlocked')
-      .withArgs(signerAddress, _lockAmount, untilRound);
+      .withArgs(GivethMultisig, _lockAmount, untilRound);
 
-    expect(await givPower.balanceOf(signerAddress)).to.be.eq(_lockAmount);
-    await (await tokenManager.unwrap(_lockAmount)).wait();
+    expect(await givPower.balanceOf(GivethMultisig)).to.be.eq(_lockAmount);
+    await (await tokenManager.connect(multisigSigner).unwrap(_lockAmount)).wait();
   });
 });
