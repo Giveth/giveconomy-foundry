@@ -9,6 +9,7 @@ import 'solidity-coverage';
 import '@openzeppelin/hardhat-upgrades';
 import 'hardhat-abi-exporter';
 import 'hardhat-gas-reporter'
+import 'hardhat-deploy'
 
 const DEFAULT_COMPILER_SETTINGS: SolcUserConfig = {
   version: '0.8.6',
@@ -89,7 +90,12 @@ const config: HardhatUserConfig = {
   },
   gasReporter: {
     enabled: true
-  }
+  },
+  namedAccounts: {
+    deployer: {
+      default: 0, // here this will by default take the first account as deployer
+    },
+  },
 };
 
 if (process.env.ETHERSCAN_API_KEY) {
