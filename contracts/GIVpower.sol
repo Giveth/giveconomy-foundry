@@ -11,8 +11,8 @@ import './interfaces/ITokenManager.sol';
 contract GIVpower is GardenUnipoolTokenDistributor, IERC20Upgradeable {
     using SafeMathUpgradeable for uint256;
 
-    uint256 private constant initialDate = 1654415235; // block 22501098
-    uint256 private constant roundDuration = 14 days;
+    uint256 public constant initialDate = 1654415235; // block 22501098
+    uint256 public constant roundDuration = 14 days;
 
     struct RoundBalance {
         uint256 unlockableTokenAmount;
