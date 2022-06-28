@@ -32,8 +32,8 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20Upgradeable {
     error ZeroLockRound();
     error TokenNonTransferable();
 
-    event TokenLocked(address account, uint256 amount, uint256 rounds, uint256 untilRound);
-    event TokenUnlocked(address account, uint256 amount, uint256 round);
+    event TokenLocked(address indexed account, uint256 amount, uint256 rounds, uint256 untilRound);
+    event TokenUnlocked(address indexed account, uint256 amount, uint256 round);
 
     function _getToken() private view returns (IERC20) {
         return ITokenManager(getTokenManager()).token();
