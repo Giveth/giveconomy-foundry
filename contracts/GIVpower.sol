@@ -13,6 +13,7 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20Upgradeable {
 
     uint256 public constant initialDate = 1654415235; // block 22501098
     uint256 public constant roundDuration = 14 days;
+    uint256 public constant maxLockRounds = 26;
 
     struct RoundBalance {
         uint256 unlockableTokenAmount;
@@ -30,6 +31,7 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20Upgradeable {
     error CannotUnlockUntilRoundIsFinished();
     error NotEnoughBalanceToLock();
     error ZeroLockRound();
+    error LockRoundLimit();
     error TokenNonTransferable();
 
     event TokenLocked(address indexed account, uint256 amount, uint256 rounds, uint256 untilRound);
@@ -42,6 +44,9 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20Upgradeable {
     function lock(uint256 _amount, uint256 _rounds) public {
         if (_rounds < 1) {
             revert ZeroLockRound();
+        }
+        if (_rounds > maxLockRounds) {
+            revert LockRoundLimit();
         }
         UserLock storage _userLock = userLocks[msg.sender];
         IERC20 token = _getToken();
