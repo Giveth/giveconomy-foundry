@@ -72,7 +72,7 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
     }
 
     function unlock(address[] calldata _accounts, uint256 _round) public {
-        if (_round > currentRound()) {
+        if (_round >= currentRound()) {
             revert CannotUnlockUntilRoundIsFinished();
         }
 

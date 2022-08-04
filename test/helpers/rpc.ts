@@ -1,4 +1,4 @@
-import type { BigNumber, providers } from 'ethers';
+import type { BigNumber, BigNumberish, providers } from 'ethers';
 import hre, { ethers } from 'hardhat';
 
 export const duration: any = {
@@ -22,16 +22,13 @@ export const duration: any = {
   },
 };
 
-export const setBalance = async (
-  account: string,
-  balance: string,
-): Promise<void> => {
+export const setBalance = async (account: string, balance: string): Promise<void> => {
   await hre.network.provider.send('hardhat_setBalance', [account, balance]);
 };
 
 export const impersonateAddress = async (
   address: string,
-  setInitialBalance = true,
+  setInitialBalance = true
 ): Promise<providers.JsonRpcSigner> => {
   await hre.network.provider.request({
     method: 'hardhat_impersonateAccount',
@@ -45,12 +42,7 @@ export const impersonateAddress = async (
    * gas to pay for transactions
    */
   if (setInitialBalance) {
-    await setBalance(
-      address,
-      ethers.utils.hexStripZeros(
-        ethers.constants.WeiPerEther.mul(50).toHexString(),
-      ),
-    );
+    await setBalance(address, ethers.utils.hexStripZeros(ethers.constants.WeiPerEther.mul(50).toHexString()));
   }
   return signer;
 };
@@ -69,13 +61,12 @@ export const restoreSnapshot = async (id: string): Promise<void> => {
   });
 };
 
-export const increase = async (duration: string | BigNumber): Promise<void> => {
+export const increase = async (duration: BigNumberish): Promise<void> => {
   if (!ethers.BigNumber.isBigNumber(duration)) {
     duration = ethers.BigNumber.from(duration);
   }
 
-  if (duration.isNegative())
-    throw Error(`Cannot increase time by a negative amount (${duration})`);
+  if (duration.isNegative()) throw Error(`Cannot increase time by a negative amount (${duration})`);
 
   await hre.network.provider.request({
     method: 'evm_increaseTime',

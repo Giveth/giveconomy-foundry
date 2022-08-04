@@ -7,21 +7,31 @@ import { GIVpower__factory } from '../../typechain-types';
 import { expect } from '../shared';
 import GardenUnipoolTokenDistributorAbiOrigin from '../abi/GardenUnipoolTokenDistributor_original.json';
 import BigNumberJs from 'bignumber.js';
-
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 const dao = '0xb25f0ee2d26461e2b5b3d3ddafe197a0da677b98';
 const GivethMultisig = '0x4D9339dd97db55e3B9bCBE65dE39fF9c04d1C2cd';
+const TWO_WEEKS = 14 * 24 * 3600;
 
 const sqrtPrecision = 1 / Math.pow(10, 9);
 
 describe('unit/GIVpower', () => {
-  let signer;
+  let signer: SignerWithAddress;
   let tokenManager;
-  let evm;
+  let evm: EVMcrispr;
   const gardenUnipoolAddress = '0xD93d3bDBa18ebcB3317a57119ea44ed2Cf41C2F2';
   let gardenUnipool;
   let givPower;
   let givToken;
+  let roundDuration: BigNumber;
+
+  const roundHasStartedInSeconds = async (): Promise<number> => {
+    const GIVPower = (await ethers.getContractFactory('GIVpower')) as GIVpower__factory;
+    const _givPower = GIVPower.attach(gardenUnipoolAddress);
+    const now = (await ethers.provider.getBlock('latest')).timestamp as number;
+    const initialDate = (await _givPower.initialDate()).toNumber();
+    return (now - initialDate) % TWO_WEEKS;
+  };
 
   before(async () => {
     signer = (await ethers.getSigners())[0];
@@ -55,6 +65,9 @@ describe('unit/GIVpower', () => {
 
     const GIVPower = (await ethers.getContractFactory('GIVpower', signer)) as GIVpower__factory;
     givPower = GIVPower.attach(gardenUnipoolAddress);
+    roundDuration = await givPower.roundDuration();
+
+    expect(roundDuration).to.be.eq(TWO_WEEKS);
 
     const afterContractValues = await Promise.all([
       givPower.tokenDistro(),
@@ -102,7 +115,7 @@ describe('unit/GIVpower', () => {
 
     const _powerIncreaseAfterLock = (await givPower.calculatePower(_lockAmount, _numberOfRounds)).sub(_lockAmount);
 
-    const _initialTotalSupply = await givPower.totalSupply()
+    const _initialTotalSupply = await givPower.totalSupply();
     expect(_powerIncreaseAfterLockExpected.div(_powerIncreaseAfterLock.toString()).toNumber()).to.be.within(
       1 - sqrtPrecision,
       1 + sqrtPrecision
@@ -111,9 +124,8 @@ describe('unit/GIVpower', () => {
     const _wrapAmount = _lockAmount.mul(2);
     const _initialUnipoolBalance = (await givPower.balanceOf(GivethMultisig)) as BigNumber;
 
-
     const ggivToken = new Contract(
-      await tokenManager.wrappableToken(),
+      await tokenManager.token(),
       [
         'function approve(address spender, uint256 amount) external returns (bool)',
         'function balanceOf(address account) external view returns (uint256)',
@@ -121,6 +133,12 @@ describe('unit/GIVpower', () => {
       ],
       signer
     );
+
+    const _initialgGivBalance = (await ggivToken.balanceOf(GivethMultisig)) as BigNumber;
+
+    // Before lock unipool balance should be same as gGiv balance
+    expect(_initialgGivBalance).to.eq(_initialUnipoolBalance);
+
     await (await givToken.connect(evm.signer).approve(tokenManager.address, _wrapAmount)).wait();
     await expect(tokenManager.connect(evm.signer).wrap(_wrapAmount))
       .to.emit(givPower, 'Staked')
@@ -128,7 +146,8 @@ describe('unit/GIVpower', () => {
       .to.emit(givPower, 'Transfer')
       .withArgs(ethers.constants.AddressZero, GivethMultisig, _wrapAmount);
     expect(await givPower.balanceOf(GivethMultisig)).to.be.eq(_initialUnipoolBalance.add(_wrapAmount));
-    expect(await givPower.totalSupply()).to.be.eq(_initialTotalSupply.add(_wrapAmount))
+    expect(await ggivToken.balanceOf(GivethMultisig)).to.be.eq(_initialgGivBalance.add(_wrapAmount));
+    expect(await givPower.totalSupply()).to.be.eq(_initialTotalSupply.add(_wrapAmount));
 
     const currentRound: BigNumber = await givPower.currentRound();
     const untilRound = currentRound.add(_numberOfRounds);
@@ -140,6 +159,9 @@ describe('unit/GIVpower', () => {
       .to.emit(givPower, 'TokenLocked')
       .withArgs(GivethMultisig, _lockAmount, _numberOfRounds, untilRound);
     expect(await givPower.balanceOf(GivethMultisig)).to.be.eq(_wrapAmount.add(_powerIncreaseAfterLock));
+
+    // gGIV balance should not change after lock
+    expect(await ggivToken.balanceOf(GivethMultisig)).to.be.eq(_initialgGivBalance.add(_wrapAmount));
 
     await expect(tokenManager.connect(evm.signer).unwrap(_wrapAmount.sub(_lockAmount)))
       .to.emit(givPower, 'Withdrawn')
@@ -158,22 +180,21 @@ describe('unit/GIVpower', () => {
       .withArgs(GivethMultisig, _lockAmount, untilRound);
 
     expect(await givPower.balanceOf(GivethMultisig)).to.be.eq(_lockAmount);
-    console.log(await givPower.totalSupply())
     await (await tokenManager.connect(evm.signer).unwrap(_lockAmount)).wait();
   });
 
   it('is a non-transferable ERC20 token', async () => {
-    expect(await givPower.name()).to.be.eq('GIVpower')
-    expect(await givPower.symbol()).to.be.eq('POW')
-    expect(await givPower.decimals()).to.be.eq(18)
-    expect(await givPower.balanceOf(constants.AddressZero)).to.be.eq(0)
-    expect(await givPower.totalSupply()).to.be.above(0)
-    expect(givPower.approve(GivethMultisig, 1)).to.be.revertedWith('TokenNonTransferable')
-    expect(givPower.increaseAllowance(GivethMultisig, 1)).to.be.revertedWith('TokenNonTransferable')
-    expect(givPower.decreaseAllowance(GivethMultisig, 1)).to.be.revertedWith('TokenNonTransferable')
-    expect(givPower.transfer(GivethMultisig, 1)).to.be.revertedWith('TokenNonTransferable')
-    expect(await givPower.allowance(GivethMultisig, GivethMultisig)).to.be.eq(0)
-    expect(givPower.transferFrom(GivethMultisig, GivethMultisig, 1)).to.be.revertedWith('TokenNonTransferable')
+    expect(await givPower.name()).to.be.eq('GIVpower');
+    expect(await givPower.symbol()).to.be.eq('POW');
+    expect(await givPower.decimals()).to.be.eq(18);
+    expect(await givPower.balanceOf(constants.AddressZero)).to.be.eq(0);
+    expect(await givPower.totalSupply()).to.be.above(0);
+    expect(givPower.approve(GivethMultisig, 1)).to.be.revertedWith('TokenNonTransferable');
+    expect(givPower.increaseAllowance(GivethMultisig, 1)).to.be.revertedWith('TokenNonTransferable');
+    expect(givPower.decreaseAllowance(GivethMultisig, 1)).to.be.revertedWith('TokenNonTransferable');
+    expect(givPower.transfer(GivethMultisig, 1)).to.be.revertedWith('TokenNonTransferable');
+    expect(await givPower.allowance(GivethMultisig, GivethMultisig)).to.be.eq(0);
+    expect(givPower.transferFrom(GivethMultisig, GivethMultisig, 1)).to.be.revertedWith('TokenNonTransferable');
   });
 
   it('keeps track of current round', async () => {
@@ -182,26 +203,30 @@ describe('unit/GIVpower', () => {
     expect(await givPower.currentRound()).to.be.eq(3);
     await increase(evm.resolver.resolveNumber('14d'));
     expect(await givPower.currentRound()).to.be.eq(4);
+    await increase(evm.resolver.resolveNumber('14d').sub((await roundHasStartedInSeconds()) + 1));
+    expect(await givPower.currentRound()).to.be.eq(4);
+    await increase(1);
+    expect(await givPower.currentRound()).to.be.eq(5);
   });
 
   it('can calculate the power given the amount and a number of rounds', async () => {
     expect(await givPower.calculatePower(String(1e10), 1)).to.be.within(
-      Math.floor(Math.sqrt(2)*1e10) - 20,
-      Math.floor(Math.sqrt(2)*1e10) + 20
-    )
+      Math.floor(Math.sqrt(2) * 1e10) - 20,
+      Math.floor(Math.sqrt(2) * 1e10) + 20
+    );
     expect(await givPower.calculatePower(String(5e10), 1)).to.be.within(
-      Math.floor(Math.sqrt(2)*5e10) - 20,
-      Math.floor(Math.sqrt(2)*5e10) + 20
-    )
+      Math.floor(Math.sqrt(2) * 5e10) - 20,
+      Math.floor(Math.sqrt(2) * 5e10) + 20
+    );
     expect(await givPower.calculatePower(String(1e10), 10)).to.be.within(
-      Math.floor(Math.sqrt(11)*1e10) - 20,
-      Math.floor(Math.sqrt(11)*1e10) + 20
-    )
+      Math.floor(Math.sqrt(11) * 1e10) - 20,
+      Math.floor(Math.sqrt(11) * 1e10) + 20
+    );
     expect(await givPower.calculatePower(String(5e10), 10)).to.be.within(
-      Math.floor(Math.sqrt(11)*5e10) - 20,
-      Math.floor(Math.sqrt(11)*5e10) + 20
-    )
-  })
+      Math.floor(Math.sqrt(11) * 5e10) - 20,
+      Math.floor(Math.sqrt(11) * 5e10) + 20
+    );
+  });
 
   it('forbids to unwrap tokens meanwhile they are locked', async () => {
     const _wrapAmount = String(3e18);
@@ -209,13 +234,31 @@ describe('unit/GIVpower', () => {
     const _numberOfRounds = 2;
     await (await givToken.connect(evm.signer).approve(tokenManager.address, _wrapAmount)).wait();
 
-    await tokenManager.connect(evm.signer).wrap(_lockAmount)
-    await givPower.connect(evm.signer).lock(_lockAmount, _numberOfRounds)
-    const round = (await givPower.currentRound()).add(_numberOfRounds)
-    
-    await increase(evm.resolver.resolveNumber('27d'));
-    await expect(givPower.unlock([await evm.signer.getAddress()], round)).to.be.revertedWith('CannotUnlockUntilRoundIsFinished')
-    await increase(evm.resolver.resolveNumber('1d'));
-    await givPower.unlock([await evm.signer.getAddress()], round)
-  })
+    await tokenManager.connect(evm.signer).wrap(_lockAmount);
+    await givPower.connect(evm.signer).lock(_lockAmount, _numberOfRounds);
+    const round = (await givPower.currentRound()).add(_numberOfRounds);
+    const lockTimeRound = await givPower.currentRound();
+
+    await increase(evm.resolver.resolveNumber('14d'));
+    await expect(givPower.unlock([await evm.signer.getAddress()], round)).to.be.revertedWith(
+      'CannotUnlockUntilRoundIsFinished'
+    );
+
+    const _passedSeconds = await roundHasStartedInSeconds();
+    // Seconds has passed from round start time, for this test it should be positive
+    expect(_passedSeconds).to.be.above(0);
+
+    // After this line, less than 2 rounds (4 weeks) are passed from lock time because _passedSeconds is positive
+    await increase(evm.resolver.resolveNumber('14d').sub(_passedSeconds));
+
+    // Still not 2 complete rounds has passed since lock time!!
+    expect(await givPower.currentRound()).to.be.eq(lockTimeRound.add(2));
+
+    await expect(givPower.unlock([await evm.signer.getAddress()], round)).to.be.revertedWith(
+      'CannotUnlockUntilRoundIsFinished'
+    );
+
+    await increase(evm.resolver.resolveNumber('14d'));
+    await givPower.unlock([await evm.signer.getAddress()], round);
+  });
 });
