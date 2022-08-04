@@ -4,11 +4,11 @@ pragma solidity =0.8.6;
 
 import './GardenUnipoolTokenDistributor.sol';
 import './interfaces/IGardenUnipool.sol';
-import '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol';
 import './interfaces/ITokenManager.sol';
 
 
-contract GIVpower is GardenUnipoolTokenDistributor, IERC20Upgradeable {
+contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
     using SafeMathUpgradeable for uint256;
 
     uint256 public constant initialDate = 1654415235; // block 22501098
@@ -72,7 +72,7 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20Upgradeable {
     }
 
     function unlock(address[] calldata _accounts, uint256 _round) public {
-        if (_round >= currentRound()) {
+        if (_round > currentRound()) {
             revert CannotUnlockUntilRoundIsFinished();
         }
 
@@ -103,6 +103,10 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20Upgradeable {
     function currentRound() public view returns (uint256) {
         return uint256(block.timestamp).sub(initialDate).div(roundDuration);
         // currentRound = (now - initialDate) / roundDuration
+    }
+
+    function roundEndsIn() public view returns (uint256) {
+        return uint256(block.timestamp).sub(initialDate).mod(roundDuration);
     }
 
     function calculatePower(uint256 _amount, uint256 _rounds) public pure returns (uint256) {
@@ -148,7 +152,19 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20Upgradeable {
         return true;
     }
 
-    function totalSupply() external view override returns (uint256) {
+    function name() public view override returns (string memory) {
+        return "GIVpower";
+    }
+
+    function symbol() public view override returns (string memory) {
+        return "POW";
+    }
+
+    function decimals() public view override returns (uint8) {
+        return 18;
+    }
+
+    function totalSupply() public view override returns (uint256) {
         return _totalSupply();
     }
 
