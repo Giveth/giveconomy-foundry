@@ -2,7 +2,8 @@
 
 pragma solidity =0.8.6;
 
-import '@openzeppelin-upgradeable/utils/math/SafeMathUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol';
 import './TokenManagerHook.sol';
 import './interfaces/ITokenManager.sol';
 
@@ -49,15 +50,22 @@ contract GardenTokenLock is TokenManagerHook {
         emit GardenTokenLocked(msg.sender, _amount, _rounds, lockUntilRound);
     }
 
-    function unlock(address[] calldata _locks, uint256 _round) public virtual {
+    function unlock(address[] calldata _locks, uint256 _round)
+        public
+        virtual
+        returns (uint256[] memory unlockedAmounts)
+    {
         if (_round > currentRound()) {
             revert CannotUnlockUntilRoundIsFinished();
         }
+        unlockedAmounts = new uint256[](_locks.length);
+
         for (uint256 i = 0; i < _locks.length; i++) {
             Lock storage _lock = lockedTokens[_locks[i]];
             uint256 amount = _lock.amountLockedUntilRound[_round];
             _lock.totalAmountLocked = _lock.totalAmountLocked.sub(amount);
             _lock.amountLockedUntilRound[_round] = 0;
+            unlockedAmounts[i] = amount;
             emit GardenTokenUnlocked(_locks[i], amount, _round);
         }
     }

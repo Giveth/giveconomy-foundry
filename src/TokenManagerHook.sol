@@ -86,7 +86,7 @@ contract ReentrancyGuard {
     }
 }
 
-import '@openzeppelin-upgradeable/proxy/utils/Initializable.sol';
+import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
 /**
  * @dev When creating a subcontract, we recommend overriding the _internal_ functions that you want to hook.
