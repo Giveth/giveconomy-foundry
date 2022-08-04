@@ -11,10 +11,10 @@
 
 pragma solidity =0.8.6;
 
-import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol';
+import '@openzeppelin-upgradeable/access/OwnableUpgradeable.sol';
+import '@openzeppelin-upgradeable/utils/math/MathUpgradeable.sol';
+import '@openzeppelin-upgradeable/utils/math/SafeMathUpgradeable.sol';
+import '@openzeppelin-upgradeable/token/ERC20/ERC20Upgradeable.sol';
 import './interfaces/IDistro.sol';
 
 // Based on: https://github.com/Synthetixio/Unipool/tree/master/contracts
