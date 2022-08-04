@@ -14,8 +14,8 @@ pragma solidity =0.8.6;
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol';
 import './interfaces/IDistro.sol';
+import './TokenManagerHook.sol';
 
 // Based on: https://github.com/Synthetixio/Unipool/tree/master/contracts
 /*
@@ -29,8 +29,34 @@ import './interfaces/IDistro.sol';
  *      * Change transfer to allocate (TokenVesting)
  *      * Added `stakeWithPermit` function for NODE and the BridgeToken
  */
+contract LPTokenWrapper is Initializable {
+    using SafeMathUpgradeable for uint256;
 
-contract GIVUnipool is ERC20Upgradeable, OwnableUpgradeable {
+    uint256 private _totalStaked;
+    mapping(address => uint256) private _balances;
+
+    function __LPTokenWrapper_initialize() public initializer {}
+
+    function _totalSupply() internal view returns (uint256) {
+        return _totalStaked;
+    }
+
+    function _balanceOf(address account) internal view returns (uint256) {
+        return _balances[account];
+    }
+
+    function stake(address user, uint256 amount) internal virtual {
+        _totalStaked = _totalStaked.add(amount);
+        _balances[user] = _balances[user].add(amount);
+    }
+
+    function withdraw(address user, uint256 amount) internal virtual {
+        _totalStaked = _totalStaked.sub(amount);
+        _balances[user] = _balances[user].sub(amount);
+    }
+}
+
+contract GardenUnipoolTokenDistributor is LPTokenWrapper, TokenManagerHook, OwnableUpgradeable {
     using SafeMathUpgradeable for uint256;
 
     IDistro public tokenDistro;
@@ -49,8 +75,6 @@ contract GIVUnipool is ERC20Upgradeable, OwnableUpgradeable {
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
 
-    error TokenNonTransferable();
-
     modifier onlyRewardDistribution() {
         require(_msgSender() == rewardDistribution, 'Caller is not reward distribution');
         _;
@@ -66,10 +90,15 @@ contract GIVUnipool is ERC20Upgradeable, OwnableUpgradeable {
         _;
     }
 
-    function __GIVUnipool_init(address _tokenDistribution, uint256 _duration) public initializer {
+    function initialize(
+        IDistro _tokenDistribution,
+        uint256 _duration,
+        address tokenManager
+    ) public initializer {
         __Ownable_init();
-        __ERC20_init('GIVpower', 'POW');
-        tokenDistro = IDistro(_tokenDistribution);
+        __LPTokenWrapper_initialize();
+        __TokenManagerHook_initialize(tokenManager);
+        tokenDistro = _tokenDistribution;
         duration = _duration;
         periodFinish = 0;
         rewardRate = 0;
@@ -80,12 +109,12 @@ contract GIVUnipool is ERC20Upgradeable, OwnableUpgradeable {
     }
 
     function rewardPerToken() public view returns (uint256) {
-        if (totalSupply() == 0) {
+        if (_totalSupply() == 0) {
             return rewardPerTokenStored;
         }
         return
             rewardPerTokenStored.add(
-                lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(1e18).div(totalSupply())
+                lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(1e18).div(_totalSupply())
             );
     }
 
@@ -113,21 +142,23 @@ contract GIVUnipool is ERC20Upgradeable, OwnableUpgradeable {
     // Returns the exact amount will be allocated on TokenDistro
     function claimableStream(address account) public view returns (uint256) {
         return
-            balanceOf(account).mul(rewardPerToken().sub(userRewardPerTokenPaid[account])).div(1e18).add(
+            _balanceOf(account).mul(rewardPerToken().sub(userRewardPerTokenPaid[account])).div(1e18).add(
                 rewards[account]
             );
     }
 
-    function stake(address user, uint256 amount) internal updateReward(user) {
+    function stake(address user, uint256 amount) internal override updateReward(user)  {
         require(amount > 0, 'Cannot stake 0');
-        _mint(user, amount);
+        super.stake(user, amount);
         emit Staked(user, amount);
     }
 
-    function withdraw(address user, uint256 amount) internal updateReward(user) {
+    function withdraw(address user, uint256 amount) internal override updateReward(user) {
         require(amount > 0, 'Cannot withdraw 0');
-        _burn(user, amount);
-        _getReward(user);
+        super.withdraw(user, amount);
+        if (_balanceOf(user) == 0) {
+            _getReward(user);
+        }
         emit Withdrawn(user, amount);
     }
 
@@ -163,31 +194,29 @@ contract GIVUnipool is ERC20Upgradeable, OwnableUpgradeable {
         rewardDistribution = _rewardDistribution;
     }
 
-    function transfer(address, uint256) public pure override returns (bool) {
-        revert TokenNonTransferable();
-    }
-
-    function allowance(address, address) public pure override returns (uint256) {
-        return 0;
-    }
-
-    function approve(address, uint256) public pure override returns (bool) {
-        revert TokenNonTransferable();
-    }
-
-    function transferFrom(
-        address,
-        address,
-        uint256
-    ) public pure override returns (bool) {
-        revert TokenNonTransferable();
-    }
-
-    function increaseAllowance(address, uint256) public pure override returns (bool) {
-        revert TokenNonTransferable();
-    }
-
-    function decreaseAllowance(address, uint256) public pure override returns (bool) {
-        revert TokenNonTransferable();
+    /**
+     * @dev Overrides TokenManagerHook's `_onTransfer`
+     * @notice this function is a complete copy/paste from
+     * https://github.com/1Hive/unipool/blob/master/contracts/Unipool.sol
+     */
+    function _onTransfer(
+        address _from,
+        address _to,
+        uint256 _amount
+    ) internal virtual override returns (bool) {
+        if (_from == address(0)) {
+            // Token mintings (wrapping tokens)
+            stake(_to, _amount);
+            return true;
+        } else if (_to == address(0)) {
+            // Token burning (unwrapping tokens)
+            withdraw(_from, _amount);
+            return true;
+        } else {
+            // Standard transfer
+            withdraw(_from, _amount);
+            stake(_to, _amount);
+            return true;
+        }
     }
 }

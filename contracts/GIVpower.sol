@@ -2,48 +2,111 @@
 
 pragma solidity =0.8.6;
 
-import './GIVUnipool.sol';
-import './GardenTokenLock.sol';
+import './GardenUnipoolTokenDistributor.sol';
+import './interfaces/IGardenUnipool.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol';
+import './interfaces/ITokenManager.sol';
 
-contract GIVpower is GardenTokenLock, GIVUnipool {
+
+contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
     using SafeMathUpgradeable for uint256;
 
-    mapping(address => mapping(uint256 => uint256)) public _powerUntilRound;
+    uint256 public constant initialDate = 1654415235; // block 22501098
+    uint256 public constant roundDuration = 14 days;
+    uint256 public constant maxLockRounds = 26;
 
-    event PowerLocked(address account, uint256 powerAmount, uint256 rounds, uint256 untilRound);
-    event PowerUnlocked(address account, uint256 powerAmount, uint256 round);
-
-    function initialize(
-        uint256 _initialDate,
-        uint256 _roundDuration,
-        address _tokenManager,
-        address _tokenDistribution,
-        uint256 _duration
-    ) public initializer {
-        __GardenTokenLock_init(_initialDate, _roundDuration, _tokenManager);
-        __GIVUnipool_init(_tokenDistribution, _duration);
+    struct RoundBalance {
+        uint256 unlockableTokenAmount;
+        uint256 releasablePowerAmount;
     }
 
-    function lock(uint256 _amount, uint256 _rounds) public virtual override {
-        // we check the amount is lower than the lockable amount in the parent's function
-        super.lock(_amount, _rounds);
-        uint256 round = currentRound().add(_rounds);
-        uint256 powerAmount = calculatePower(_amount, _rounds);
-        _powerUntilRound[msg.sender][round] = _powerUntilRound[msg.sender][round].add(powerAmount);
-        super.stake(msg.sender, powerAmount);
-        emit PowerLocked(msg.sender, powerAmount, _rounds, round);
+    struct UserLock {
+        uint256 totalAmountLocked;
+        mapping(uint256 => RoundBalance) roundBalances;
     }
 
-    function unlock(address[] calldata _locks, uint256 _round) public virtual override {
-        // we check the round has passed in the parent's function
-        super.unlock(_locks, _round);
-        for (uint256 i = 0; i < _locks.length; i++) {
-            address _lock = _locks[i];
-            uint256 powerAmount = _powerUntilRound[_lock][_round];
-            super.withdraw(_lock, powerAmount);
-            _powerUntilRound[_lock][_round] = 0;
-            emit PowerUnlocked(_lock, powerAmount, _round);
+    mapping(address => UserLock) public userLocks;
+
+    error TokensAreLocked();
+    error CannotUnlockUntilRoundIsFinished();
+    error NotEnoughBalanceToLock();
+    error ZeroLockRound();
+    error LockRoundLimit();
+    error TokenNonTransferable();
+
+    event TokenLocked(address indexed account, uint256 amount, uint256 rounds, uint256 untilRound);
+    event TokenUnlocked(address indexed account, uint256 amount, uint256 round);
+
+    function _getToken() private view returns (IERC20) {
+        return ITokenManager(getTokenManager()).token();
+    }
+
+    function lock(uint256 _amount, uint256 _rounds) public {
+        if (_rounds < 1) {
+            revert ZeroLockRound();
         }
+        if (_rounds > maxLockRounds) {
+            revert LockRoundLimit();
+        }
+        UserLock storage _userLock = userLocks[msg.sender];
+        IERC20 token = _getToken();
+
+        if (token.balanceOf(msg.sender).sub(_userLock.totalAmountLocked) < _amount) {
+            revert NotEnoughBalanceToLock();
+        }
+
+        uint256 _endRound = currentRound().add(_rounds);
+        RoundBalance storage _roundBalance = _userLock.roundBalances[_endRound];
+
+        _userLock.totalAmountLocked = _userLock.totalAmountLocked.add(_amount);
+        _roundBalance.unlockableTokenAmount = _roundBalance.unlockableTokenAmount.add(_amount);
+
+        uint256 _gainedPowerAmount = calculatePower(_amount, _rounds).sub(_amount);
+
+        _roundBalance.releasablePowerAmount = _roundBalance.releasablePowerAmount.add(_gainedPowerAmount);
+
+        super.stake(msg.sender, _gainedPowerAmount);
+
+        emit TokenLocked(msg.sender, _amount, _rounds, _endRound);
+        emit Transfer(address(0), msg.sender, _gainedPowerAmount);
+    }
+
+    function unlock(address[] calldata _accounts, uint256 _round) public {
+        if (_round >= currentRound()) {
+            revert CannotUnlockUntilRoundIsFinished();
+        }
+
+        for (uint256 i = 0; i < _accounts.length; i++) {
+            address _account = _accounts[i];
+            UserLock storage _userLock = userLocks[_account];
+            RoundBalance storage _roundBalance = _userLock.roundBalances[_round];
+
+            // @dev Based on the design, unlockableTokenAmount and releasablePowerAmount are both zero or both positive
+            if (_roundBalance.unlockableTokenAmount == 0) { // && _roundBalance._releasablePowerAmount == 0
+                continue;
+            }
+
+            uint256 _releasablePowerAmount = _roundBalance.releasablePowerAmount;
+            uint256 _unlockableTokenAmount = _roundBalance.unlockableTokenAmount;
+
+            _userLock.totalAmountLocked = _userLock.totalAmountLocked.sub(_unlockableTokenAmount);
+            super.withdraw(_account, _releasablePowerAmount);
+
+            _roundBalance.releasablePowerAmount = 0;
+            _roundBalance.unlockableTokenAmount = 0;
+
+            emit TokenUnlocked(_account, _unlockableTokenAmount, _round);
+            emit Transfer(_account, address(0), _releasablePowerAmount);
+        }
+    }
+
+    function currentRound() public view returns (uint256) {
+        return uint256(block.timestamp).sub(initialDate).div(roundDuration);
+        // currentRound = (now - initialDate) / roundDuration
+    }
+
+    function roundEndsIn() public view returns (uint256) {
+        return uint256(block.timestamp).sub(initialDate).mod(roundDuration);
     }
 
     function calculatePower(uint256 _amount, uint256 _rounds) public pure returns (uint256) {
@@ -64,5 +127,76 @@ contract GIVpower is GardenTokenLock, GIVUnipool {
         } else if (y != 0) {
             z = 1;
         }
+    }
+
+    /**
+     * @dev This function is called everytime a gGIV is wrapped/unwrapped
+     * @param _from 0x0 if we are wrapping gGIV
+     * @param _amount Number of gGIV that is wrapped/unwrapped
+     */
+    function _onTransfer(
+        address _from,
+        address _to,
+        uint256 _amount
+    ) internal override returns (bool) {
+        require(super._onTransfer(_from, _to, _amount));
+
+        if (_from != address(0)) {
+            if (_getToken().balanceOf(_from).sub(_amount) < userLocks[_from].totalAmountLocked) {
+                revert TokensAreLocked();
+            }
+        }
+
+        emit Transfer(_from, _to, _amount);
+
+        return true;
+    }
+
+    function name() public view override returns (string memory) {
+        return "GIVpower";
+    }
+
+    function symbol() public view override returns (string memory) {
+        return "POW";
+    }
+
+    function decimals() public view override returns (uint8) {
+        return 18;
+    }
+
+    function totalSupply() public view override returns (uint256) {
+        return _totalSupply();
+    }
+
+    function balanceOf(address account) external view override returns (uint256) {
+        return super._balanceOf(account);
+    }
+
+    function transfer(address, uint256) public pure override returns (bool) {
+        revert TokenNonTransferable();
+    }
+
+    function allowance(address, address) public pure override returns (uint256) {
+        return 0;
+    }
+
+    function approve(address, uint256) public pure override returns (bool) {
+        revert TokenNonTransferable();
+    }
+
+    function transferFrom(
+        address,
+        address,
+        uint256
+    ) public pure override returns (bool) {
+        revert TokenNonTransferable();
+    }
+
+    function increaseAllowance(address, uint256) public pure returns (bool) {
+        revert TokenNonTransferable();
+    }
+
+    function decreaseAllowance(address, uint256) public pure returns (bool) {
+        revert TokenNonTransferable();
     }
 }

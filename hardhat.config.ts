@@ -8,6 +8,8 @@ import { SolcUserConfig } from 'hardhat/types';
 import 'solidity-coverage';
 import '@openzeppelin/hardhat-upgrades';
 import 'hardhat-abi-exporter';
+import 'hardhat-gas-reporter'
+import 'hardhat-deploy'
 
 const DEFAULT_COMPILER_SETTINGS: SolcUserConfig = {
   version: '0.8.6',
@@ -39,7 +41,7 @@ const config: HardhatUserConfig = {
         url: "https://xdai-archive.blockscout.com/",
         blockNumber: 22501098,
       },
-      
+
     },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`,
@@ -85,7 +87,15 @@ const config: HardhatUserConfig = {
   },
   mocha: {
     timeout: 0,
-  }
+  },
+  gasReporter: {
+    enabled: true
+  },
+  namedAccounts: {
+    deployer: {
+      default: 0, // here this will by default take the first account as deployer
+    },
+  },
 };
 
 if (process.env.ETHERSCAN_API_KEY) {
