@@ -1,8 +1,8 @@
-# Based on: https://github.com/Uniswap/v3-core/blob/main/.gitignore
-artifacts/
+# Compiler files
 cache/
-crytic-export/
-node_modules/
-typechain-types/
-coverage/
-coverage.json
+out/
+
+# Ignores development broadcast logs
+!/broadcast
+/broadcast/*
+/broadcast/*/31337/
