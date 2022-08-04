@@ -2,7 +2,6 @@
 
 pragma solidity =0.8.6;
 
-import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol';
 import './TokenManagerHook.sol';
 import './interfaces/ITokenManager.sol';

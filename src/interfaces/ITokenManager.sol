@@ -2,7 +2,7 @@
 
 pragma solidity =0.8.6;
 
-import '@openzeppelin/contracts/interfaces/IERC20.sol';
+import '@openzeppelin/interfaces/IERC20.sol';
 
 interface ITokenManager {
     function token() external view returns (IERC20);
