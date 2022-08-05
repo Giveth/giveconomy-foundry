@@ -2,9 +2,8 @@
 
 pragma solidity =0.8.6;
 
-import './GardenUnipoolTokenDistributor.sol';
-import './interfaces/IGardenUnipool.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol';
+import './GardenUnipoolTokenDistributor.sol';
 import './interfaces/ITokenManager.sol';
 
 
