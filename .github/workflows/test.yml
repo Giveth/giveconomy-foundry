@@ -31,5 +31,5 @@ jobs:
 
       - name: Run Forge tests
         run: |
-          forge test -vvv
+          forge test --fork-url ${{ secrets.GNOSIS_RPC }} -vvv
         id: test

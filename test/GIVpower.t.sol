@@ -5,9 +5,9 @@ import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.so
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import "forge-std/Test.sol";
 
-import "src/GivPower.sol";
+import "src/GIVpower.sol";
 
-contract ContractTest is Test {
+contract GIVpowerTest is Test {
     ProxyAdmin gardenUnipoolProxyAdmin;
     TransparentUpgradeableProxy gardenUnipool;
     GIVpower implementation;
