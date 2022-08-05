@@ -1,0 +1,29 @@
+name: lint
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+env:
+  FOUNDRY_PROFILE: ci
+
+jobs:
+  run-ci:
+    name: Foundry project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run Forge fmt
+        run: |
+          forge fmt --check
+        id: lint
