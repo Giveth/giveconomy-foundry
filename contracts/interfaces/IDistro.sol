@@ -34,7 +34,9 @@ interface IDistro {
      * Function that allows the DEFAULT_ADMIN_ROLE to assign set a new startTime if it hasn't started yet
      * @param newStartTime new startTime
      * 
+     * 
      * Emits a {StartTimeChanged} event.
+     * 
      * 
      */
     function setStartTime(uint256 newStartTime) external;
