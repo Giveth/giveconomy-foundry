@@ -14,13 +14,8 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
-
       - name: Run Slither
-        uses: crytic/slither-action@v0.1.1
+        uses: crytic/slither-action@main
         id: slither
         continue-on-error: true
         with:
