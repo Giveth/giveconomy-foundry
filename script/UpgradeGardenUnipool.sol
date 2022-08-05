@@ -5,7 +5,7 @@ import "forge-std/console.sol";
 import "forge-std/Script.sol";
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
-import "../src/GIVpower.sol";
+import "contracts/GIVpower.sol";
 
 contract UpgradeGardenUnipool is Script {
     ProxyAdmin gardenUnipoolProxyAdmin;
