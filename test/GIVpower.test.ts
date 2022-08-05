@@ -1,76 +1,264 @@
-import { evmcl, EVMcrispr } from '@1hive/evmcrispr';
-import { Contract } from 'ethers';
-// import { expect } from 'chai';
-import { ethers, upgrades } from 'hardhat';
+import { EVMcrispr } from '@1hive/evmcrispr';
+import { BigNumber, constants, Contract } from 'ethers';
+import { ethers, deployments } from 'hardhat';
 
 import { impersonateAddress, increase } from '../helpers/rpc';
+import { GIVpower__factory } from '../../typechain-types';
+import { expect } from '../shared';
+import GardenUnipoolTokenDistributorAbiOrigin from '../abi/GardenUnipoolTokenDistributor_original.json';
+import BigNumberJs from 'bignumber.js';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
+const dao = '0xb25f0ee2d26461e2b5b3d3ddafe197a0da677b98';
+const GivethMultisig = '0x4D9339dd97db55e3B9bCBE65dE39fF9c04d1C2cd';
+const TWO_WEEKS = 14 * 24 * 3600;
+
+const sqrtPrecision = 1 / Math.pow(10, 9);
 
 describe('unit/GIVpower', () => {
-  let signer
-  let instance
-  let tokenManager
-  let evm
+  let signer: SignerWithAddress;
+  let tokenManager;
+  let evm: EVMcrispr;
+  const gardenUnipoolAddress = '0xD93d3bDBa18ebcB3317a57119ea44ed2Cf41C2F2';
+  let gardenUnipool;
+  let givPower;
+  let givToken;
+  let roundDuration: BigNumber;
 
-  it('deploys properly', async () => {
+  const roundHasStartedInSeconds = async (): Promise<number> => {
+    const GIVPower = (await ethers.getContractFactory('GIVpower')) as GIVpower__factory;
+    const _givPower = GIVPower.attach(gardenUnipoolAddress);
+    const now = (await ethers.provider.getBlock('latest')).timestamp as number;
+    const initialDate = (await _givPower.initialDate()).toNumber();
+    return (now - initialDate) % TWO_WEEKS;
+  };
 
-    const dao = '0xb25f0ee2d26461e2b5b3d3ddafe197a0da677b98'
-    // const dao = '0xb3f3da0080a8811d887531ca4c0dbfe3490bd1a1'
-    const tokenDistribution= '0xc0dbDcA66a0636236fAbe1B3C16B1bD4C84bB1E1'
-    // const tokenDistribution = '0x74B557bec1A496a8E9BE57e9A1530A15364C87Be';
+  before(async () => {
+    signer = (await ethers.getSigners())[0];
+    gardenUnipool = new Contract(gardenUnipoolAddress, GardenUnipoolTokenDistributorAbiOrigin, signer);
+  });
 
-    signer = await impersonateAddress('0xc125218F4Df091eE40624784caF7F47B9738086f');
-    evm = await EVMcrispr.create(dao, signer);
-    const voting = evm.app('disputable-voting.open');
+  before('upgrade GardenUnipoolTokenDistributor', async () => {
+    const testUsers = ['0xB8306b6d3BA7BaB841C02f0F92b8880a4760199A', '0x975f6807E8406191D1C951331eEa4B26199b37ff'];
 
-    const initialDate = (await signer.provider.getBlock('latest')).timestamp;
-    const roundDuration = evm.resolver.resolveNumber('14d');
-    tokenManager = evm.app('wrappable-hooked-token-manager.open');
-    const duration = evm.resolver.resolveNumber('14d');
-
-    const GIVpower = await ethers.getContractFactory("GIVpower");
-    instance = await upgrades.deployProxy(GIVpower, [
-      initialDate,
-      roundDuration,
-      tokenManager.address,
-      tokenDistribution,
-      duration
+    const beforeContractValues = await Promise.all([
+      gardenUnipool.tokenDistro(),
+      gardenUnipool.duration(),
+      gardenUnipool.rewardDistribution(),
+      gardenUnipool.periodFinish(),
+      gardenUnipool.rewardRate(),
+      gardenUnipool.lastUpdateTime(),
+      gardenUnipool.rewardPerTokenStored(),
+      gardenUnipool.totalSupply(),
     ]);
-    await instance.deployed();
 
-    const tx = await evmcl`
-      connect ${dao} disputable-voting.open --context Install GIVpower
-      exec wrappable-hooked-token-manager.open revokeHook 2
-      exec wrappable-hooked-token-manager.open registerHook ${instance.address}
-    `.forward(signer);
-  
-    const voteId = parseInt(tx[0].logs[2].topics[1], 16);
-    const executionScript = voting.interface.decodeEventLog('StartVote', tx[0].logs[2].data).executionScript;
-    
-    await voting.connect(await impersonateAddress('0xECb179EA5910D652eDa6988E919c7930F5Ffcf11')).vote(voteId, true);
-    await voting.connect(await impersonateAddress('0x839395e20bbB182fa440d08F850E6c7A8f6F0780')).vote(voteId, true);
+    const beforeUsersValues = {};
+    for (const testUser of testUsers) {
+      beforeUsersValues[testUser] = await Promise.all([
+        gardenUnipool.balanceOf(testUser),
+        gardenUnipool.userRewardPerTokenPaid(testUser),
+        gardenUnipool.rewards(testUser),
+      ]);
+    }
 
-    await increase(evm.resolver.resolveNumber('30d'));
+    await deployments.fixture(['UpgradeUnipool']);
 
-    await (await voting.executeVote(voteId, executionScript)).wait();
+    const GIVPower = (await ethers.getContractFactory('GIVpower', signer)) as GIVpower__factory;
+    givPower = GIVPower.attach(gardenUnipoolAddress);
+    roundDuration = await givPower.roundDuration();
+
+    expect(roundDuration).to.be.eq(TWO_WEEKS);
+
+    const afterContractValues = await Promise.all([
+      givPower.tokenDistro(),
+      givPower.duration(),
+      givPower.rewardDistribution(),
+      givPower.periodFinish(),
+      givPower.rewardRate(),
+      givPower.lastUpdateTime(),
+      givPower.rewardPerTokenStored(),
+      givPower.totalSupply(),
+    ]);
+
+    const afterUsersValues = {};
+    for (const testUser of testUsers) {
+      afterUsersValues[testUser] = await Promise.all([
+        givPower.balanceOf(testUser),
+        givPower.userRewardPerTokenPaid(testUser),
+        givPower.rewards(testUser),
+      ]);
+    }
+
+    const multisigSigner = await impersonateAddress(GivethMultisig);
+    evm = await EVMcrispr.create(dao, multisigSigner);
+
+    expect(beforeContractValues).to.deep.eq(afterContractValues);
+    expect(beforeUsersValues).to.deep.eq(afterUsersValues);
+
+    tokenManager = evm.app('wrappable-hooked-token-manager.open');
+    givToken = new Contract(
+      await tokenManager.wrappableToken(),
+      [
+        'function approve(address spender, uint256 amount) external returns (bool)',
+        'function balanceOf(address account) external view returns (uint256)',
+      ],
+      signer
+    );
   });
 
   it('Wraps, locks, unlocks, and unwraps properly', async () => {
-    const givToken = new Contract(await tokenManager.wrappableToken(), [
-      'function approve(address spender, uint256 amount) external returns (bool)',
-      'function balanceOf(address account) external view returns (uint256)',
-    ], signer)
-    await (await givToken.approve(tokenManager.address, 100)).wait()
-    await (await tokenManager.wrap(100)).wait()
-    console.log("Current round: " + String(await instance.currentRound()))
-    const lockTx = await (await instance.connect(signer).lock(100, 1)).wait()
-    console.log("GIVpower: " + String(await instance.balanceOf(await signer.getAddress())))
-    const untilRound = instance.interface.decodeEventLog('PowerLocked', lockTx.logs[0].data).untilRound
-    await (await tokenManager.unwrap(String(1e18))).wait()
-    await increase(evm.resolver.resolveNumber('14d'))
-    console.log("Current round: " + String(await instance.currentRound()))
-    await (await instance.unlock([await signer.getAddress()], untilRound))
-    console.log("GIVpower: " + String(await instance.balanceOf(await signer.getAddress())))
-    await (await tokenManager.unwrap(1)).wait()
-  })
+    const _lockAmount = ethers.utils.parseEther('100');
+    const _numberOfRounds = 1;
+    const _powerIncreaseAfterLockExpected = new BigNumberJs(_lockAmount.toString())
+      .times(new BigNumberJs(1 + _numberOfRounds).sqrt())
+      .minus(_lockAmount.toString());
+
+    const _powerIncreaseAfterLock = (await givPower.calculatePower(_lockAmount, _numberOfRounds)).sub(_lockAmount);
+
+    const _initialTotalSupply = await givPower.totalSupply();
+    expect(_powerIncreaseAfterLockExpected.div(_powerIncreaseAfterLock.toString()).toNumber()).to.be.within(
+      1 - sqrtPrecision,
+      1 + sqrtPrecision
+    );
+
+    const _wrapAmount = _lockAmount.mul(2);
+    const _initialUnipoolBalance = (await givPower.balanceOf(GivethMultisig)) as BigNumber;
+
+    const ggivToken = new Contract(
+      await tokenManager.token(),
+      [
+        'function approve(address spender, uint256 amount) external returns (bool)',
+        'function balanceOf(address account) external view returns (uint256)',
+        'function totalSupply() external view returns (uint256)',
+      ],
+      signer
+    );
+
+    const _initialgGivBalance = (await ggivToken.balanceOf(GivethMultisig)) as BigNumber;
+
+    // Before lock unipool balance should be same as gGiv balance
+    expect(_initialgGivBalance).to.eq(_initialUnipoolBalance);
+
+    await (await givToken.connect(evm.signer).approve(tokenManager.address, _wrapAmount)).wait();
+    await expect(tokenManager.connect(evm.signer).wrap(_wrapAmount))
+      .to.emit(givPower, 'Staked')
+      .withArgs(GivethMultisig, _wrapAmount)
+      .to.emit(givPower, 'Transfer')
+      .withArgs(ethers.constants.AddressZero, GivethMultisig, _wrapAmount);
+    expect(await givPower.balanceOf(GivethMultisig)).to.be.eq(_initialUnipoolBalance.add(_wrapAmount));
+    expect(await ggivToken.balanceOf(GivethMultisig)).to.be.eq(_initialgGivBalance.add(_wrapAmount));
+    expect(await givPower.totalSupply()).to.be.eq(_initialTotalSupply.add(_wrapAmount));
+
+    const currentRound: BigNumber = await givPower.currentRound();
+    const untilRound = currentRound.add(_numberOfRounds);
+    await expect(givPower.connect(evm.signer).lock(_lockAmount, _numberOfRounds))
+      .to.emit(givPower, 'Staked')
+      .withArgs(GivethMultisig, _powerIncreaseAfterLock)
+      .to.emit(givPower, 'Transfer')
+      .withArgs(ethers.constants.AddressZero, GivethMultisig, _powerIncreaseAfterLock)
+      .to.emit(givPower, 'TokenLocked')
+      .withArgs(GivethMultisig, _lockAmount, _numberOfRounds, untilRound);
+    expect(await givPower.balanceOf(GivethMultisig)).to.be.eq(_wrapAmount.add(_powerIncreaseAfterLock));
+
+    // gGIV balance should not change after lock
+    expect(await ggivToken.balanceOf(GivethMultisig)).to.be.eq(_initialgGivBalance.add(_wrapAmount));
+
+    await expect(tokenManager.connect(evm.signer).unwrap(_wrapAmount.sub(_lockAmount)))
+      .to.emit(givPower, 'Withdrawn')
+      .withArgs(GivethMultisig, _wrapAmount.sub(_lockAmount))
+      .to.emit(givPower, 'Transfer')
+      .withArgs(GivethMultisig, ethers.constants.AddressZero, _wrapAmount.sub(_lockAmount));
+
+    await increase(evm.resolver.resolveNumber(`${(_numberOfRounds + 1) * 14}d`));
+
+    await expect(givPower.unlock([GivethMultisig], untilRound))
+      .to.emit(givPower, 'Withdrawn')
+      .withArgs(GivethMultisig, _powerIncreaseAfterLock)
+      .to.emit(givPower, 'Transfer')
+      .withArgs(GivethMultisig, ethers.constants.AddressZero, _powerIncreaseAfterLock)
+      .to.emit(givPower, 'TokenUnlocked')
+      .withArgs(GivethMultisig, _lockAmount, untilRound);
+
+    expect(await givPower.balanceOf(GivethMultisig)).to.be.eq(_lockAmount);
+    await (await tokenManager.connect(evm.signer).unwrap(_lockAmount)).wait();
+  });
+
+  it('is a non-transferable ERC20 token', async () => {
+    expect(await givPower.name()).to.be.eq('GIVpower');
+    expect(await givPower.symbol()).to.be.eq('POW');
+    expect(await givPower.decimals()).to.be.eq(18);
+    expect(await givPower.balanceOf(constants.AddressZero)).to.be.eq(0);
+    expect(await givPower.totalSupply()).to.be.above(0);
+    expect(givPower.approve(GivethMultisig, 1)).to.be.revertedWith('TokenNonTransferable');
+    expect(givPower.increaseAllowance(GivethMultisig, 1)).to.be.revertedWith('TokenNonTransferable');
+    expect(givPower.decreaseAllowance(GivethMultisig, 1)).to.be.revertedWith('TokenNonTransferable');
+    expect(givPower.transfer(GivethMultisig, 1)).to.be.revertedWith('TokenNonTransferable');
+    expect(await givPower.allowance(GivethMultisig, GivethMultisig)).to.be.eq(0);
+    expect(givPower.transferFrom(GivethMultisig, GivethMultisig, 1)).to.be.revertedWith('TokenNonTransferable');
+  });
+
+  it('keeps track of current round', async () => {
+    expect(await givPower.currentRound()).to.be.eq(2);
+    await increase(evm.resolver.resolveNumber('14d'));
+    expect(await givPower.currentRound()).to.be.eq(3);
+    await increase(evm.resolver.resolveNumber('14d'));
+    expect(await givPower.currentRound()).to.be.eq(4);
+    await increase(evm.resolver.resolveNumber('14d').sub((await roundHasStartedInSeconds()) + 1));
+    expect(await givPower.currentRound()).to.be.eq(4);
+    await increase(1);
+    expect(await givPower.currentRound()).to.be.eq(5);
+  });
+
+  it('can calculate the power given the amount and a number of rounds', async () => {
+    expect(await givPower.calculatePower(String(1e10), 1)).to.be.within(
+      Math.floor(Math.sqrt(2) * 1e10) - 20,
+      Math.floor(Math.sqrt(2) * 1e10) + 20
+    );
+    expect(await givPower.calculatePower(String(5e10), 1)).to.be.within(
+      Math.floor(Math.sqrt(2) * 5e10) - 20,
+      Math.floor(Math.sqrt(2) * 5e10) + 20
+    );
+    expect(await givPower.calculatePower(String(1e10), 10)).to.be.within(
+      Math.floor(Math.sqrt(11) * 1e10) - 20,
+      Math.floor(Math.sqrt(11) * 1e10) + 20
+    );
+    expect(await givPower.calculatePower(String(5e10), 10)).to.be.within(
+      Math.floor(Math.sqrt(11) * 5e10) - 20,
+      Math.floor(Math.sqrt(11) * 5e10) + 20
+    );
+  });
+
+  it('forbids to unwrap tokens meanwhile they are locked', async () => {
+    const _wrapAmount = String(3e18);
+    const _lockAmount = String(1e18);
+    const _numberOfRounds = 2;
+    await (await givToken.connect(evm.signer).approve(tokenManager.address, _wrapAmount)).wait();
+
+    await tokenManager.connect(evm.signer).wrap(_lockAmount);
+    await givPower.connect(evm.signer).lock(_lockAmount, _numberOfRounds);
+    const round = (await givPower.currentRound()).add(_numberOfRounds);
+    const lockTimeRound = await givPower.currentRound();
+
+    await increase(evm.resolver.resolveNumber('14d'));
+    await expect(givPower.unlock([await evm.signer.getAddress()], round)).to.be.revertedWith(
+      'CannotUnlockUntilRoundIsFinished'
+    );
+
+    const _passedSeconds = await roundHasStartedInSeconds();
+    // Seconds has passed from round start time, for this test it should be positive
+    expect(_passedSeconds).to.be.above(0);
+
+    // After this line, less than 2 rounds (4 weeks) are passed from lock time because _passedSeconds is positive
+    await increase(evm.resolver.resolveNumber('14d').sub(_passedSeconds));
+
+    // Still not 2 complete rounds has passed since lock time!!
+    expect(await givPower.currentRound()).to.be.eq(lockTimeRound.add(2));
+
+    await expect(givPower.unlock([await evm.signer.getAddress()], round)).to.be.revertedWith(
+      'CannotUnlockUntilRoundIsFinished'
+    );
+
+    await increase(evm.resolver.resolveNumber('14d'));
+    await givPower.unlock([await evm.signer.getAddress()], round);
+  });
 });
