@@ -33,9 +33,9 @@ interface IDistro {
     /**
      * Function that allows the DEFAULT_ADMIN_ROLE to assign set a new startTime if it hasn't started yet
      * @param newStartTime new startTime
-     *
+     * 
      * Emits a {StartTimeChanged} event.
-     *
+     * 
      */
     function setStartTime(uint256 newStartTime) external;
 
@@ -59,11 +59,7 @@ interface IDistro {
      * @param amount allocated amount
      * @param claim whether claim after allocate
      */
-    function allocate(
-        address recipient,
-        uint256 amount,
-        bool claim
-    ) external;
+    function allocate(address recipient, uint256 amount, bool claim) external;
 
     /**
      * Function that allows to the distributor address to allocate some amounts of tokens to specific recipients

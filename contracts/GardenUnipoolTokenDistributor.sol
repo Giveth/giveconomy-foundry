@@ -90,11 +90,7 @@ contract GardenUnipoolTokenDistributor is LPTokenWrapper, TokenManagerHook, Owna
         _;
     }
 
-    function initialize(
-        IDistro _tokenDistribution,
-        uint256 _duration,
-        address tokenManager
-    ) public initializer {
+    function initialize(IDistro _tokenDistribution, uint256 _duration, address tokenManager) public initializer {
         __Ownable_init();
         __LPTokenWrapper_initialize();
         __TokenManagerHook_initialize(tokenManager);
@@ -112,10 +108,9 @@ contract GardenUnipoolTokenDistributor is LPTokenWrapper, TokenManagerHook, Owna
         if (_totalSupply() == 0) {
             return rewardPerTokenStored;
         }
-        return
-            rewardPerTokenStored.add(
-                lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(1e18).div(_totalSupply())
-            );
+        return rewardPerTokenStored.add(
+            lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(1e18).div(_totalSupply())
+        );
     }
 
     /**
@@ -128,7 +123,7 @@ contract GardenUnipoolTokenDistributor is LPTokenWrapper, TokenManagerHook, Owna
     /**
      * Function to get the amount of tokens is transferred in the claim tx
      * @notice The difference between what this returns and what the claimableStream function returns
-     *  will be locked in TokenDistro to be streamed and released gradually
+     * will be locked in TokenDistro to be streamed and released gradually
      */
     function earned(address account) external view returns (uint256) {
         uint256 _totalEarned = claimableStream(account);
@@ -141,13 +136,12 @@ contract GardenUnipoolTokenDistributor is LPTokenWrapper, TokenManagerHook, Owna
     // @dev This does the same thing the earned function of UnipoolTokenDistributor contract does.
     // Returns the exact amount will be allocated on TokenDistro
     function claimableStream(address account) public view returns (uint256) {
-        return
-            _balanceOf(account).mul(rewardPerToken().sub(userRewardPerTokenPaid[account])).div(1e18).add(
-                rewards[account]
-            );
+        return _balanceOf(account).mul(rewardPerToken().sub(userRewardPerTokenPaid[account])).div(1e18).add(
+            rewards[account]
+        );
     }
 
-    function stake(address user, uint256 amount) internal override updateReward(user)  {
+    function stake(address user, uint256 amount) internal override updateReward(user) {
         require(amount > 0, 'Cannot stake 0');
         super.stake(user, amount);
         emit Staked(user, amount);
@@ -199,11 +193,7 @@ contract GardenUnipoolTokenDistributor is LPTokenWrapper, TokenManagerHook, Owna
      * @notice this function is a complete copy/paste from
      * https://github.com/1Hive/unipool/blob/master/contracts/Unipool.sol
      */
-    function _onTransfer(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) internal virtual override returns (bool) {
+    function _onTransfer(address _from, address _to, uint256 _amount) internal virtual override returns (bool) {
         if (_from == address(0)) {
             // Token mintings (wrapping tokens)
             stake(_to, _amount);

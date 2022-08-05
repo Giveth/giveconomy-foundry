@@ -9,4 +9,8 @@ remappings = [
     '@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/'
 ]
 
+[fmt]
+line_length = 120
+quote_style = 'single'
+
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
