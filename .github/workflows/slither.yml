@@ -21,13 +21,8 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
 
-      - name: Install Foundry
-        uses: onbjerg/foundry-toolchain@v1
-        with:
-          version: nightly
-
       - name: Run Slither
-        uses: crytic/slither-action@v0.1.0
+        uses: crytic/slither-action@v0.1.1
         continue-on-error: true
         id: slither
         with:
