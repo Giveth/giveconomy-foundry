@@ -1,27 +1,37 @@
-name: slither
+name: Slither Analysis
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
+    branches: [main]
 
 jobs:
-  run-ci:
+  analyze:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
         with:
           submodules: recursive
 
-      - name: Run Slither
-        uses: crytic/slither-action@main
-        id: slither
-        continue-on-error: true
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+
+      - name: Install Foundry
+        uses: onbjerg/foundry-toolchain@v1
         with:
+          version: nightly
+
+      - name: Run Slither
+        uses: crytic/slither-action@v0.1.0
+        continue-on-error: true
+        id: slither
+        with:
+          node-version: 16
           sarif: results.sarif
 
       - name: Upload SARIF file
