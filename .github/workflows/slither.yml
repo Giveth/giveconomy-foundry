@@ -9,20 +9,22 @@ on:
 jobs:
   run-ci:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
 
       - name: Run Slither
-        uses: crytic/slither-action@v0.1.0
-        continue-on-error: true
+        uses: crytic/slither-action@main
         id: slither
+        continue-on-error: true
         with:
-          node-version: 16
           sarif: results.sarif
 
       - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: ${{ steps.slither.outputs.sarif }}
