@@ -2,9 +2,9 @@
 
 pragma solidity =0.8.6;
 
-import '@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol';
-import './GardenUnipoolTokenDistributor.sol';
-import './interfaces/ITokenManager.sol';
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
+import "./GardenUnipoolTokenDistributor.sol";
+import "./interfaces/ITokenManager.sol";
 
 contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
     using SafeMathUpgradeable for uint256;
@@ -32,7 +32,12 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
     error LockRoundLimit();
     error TokenNonTransferable();
 
-    event TokenLocked(address indexed account, uint256 amount, uint256 rounds, uint256 untilRound);
+    event TokenLocked(
+        address indexed account,
+        uint256 amount,
+        uint256 rounds,
+        uint256 untilRound
+    );
     event TokenUnlocked(address indexed account, uint256 amount, uint256 round);
 
     function _getToken() private view returns (IERC20) {
@@ -50,7 +55,10 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
         UserLock storage _userLock = userLocks[msg.sender];
         IERC20 token = _getToken();
 
-        if (token.balanceOf(msg.sender).sub(_userLock.totalAmountLocked) < _amount) {
+        if (
+            token.balanceOf(msg.sender).sub(_userLock.totalAmountLocked) <
+            _amount
+        ) {
             revert NotEnoughBalanceToLock();
         }
 
@@ -58,11 +66,17 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
         RoundBalance storage _roundBalance = _userLock.roundBalances[_endRound];
 
         _userLock.totalAmountLocked = _userLock.totalAmountLocked.add(_amount);
-        _roundBalance.unlockableTokenAmount = _roundBalance.unlockableTokenAmount.add(_amount);
+        _roundBalance.unlockableTokenAmount = _roundBalance
+            .unlockableTokenAmount
+            .add(_amount);
 
-        uint256 _gainedPowerAmount = calculatePower(_amount, _rounds).sub(_amount);
+        uint256 _gainedPowerAmount = calculatePower(_amount, _rounds).sub(
+            _amount
+        );
 
-        _roundBalance.releasablePowerAmount = _roundBalance.releasablePowerAmount.add(_gainedPowerAmount);
+        _roundBalance.releasablePowerAmount = _roundBalance
+            .releasablePowerAmount
+            .add(_gainedPowerAmount);
 
         super.stake(msg.sender, _gainedPowerAmount);
 
@@ -78,7 +92,9 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
         for (uint256 i = 0; i < _accounts.length; i++) {
             address _account = _accounts[i];
             UserLock storage _userLock = userLocks[_account];
-            RoundBalance storage _roundBalance = _userLock.roundBalances[_round];
+            RoundBalance storage _roundBalance = _userLock.roundBalances[
+                _round
+            ];
 
             // @dev Based on the design, unlockableTokenAmount and releasablePowerAmount are both zero or both positive
             if (_roundBalance.unlockableTokenAmount == 0) {
@@ -86,10 +102,14 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
                 continue;
             }
 
-            uint256 _releasablePowerAmount = _roundBalance.releasablePowerAmount;
-            uint256 _unlockableTokenAmount = _roundBalance.unlockableTokenAmount;
+            uint256 _releasablePowerAmount = _roundBalance
+                .releasablePowerAmount;
+            uint256 _unlockableTokenAmount = _roundBalance
+                .unlockableTokenAmount;
 
-            _userLock.totalAmountLocked = _userLock.totalAmountLocked.sub(_unlockableTokenAmount);
+            _userLock.totalAmountLocked = _userLock.totalAmountLocked.sub(
+                _unlockableTokenAmount
+            );
             super.withdraw(_account, _releasablePowerAmount);
 
             _roundBalance.releasablePowerAmount = 0;
@@ -109,8 +129,12 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
         return uint256(block.timestamp).sub(initialDate).mod(roundDuration);
     }
 
-    function calculatePower(uint256 _amount, uint256 _rounds) public pure returns (uint256) {
-        return _amount.mul(_sqrt(_rounds.add(1).mul(10 ** 18))).div(10 ** 9);
+    function calculatePower(uint256 _amount, uint256 _rounds)
+        public
+        pure
+        returns (uint256)
+    {
+        return _amount.mul(_sqrt(_rounds.add(1).mul(10**18))).div(10**9);
     }
 
     /**
@@ -127,6 +151,7 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
         } else if (y != 0) {
             z = 1;
         }
+        // else z = 0 (default value)
     }
 
     /**
@@ -134,11 +159,18 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
      * @param _from 0x0 if we are wrapping gGIV
      * @param _amount Number of gGIV that is wrapped/unwrapped
      */
-    function _onTransfer(address _from, address _to, uint256 _amount) internal override returns (bool) {
+    function _onTransfer(
+        address _from,
+        address _to,
+        uint256 _amount
+    ) internal override returns (bool) {
         require(super._onTransfer(_from, _to, _amount));
 
         if (_from != address(0)) {
-            if (_getToken().balanceOf(_from).sub(_amount) < userLocks[_from].totalAmountLocked) {
+            if (
+                _getToken().balanceOf(_from).sub(_amount) <
+                userLocks[_from].totalAmountLocked
+            ) {
                 revert TokensAreLocked();
             }
         }
@@ -148,15 +180,15 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
         return true;
     }
 
-    function name() public view override returns (string memory) {
-        return 'GIVpower';
+    function name() public pure override returns (string memory) {
+        return "GIVpower";
     }
 
-    function symbol() public view override returns (string memory) {
-        return 'POW';
+    function symbol() public pure override returns (string memory) {
+        return "POW";
     }
 
-    function decimals() public view override returns (uint8) {
+    function decimals() public pure override returns (uint8) {
         return 18;
     }
 
@@ -164,7 +196,12 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
         return _totalSupply();
     }
 
-    function balanceOf(address account) external view override returns (uint256) {
+    function balanceOf(address account)
+        external
+        view
+        override
+        returns (uint256)
+    {
         return super._balanceOf(account);
     }
 
@@ -172,7 +209,12 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
         revert TokenNonTransferable();
     }
 
-    function allowance(address, address) public pure override returns (uint256) {
+    function allowance(address, address)
+        public
+        pure
+        override
+        returns (uint256)
+    {
         return 0;
     }
 
@@ -180,7 +222,11 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
         revert TokenNonTransferable();
     }
 
-    function transferFrom(address, address, uint256) public pure override returns (bool) {
+    function transferFrom(
+        address,
+        address,
+        uint256
+    ) public pure override returns (bool) {
         revert TokenNonTransferable();
     }
 

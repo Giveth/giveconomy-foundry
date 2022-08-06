@@ -33,14 +33,12 @@ contract GIVpowerTest is Test {
     GIVpower givPower;
     ITokenManager tokenManager;
     IERC20Bridged givToken;
+    IERC20 ggivToken;
     address givethMultisig;
-
-    // constants
-    uint256 constant sqrtPrecision = 10e9;
 
     // accounts
     address sender = address(1);
-    address notAuthorized = address(2);
+    address senderWithNoBalance = address(2);
     address omniBridge = 0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d;
     address[] testUsers = [0xB8306b6d3BA7BaB841C02f0F92b8880a4760199A, 0x975f6807E8406191D1C951331eEa4B26199b37ff];
 
@@ -61,6 +59,10 @@ contract GIVpowerTest is Test {
 
     StorageData storageDataBeforeUpgrade;
 
+    event Staked(address indexed user, uint256 amount);
+    event Transfer(address indexed from, address indexed to, uint256 amount);
+    event TokenLocked(address indexed account, uint256 amount, uint256 rounds, uint256 untilRound);
+
     function setUp() public {
         gardenUnipoolProxyAdmin = ProxyAdmin(address(0x076C250700D210e6cf8A27D1EB1Fd754FB487986));
 
@@ -76,6 +78,8 @@ contract GIVpowerTest is Test {
 
         givToken = IERC20Bridged(address(tokenManager.wrappableToken()));
 
+        ggivToken = IERC20(address(tokenManager.token()));
+
         givethMultisig = gardenUnipoolProxyAdmin.owner();
 
         storageDataBeforeUpgrade = getImplementationStorageData(testUsers);
@@ -89,16 +93,17 @@ contract GIVpowerTest is Test {
         givToken.mint(sender, 100 ether);
 
         // labels
-        vm.label(notAuthorized, 'notAuthorizedAddress');
+        vm.label(senderWithNoBalance, 'senderWithNoBalance');
         vm.label(givethMultisig, 'givethMultisig');
         vm.label(address(gardenUnipoolProxyAdmin), 'ProxyAdmin');
         vm.label(address(gardenUnipoolProxy), 'Proxy');
         vm.label(address(givPower), 'GIVpower');
         vm.label(address(tokenManager), 'TokenManager');
         vm.label(address(givToken), 'GivethToken');
+        vm.label(address(ggivToken), 'gGivToken');
     }
 
-    function getImplementationStorageData(address[] memory _users) public returns (StorageData memory) {
+    function getImplementationStorageData(address[] memory _users) public view returns (StorageData memory) {
         uint256[] memory usersBalances = new uint256[](_users.length);
         uint256[] memory usersRewardsPerTokenPaid = new uint256[](
             _users.length
@@ -127,7 +132,7 @@ contract GIVpowerTest is Test {
         });
     }
 
-    function roundHasStartedInSeconds() public returns (uint256) {
+    function roundHasStartedInSeconds() public view returns (uint256) {
         return (block.timestamp - givPower.initialDate()) % 14 days;
     }
 
@@ -156,8 +161,70 @@ contract GIVpowerTest is Test {
         }
     }
 
+    function testZeroLockRound() public {
+        vm.expectRevert(GIVpower.ZeroLockRound.selector);
+        givPower.lock(1 ether, 0);
+    }
+
+    function testLockRoundLimit() public {
+        vm.expectRevert(GIVpower.LockRoundLimit.selector);
+        givPower.lock(1 ether, 27);
+    }
+
+    function testNotEnoughBalanceToLock() public {
+        vm.expectRevert(GIVpower.NotEnoughBalanceToLock.selector);
+        vm.prank(senderWithNoBalance);
+        givPower.lock(2 ether, 2);
+    }
+
+    function testNotEnoughBalanceToLockAfterLockingAll() public {
+        uint256 wrapAmount = 2 ether;
+        uint256 lockAmount = 2 ether;
+        uint256 numberOfRounds = 2;
+
+        vm.startPrank(sender);
+        givToken.approve(address(tokenManager), wrapAmount);
+        tokenManager.wrap(lockAmount);
+        givPower.lock(lockAmount, numberOfRounds);
+
+        vm.expectRevert(GIVpower.NotEnoughBalanceToLock.selector);
+        givPower.lock(1 ether, numberOfRounds);
+        vm.stopPrank();
+    }
+
     function testWrap() public {
-        // TBD
+        uint256 wrapAmount = 20 ether;
+
+        uint256 initialTotalSupply = givPower.totalSupply();
+        uint256 initialUnipoolBalance = givPower.balanceOf(sender);
+        uint256 initialgGivBalance = ggivToken.balanceOf(sender);
+
+        // Before lock unipool balance should be same as gGiv balance
+        assertEq(initialgGivBalance, initialgGivBalance);
+
+        vm.startPrank(sender);
+        givToken.approve(address(tokenManager), wrapAmount);
+
+        vm.expectEmit(true, true, false, false);
+        emit Staked(sender, wrapAmount);
+
+        vm.expectEmit(true, true, true, false);
+        emit Transfer(address(0), sender, wrapAmount);
+
+        tokenManager.wrap(wrapAmount);
+        vm.stopPrank();
+
+        assertEq(givPower.balanceOf(sender), initialUnipoolBalance + wrapAmount);
+        assertEq(ggivToken.balanceOf(sender), initialgGivBalance + wrapAmount);
+        assertEq(givPower.totalSupply(), initialTotalSupply + wrapAmount);
+    }
+
+    function testCannotUnlockUntilRoundIsFinished() public {
+        address[] memory accounts = new address[](1);
+        uint256 round = givPower.currentRound();
+
+        vm.expectRevert(GIVpower.CannotUnlockUntilRoundIsFinished.selector);
+        givPower.unlock(accounts, round);
     }
 
     function testIsNonTransferableToken() public {
@@ -205,8 +272,13 @@ contract GIVpowerTest is Test {
     }
 
     function testCalculatePower() public {
-        // TBD
-        // we can use assertApproxEqAbs or assertApproxEqRel
+        assertApproxEqAbs(givPower.calculatePower(1e10, 1), Math.sqrt(2e20), 20);
+
+        assertApproxEqAbs(givPower.calculatePower(5e10, 1), Math.sqrt(2e20) * 5, 20);
+
+        assertApproxEqAbs(givPower.calculatePower(1e10, 10), Math.sqrt(11e20), 20);
+
+        assertApproxEqAbs(givPower.calculatePower(5e10, 10), Math.sqrt(11e20) * 5, 20);
     }
 
     function testForbidUnwrapTokensWhileLock() public {
