@@ -60,8 +60,10 @@ contract GIVpowerTest is Test {
     StorageData storageDataBeforeUpgrade;
 
     event Staked(address indexed user, uint256 amount);
+    event Withdrawn(address indexed user, uint256 amount);
     event Transfer(address indexed from, address indexed to, uint256 amount);
     event TokenLocked(address indexed account, uint256 amount, uint256 rounds, uint256 untilRound);
+    event TokenUnlocked(address indexed account, uint256 amount, uint256 round);
 
     function setUp() public {
         gardenUnipoolProxyAdmin = ProxyAdmin(address(0x076C250700D210e6cf8A27D1EB1Fd754FB487986));
@@ -192,8 +194,16 @@ contract GIVpowerTest is Test {
         vm.stopPrank();
     }
 
-    function testWrap() public {
+    function testWrapLockUnwrapUnlockProperly() public {
         uint256 wrapAmount = 20 ether;
+        uint256 lockAmount = 10 ether;
+        uint256 numberOfRounds = 1;
+        address[] memory accounts = new address[](1);
+        accounts[0] = sender;
+
+        uint256 currentRound = givPower.currentRound();
+        uint256 untilRound = currentRound + numberOfRounds;
+        uint256 powerIncreaseAfterLock = givPower.calculatePower(lockAmount, numberOfRounds) - lockAmount;
 
         uint256 initialTotalSupply = givPower.totalSupply();
         uint256 initialUnipoolBalance = givPower.balanceOf(sender);
@@ -205,6 +215,8 @@ contract GIVpowerTest is Test {
         vm.startPrank(sender);
         givToken.approve(address(tokenManager), wrapAmount);
 
+        /// WRAP
+
         vm.expectEmit(true, true, false, false);
         emit Staked(sender, wrapAmount);
 
@@ -212,11 +224,56 @@ contract GIVpowerTest is Test {
         emit Transfer(address(0), sender, wrapAmount);
 
         tokenManager.wrap(wrapAmount);
-        vm.stopPrank();
 
         assertEq(givPower.balanceOf(sender), initialUnipoolBalance + wrapAmount);
         assertEq(ggivToken.balanceOf(sender), initialgGivBalance + wrapAmount);
         assertEq(givPower.totalSupply(), initialTotalSupply + wrapAmount);
+
+        /// LOCK
+
+        vm.expectEmit(true, true, false, false);
+        emit Staked(sender, powerIncreaseAfterLock);
+
+        vm.expectEmit(true, true, true, true);
+        emit TokenLocked(sender, lockAmount, numberOfRounds, untilRound);
+
+        vm.expectEmit(true, true, true, false);
+        emit Transfer(address(0), sender, powerIncreaseAfterLock);
+
+        givPower.lock(lockAmount, numberOfRounds);
+
+        assertEq(givPower.balanceOf(sender), wrapAmount + powerIncreaseAfterLock);
+        // gGIV balance should not change after lock
+        assertEq(ggivToken.balanceOf(sender), initialgGivBalance + wrapAmount);
+
+        /// UNWRAP
+
+        vm.expectEmit(true, true, false, false);
+        emit Withdrawn(sender, wrapAmount - lockAmount);
+
+        vm.expectEmit(true, true, true, false);
+        emit TokenUnlocked(sender, lockAmount, untilRound);
+
+        vm.expectEmit(true, true, true, false);
+        emit Transfer(sender, address(0), wrapAmount - lockAmount);
+
+        tokenManager.unwrap(wrapAmount - lockAmount);
+
+        skip(14 days * (numberOfRounds + 1));
+
+        /// UNLOCK
+
+        vm.expectEmit(true, true, false, false);
+        emit Withdrawn(sender, powerIncreaseAfterLock);
+
+        vm.expectEmit(true, true, true, false);
+        emit Transfer(sender, address(0), powerIncreaseAfterLock);
+
+        givPower.unlock(accounts, currentRound + numberOfRounds);
+
+        assertEq(givPower.balanceOf(sender), lockAmount);
+
+        tokenManager.unwrap(lockAmount);
     }
 
     function testCannotUnlockUntilRoundIsFinished() public {
