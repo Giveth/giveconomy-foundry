@@ -46,6 +46,7 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
         if (_rounds > maxLockRounds) {
             revert LockRoundLimit();
         }
+
         UserLock storage _userLock = userLocks[msg.sender];
         IERC20 token = _getToken();
 

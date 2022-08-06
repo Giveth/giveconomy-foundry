@@ -8,19 +8,25 @@ import 'forge-std/console.sol';
 
 import 'contracts/GIVpower.sol';
 import 'contracts/GardenUnipoolTokenDistributor.sol';
+import './interfaces/IERC20Bridged.sol';
 
 contract GIVpowerTest is Test {
     ProxyAdmin gardenUnipoolProxyAdmin;
     TransparentUpgradeableProxy gardenUnipoolProxy;
     GIVpower implementation;
     GIVpower givPower;
+    ITokenManager tokenManager;
+    IERC20Bridged givToken;
+    address givethMultisig;
 
     // accounts
     address sender = address(1);
     address notAuthorized = address(2);
-    address givethMultisig = 0x4D9339dd97db55e3B9bCBE65dE39fF9c04d1C2cd;
+    address omniBridge = 0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d;
+    address[] testUsers = [0xB8306b6d3BA7BaB841C02f0F92b8880a4760199A, 0x975f6807E8406191D1C951331eEa4B26199b37ff];
 
     struct StorageData {
+        address tokenManager;
         address tokenDistro;
         uint256 duration;
         address rewardDistribution;
@@ -34,6 +40,8 @@ contract GIVpowerTest is Test {
         uint256[] usersRewards;
     }
 
+    StorageData storageDataBefore;
+
     function setUp() public {
         gardenUnipoolProxyAdmin = ProxyAdmin(address(0x076C250700D210e6cf8A27D1EB1Fd754FB487986));
 
@@ -45,18 +53,30 @@ contract GIVpowerTest is Test {
         // wrap in ABI to support easier calls
         givPower = GIVpower(address(gardenUnipoolProxy));
 
-        // labels
-        vm.label(sender, 'sender');
-        vm.label(notAuthorized, 'notAuthorizedAddress');
-    }
+        tokenManager = ITokenManager(givPower.getTokenManager());
 
-    function upgradeGardenUnipool() public {
-        vm.prank(gardenUnipoolProxyAdmin.owner());
+        givToken = IERC20Bridged(address(tokenManager.wrappableToken()));
+
+        givethMultisig = gardenUnipoolProxyAdmin.owner();
+
+        storageDataBefore = getImplementationStorageData(testUsers);
+
+        // upgrade to new implementation
+        vm.prank(givethMultisig);
         gardenUnipoolProxyAdmin.upgrade(gardenUnipoolProxy, address(implementation));
-    }
 
-    function roundHasStartedInSeconds() public returns (uint256) {
-        return (block.timestamp - givPower.initialDate()) % 14 days;
+        // mint
+        vm.prank(omniBridge);
+        givToken.mint(sender, 10 ether);
+
+        // labels
+        vm.label(notAuthorized, 'notAuthorizedAddress');
+        vm.label(givethMultisig, 'givethMultisig');
+        vm.label(address(gardenUnipoolProxyAdmin), 'ProxyAdmin');
+        vm.label(address(gardenUnipoolProxy), 'Proxy');
+        vm.label(address(givPower), 'GIVpower');
+        vm.label(address(tokenManager), 'TokenManager');
+        vm.label(address(givToken), 'GivethToken');
     }
 
     function getImplementationStorageData(address[] memory _users) public returns (StorageData memory) {
@@ -73,6 +93,7 @@ contract GIVpowerTest is Test {
         }
 
         return StorageData({
+            tokenManager: givPower.getTokenManager(),
             tokenDistro: address(givPower.tokenDistro()),
             duration: givPower.duration(),
             rewardDistribution: givPower.rewardDistribution(),
@@ -87,20 +108,17 @@ contract GIVpowerTest is Test {
         });
     }
 
+    function roundHasStartedInSeconds() public returns (uint256) {
+        return (block.timestamp - givPower.initialDate()) % 14 days;
+    }
+
     function testImplementationStorage() public {
-        address[] memory testUsers = new address[](2);
-        testUsers[0] = 0xB8306b6d3BA7BaB841C02f0F92b8880a4760199A;
-        testUsers[1] = 0x975f6807E8406191D1C951331eEa4B26199b37ff;
-
-        StorageData memory storageDataBefore = getImplementationStorageData(testUsers);
-
-        upgradeGardenUnipool();
-
         StorageData memory storageDataAfter = getImplementationStorageData(testUsers);
 
         assertEq(givPower.roundDuration(), 14 days);
         assertEq(givPower.maxLockRounds(), 26);
 
+        assertEq(storageDataBefore.tokenManager, storageDataAfter.tokenManager);
         assertEq(storageDataBefore.tokenDistro, storageDataAfter.tokenDistro);
         assertEq(storageDataBefore.duration, storageDataAfter.duration);
         assertEq(storageDataBefore.rewardDistribution, storageDataAfter.rewardDistribution);
@@ -118,8 +136,6 @@ contract GIVpowerTest is Test {
     }
 
     function testIsNonTransferableToken() public {
-        upgradeGardenUnipool();
-
         assertEq(givPower.name(), 'GIVpower');
         assertEq(givPower.symbol(), 'POW');
         assertEq(givPower.decimals(), 18);
@@ -148,8 +164,6 @@ contract GIVpowerTest is Test {
     }
 
     function testTrackCurrentRound() public {
-        upgradeGardenUnipool();
-
         uint256 currentRound = givPower.currentRound();
 
         skip(14 days);
@@ -163,5 +177,50 @@ contract GIVpowerTest is Test {
 
         skip(1);
         assertEq(givPower.currentRound(), currentRound + 3);
+    }
+
+    function testCalculatePower() public {
+        // TBD
+        // we can use assertApproxEqAbs or assertApproxEqRel
+    }
+
+    function testForbidUnwrapTokensWhileLock() public {
+        uint256 wrapAmount = 3 ether;
+        uint256 lockAmount = 1 ether;
+        uint256 numberOfRounds = 2;
+
+        vm.startPrank(sender);
+        givToken.approve(address(tokenManager), wrapAmount);
+        tokenManager.wrap(lockAmount);
+        givPower.lock(lockAmount, numberOfRounds);
+        vm.stopPrank();
+
+        uint256 round = givPower.currentRound() + numberOfRounds;
+        uint256 lockTimeRound = givPower.currentRound();
+
+        skip(14 days);
+
+        address[] memory accounts = new address[](1);
+        accounts[0] = sender;
+
+        vm.expectRevert(GIVpower.CannotUnlockUntilRoundIsFinished.selector);
+        givPower.unlock(accounts, round);
+
+        uint256 passedSeconds = roundHasStartedInSeconds();
+        // Seconds has passed from round start time, for this test it should be positive
+        assertFalse(passedSeconds == 0);
+
+        // After this line, less than 2 rounds (4 weeks) are passed from lock time because passedSeconds is positive
+        skip(14 days - passedSeconds);
+
+        // Still not 2 complete rounds has passed since lock time!!
+        assertEq(givPower.currentRound(), lockTimeRound + 2);
+
+        vm.expectRevert(GIVpower.CannotUnlockUntilRoundIsFinished.selector);
+        givPower.unlock(accounts, round);
+
+        skip(14 days);
+
+        givPower.unlock(accounts, round);
     }
 }
