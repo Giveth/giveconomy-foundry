@@ -1,4 +1,4 @@
-name: lint
+name: Foundry Format Check
 
 on:
   push:
