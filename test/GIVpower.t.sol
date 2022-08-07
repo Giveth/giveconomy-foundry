@@ -346,6 +346,13 @@ contract GIVpowerTest is Test {
         uint256 lockAmount = 1 ether;
         uint256 numberOfRounds = 2;
 
+        uint256 passedSeconds = roundHasStartedInSeconds();
+
+        // Be at least one second after round start time
+        if (passedSeconds == 0) {
+            skip(1);
+        }
+
         vm.startPrank(sender);
         givToken.approve(address(tokenManager), wrapAmount);
         tokenManager.wrap(lockAmount);
@@ -363,9 +370,7 @@ contract GIVpowerTest is Test {
         vm.expectRevert(GIVpower.CannotUnlockUntilRoundIsFinished.selector);
         givPower.unlock(accounts, round);
 
-        skip(1);
-
-        uint256 passedSeconds = roundHasStartedInSeconds();
+        passedSeconds = roundHasStartedInSeconds();
         // Seconds has passed from round start time, for this test it should be positive
         assertFalse(passedSeconds == 0);
 
