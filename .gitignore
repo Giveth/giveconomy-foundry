@@ -8,3 +8,7 @@ out/
 /broadcast/*/31337/
 
 .env
+
+# IDE files
+.idea/
+.vscode/
