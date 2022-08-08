@@ -27,7 +27,7 @@ jobs:
           forge --version
           forge install
 
-      - uses: crytic/slither-action@v0.1.1
+      - uses: crytic/slither-action@main
         with:
           target: 'contracts/'
           slither-args: '--exclude-informational --checklist'
