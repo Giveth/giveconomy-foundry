@@ -17,7 +17,7 @@ jobs:
 
       - name: Install deps
         run: forge install
-        id: install dependencies
+        id: install_dependencies
 
       - uses: crytic/slither-action@v0.1.1
         with:
