@@ -30,4 +30,3 @@ jobs:
       - uses: crytic/slither-action@main
         with:
           target: 'contracts/'
-          slither-args: '--exclude-informational --checklist'
