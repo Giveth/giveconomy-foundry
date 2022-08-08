@@ -4,8 +4,13 @@ on:
     branches:
       - main
   pull_request:
+
+env:
+  FOUNDRY_PROFILE: ci
+
 jobs:
   analyze:
+    name: Slither check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -19,8 +24,8 @@ jobs:
 
       - name: Install deps
         run: |
+          forge --version
           forge install
-        id: install_dependencies
 
       - uses: crytic/slither-action@v0.1.1
         with:
