@@ -116,11 +116,12 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
             uint256 _unlockableTokenAmount = _roundBalance.unlockableTokenAmount;
 
             _userLock.totalAmountLocked = _userLock.totalAmountLocked.sub(_unlockableTokenAmount);
-            // Reduce power/farming benefit of locking
-            super.withdraw(_account, _releasablePowerAmount);
 
             _roundBalance.releasablePowerAmount = 0;
             _roundBalance.unlockableTokenAmount = 0;
+
+            // Reduce power/farming benefit of locking
+            super.withdraw(_account, _releasablePowerAmount);
 
             emit TokenUnlocked(_account, _unlockableTokenAmount, round);
             emit Transfer(_account, address(0), _releasablePowerAmount);
@@ -136,7 +137,7 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
 
     /// Returns seconds till the end of current round
     /// @return The number of seconds till the end of current round
-    function roundEndsIn() external returns (uint256) {
+    function roundEndsIn() external view returns (uint256) {
         return uint256(block.timestamp).sub(INITIAL_DATE).mod(ROUND_DURATION);
     }
 
@@ -186,17 +187,17 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
     }
 
     /// @inheritdoc IERC20MetadataUpgradeable
-    function name() external view override returns (string memory) {
+    function name() external pure override returns (string memory) {
         return 'GIVpower';
     }
 
     /// @inheritdoc IERC20MetadataUpgradeable
-    function symbol() external view override returns (string memory) {
+    function symbol() external pure override returns (string memory) {
         return 'POW';
     }
 
     /// @inheritdoc IERC20MetadataUpgradeable
-    function decimals() external view override returns (uint8) {
+    function decimals() external pure override returns (uint8) {
         return 18;
     }
 
@@ -211,32 +212,32 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
     }
 
     /// Token is not transferable
-    function transfer(address, uint256) external override returns (bool) {
+    function transfer(address, uint256) external pure override returns (bool) {
         revert TokenNonTransferable();
     }
 
     /// Token is not transferable
-    function allowance(address, address) external view override returns (uint256) {
+    function allowance(address, address) external pure override returns (uint256) {
         return 0;
     }
 
     /// Token is not transferable
-    function approve(address, uint256) external override returns (bool) {
+    function approve(address, uint256) external pure override returns (bool) {
         revert TokenNonTransferable();
     }
 
     /// Token is not transferable
-    function transferFrom(address, address, uint256) external override returns (bool) {
+    function transferFrom(address, address, uint256) external pure override returns (bool) {
         revert TokenNonTransferable();
     }
 
     /// Token is not transferable
-    function increaseAllowance(address, uint256) external returns (bool) {
+    function increaseAllowance(address, uint256) external pure returns (bool) {
         revert TokenNonTransferable();
     }
 
     /// Token is not transferable
-    function decreaseAllowance(address, uint256) external returns (bool) {
+    function decreaseAllowance(address, uint256) external pure returns (bool) {
         revert TokenNonTransferable();
     }
 }
