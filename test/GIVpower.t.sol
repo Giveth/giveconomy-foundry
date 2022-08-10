@@ -272,7 +272,6 @@ contract GIVpowerTest is Test {
         vm.expectEmit(true, true, true, true);
         emit Transfer(sender, address(0), powerIncreaseAfterLock);
 
-
         givPower.unlock(accounts, untilRound);
 
         assertEq(givPower.balanceOf(sender), lockAmount);
