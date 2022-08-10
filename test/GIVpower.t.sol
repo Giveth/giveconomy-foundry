@@ -138,14 +138,14 @@ contract GIVpowerTest is Test {
     }
 
     function roundHasStartedInSeconds() public view returns (uint256) {
-        return (block.timestamp - givPower.initialDate()) % 14 days;
+        return (block.timestamp - givPower.INITIAL_DATE()) % 14 days;
     }
 
     function testImplementationStorage() public {
         StorageData memory storageDataAfterUpgrade = getImplementationStorageData(testUsers);
 
-        assertEq(givPower.roundDuration(), 14 days);
-        assertEq(givPower.maxLockRounds(), 26);
+        assertEq(givPower.ROUND_DURATION(), 14 days);
+        assertEq(givPower.MAX_LOCK_ROUNDS(), 26);
 
         assertEq(storageDataBeforeUpgrade.tokenManager, storageDataAfterUpgrade.tokenManager);
         assertEq(storageDataBeforeUpgrade.tokenDistro, storageDataAfterUpgrade.tokenDistro);
