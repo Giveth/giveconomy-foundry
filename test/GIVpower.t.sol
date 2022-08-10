@@ -223,7 +223,10 @@ contract GIVpowerTest is Test {
         vm.expectEmit(true, true, true, true);
         emit Staked(sender, wrapAmount);
 
-        vm.expectEmit(true, true, true, true);
+        vm.expectEmit(true, true, true, true, address(givPower));
+        emit Transfer(address(0), sender, wrapAmount);
+
+        vm.expectEmit(true, true, true, true, address(ggivToken));
         emit Transfer(address(0), sender, wrapAmount);
 
         tokenManager.wrap(wrapAmount);
@@ -240,7 +243,7 @@ contract GIVpowerTest is Test {
         vm.expectEmit(true, true, true, true);
         emit TokenLocked(sender, lockAmount, numberOfRounds, untilRound);
 
-        vm.expectEmit(true, true, true, true);
+        vm.expectEmit(true, true, true, true, address(givPower));
         emit Transfer(address(0), sender, powerIncreaseAfterLock);
 
         givPower.lock(lockAmount, numberOfRounds);
@@ -254,7 +257,10 @@ contract GIVpowerTest is Test {
         vm.expectEmit(true, true, true, true);
         emit Withdrawn(sender, wrapAmount - lockAmount);
 
-        vm.expectEmit(true, true, true, true);
+        vm.expectEmit(true, true, true, true, address(givPower));
+        emit Transfer(sender, address(0), wrapAmount - lockAmount);
+
+        vm.expectEmit(true, true, true, true, address(ggivToken));
         emit Transfer(sender, address(0), wrapAmount - lockAmount);
 
         tokenManager.unwrap(wrapAmount - lockAmount);
@@ -269,7 +275,7 @@ contract GIVpowerTest is Test {
         vm.expectEmit(true, true, true, true);
         emit TokenUnlocked(sender, lockAmount, untilRound);
 
-        vm.expectEmit(true, true, true, true);
+        vm.expectEmit(true, true, true, true, address(givPower));
         emit Transfer(sender, address(0), powerIncreaseAfterLock);
 
         givPower.unlock(accounts, untilRound);
