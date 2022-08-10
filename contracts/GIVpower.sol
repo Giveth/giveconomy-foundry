@@ -96,13 +96,13 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
     /// @notice Unlock tokens belongs to accounts which are locked till the end of round
     /// @param accounts List of accounts to unlock their tokens
     /// @param round The round number token are locked till the end of
-    function unlock(address[] calldata acounts, uint256 round) external {
+    function unlock(address[] calldata accounts, uint256 round) external {
         if (round >= currentRound()) {
             revert CannotUnlockUntilRoundIsFinished();
         }
 
-        for (uint256 i = 0; i < acounts.length; i++) {
-            address _account = acounts[i];
+        for (uint256 i = 0; i < accounts.length; i++) {
+            address _account = accounts[i];
             UserLock storage _userLock = userLocks[_account];
             RoundBalance storage _roundBalance = _userLock.roundBalances[round];
 
