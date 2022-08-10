@@ -234,6 +234,7 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
     function increaseAllowance(address, uint256) external returns (bool) {
         revert TokenNonTransferable();
     }
+
     /// Token is not transferable
     function decreaseAllowance(address, uint256) external returns (bool) {
         revert TokenNonTransferable();
