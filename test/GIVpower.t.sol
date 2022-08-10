@@ -220,10 +220,10 @@ contract GIVpowerTest is Test {
 
         /// WRAP
 
-        vm.expectEmit(true, true, false, false);
+        vm.expectEmit(true, true, true, true);
         emit Staked(sender, wrapAmount);
 
-        vm.expectEmit(true, true, true, false);
+        vm.expectEmit(true, true, true, true);
         emit Transfer(address(0), sender, wrapAmount);
 
         tokenManager.wrap(wrapAmount);
@@ -234,13 +234,13 @@ contract GIVpowerTest is Test {
 
         /// LOCK
 
-        vm.expectEmit(true, true, false, false);
+        vm.expectEmit(true, true, true, true);
         emit Staked(sender, powerIncreaseAfterLock);
 
         vm.expectEmit(true, true, true, true);
         emit TokenLocked(sender, lockAmount, numberOfRounds, untilRound);
 
-        vm.expectEmit(true, true, true, false);
+        vm.expectEmit(true, true, true, true);
         emit Transfer(address(0), sender, powerIncreaseAfterLock);
 
         givPower.lock(lockAmount, numberOfRounds);
@@ -251,13 +251,10 @@ contract GIVpowerTest is Test {
 
         /// UNWRAP
 
-        vm.expectEmit(true, true, false, false);
+        vm.expectEmit(true, true, true, true);
         emit Withdrawn(sender, wrapAmount - lockAmount);
 
-        vm.expectEmit(true, true, true, false);
-        emit TokenUnlocked(sender, lockAmount, untilRound);
-
-        vm.expectEmit(true, true, true, false);
+        vm.expectEmit(true, true, true, true);
         emit Transfer(sender, address(0), wrapAmount - lockAmount);
 
         tokenManager.unwrap(wrapAmount - lockAmount);
@@ -266,13 +263,16 @@ contract GIVpowerTest is Test {
 
         /// UNLOCK
 
-        vm.expectEmit(true, true, false, false);
+        vm.expectEmit(true, true, true, true);
         emit Withdrawn(sender, powerIncreaseAfterLock);
 
-        vm.expectEmit(true, true, true, false);
+        vm.expectEmit(true, true, true, true);
+        emit TokenUnlocked(sender, lockAmount, untilRound);
+
+        vm.expectEmit(true, true, true, true);
         emit Transfer(sender, address(0), powerIncreaseAfterLock);
 
-        givPower.unlock(accounts, currentRound + numberOfRounds);
+        givPower.unlock(accounts, untilRound);
 
         assertEq(givPower.balanceOf(sender), lockAmount);
 
