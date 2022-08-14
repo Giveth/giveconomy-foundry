@@ -3,6 +3,7 @@
 pragma solidity =0.8.6;
 
 import '@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol';
+import 'solmate/utils/FixedPointMathLib.sol';
 import './GardenUnipoolTokenDistributor.sol';
 import './interfaces/ITokenManager.sol';
 
@@ -147,24 +148,7 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
     /// @param rounds The number of rounds to lock token for
     /// @return The new amount of power gained by the same amount of token; amount plus extra gained value
     function calculatePower(uint256 amount, uint256 rounds) public pure returns (uint256) {
-        return amount.mul(_sqrt(rounds.add(1).mul(10 ** 18))).div(10 ** 9);
-    }
-
-    /**
-     * @dev Same sqrt implementation as Uniswap v2
-     */
-    function _sqrt(uint256 y) internal pure returns (uint256 z) {
-        if (y > 3) {
-            z = y;
-            uint256 x = y / 2 + 1;
-            while (x < z) {
-                z = x;
-                x = (y / x + x) / 2;
-            }
-        } else if (y != 0) {
-            z = 1;
-        }
-        // else z = 0 (default value)
+        return amount.mul(FixedPointMathLib.sqrt(rounds.add(1).mul(10 ** 18))).div(10 ** 9);
     }
 
     /**

@@ -2,6 +2,7 @@
     "filter_paths": "lib",
     "solc_remaps": [
       "ds-test/=lib/ds-test/src/",
+      "solmate/=lib/solmate/src/",
       "forge-std/=lib/forge-std/src/",
       "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
       "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/"

@@ -215,13 +215,13 @@ contract GeneralTest is GIVpowerTest {
     }
 
     function testCalculatePower() public {
-        assertApproxEqAbs(givPower.calculatePower(1e10, 1), Math.sqrt(2e20), 20);
+        assertApproxEqRel(givPower.calculatePower(1e10, 1), FixedPointMathLib.sqrt(2e20), 0.000000001e18);
 
-        assertApproxEqAbs(givPower.calculatePower(5e10, 1), Math.sqrt(2e20) * 5, 20);
+        assertApproxEqRel(givPower.calculatePower(5e10, 1), FixedPointMathLib.sqrt(2e20) * 5, 0.000000001e18);
 
-        assertApproxEqAbs(givPower.calculatePower(1e10, 10), Math.sqrt(11e20), 20);
+        assertApproxEqRel(givPower.calculatePower(1e10, 10), FixedPointMathLib.sqrt(11e20), 0.000000001e18);
 
-        assertApproxEqAbs(givPower.calculatePower(5e10, 10), Math.sqrt(11e20) * 5, 20);
+        assertApproxEqRel(givPower.calculatePower(5e10, 10), FixedPointMathLib.sqrt(11e20) * 5, 0.000000001e18);
     }
 
     function testForbidUnwrapTokensWhileLock() public {
