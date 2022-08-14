@@ -12,3 +12,7 @@ out/
 # IDE files
 .idea/
 .vscode/
+
+# Test JS Scripts
+test/**/node_modules
+test/**/package-lock.json
