@@ -48,7 +48,7 @@ contract CalculatePowerTest is GIVpowerTest {
         uint256 jsPowerAmount = uint256(abi.decode(jsResult, (bytes32)));
         uint256 calculatePower = givPower.calculatePower(amount, rounds);
 
-        // The precision is 1-e9
-        assertApproxEqRel(calculatePower, jsPowerAmount, 0.000000001e18);
+        // The precision is 1-e6
+        assertApproxEqRel(calculatePower, jsPowerAmount, 0.000001e18);
     }
 }
