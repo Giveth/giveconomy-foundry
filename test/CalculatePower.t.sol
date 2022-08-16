@@ -28,12 +28,9 @@ contract CalculatePowerTest is GIVpowerTest {
     function testSqrt(uint256 amount, uint8 rounds) public {
         uint256 maxLockRounds = givPower.MAX_LOCK_ROUNDS();
 
-        // uint256 maxAmount = type(uint256).max / Math.sqrt(1e18 * (maxLockRounds + 1));
-        uint256 maxAmount = 1 << 220; // Chose this to be less dependent on the implemented Math.sqrt
-
         vm.assume(rounds > 0);
         vm.assume(rounds <= maxLockRounds);
-        vm.assume(amount < maxAmount);
+        vm.assume(amount < MAX_GIV_BALANCE);
 
         string[] memory runJsInputs = new string[](4);
 

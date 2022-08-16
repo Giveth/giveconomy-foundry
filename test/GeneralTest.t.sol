@@ -87,7 +87,7 @@ contract GeneralTest is GIVpowerTest {
 
         uint256 initialTotalSupply = givPower.totalSupply();
         uint256 initialUnipoolBalance = givPower.balanceOf(sender);
-        uint256 initialgGivBalance = ggivToken.balanceOf(sender);
+        uint256 initialgGivBalance = gGivToken.balanceOf(sender);
 
         // Before lock unipool balance should be same as gGiv balance
         assertEq(initialgGivBalance, initialgGivBalance);
@@ -103,13 +103,13 @@ contract GeneralTest is GIVpowerTest {
         vm.expectEmit(true, true, true, true, address(givPower));
         emit Transfer(address(0), sender, wrapAmount);
 
-        vm.expectEmit(true, true, true, true, address(ggivToken));
+        vm.expectEmit(true, true, true, true, address(gGivToken));
         emit Transfer(address(0), sender, wrapAmount);
 
         tokenManager.wrap(wrapAmount);
 
         assertEq(givPower.balanceOf(sender), initialUnipoolBalance + wrapAmount);
-        assertEq(ggivToken.balanceOf(sender), initialgGivBalance + wrapAmount);
+        assertEq(gGivToken.balanceOf(sender), initialgGivBalance + wrapAmount);
         assertEq(givPower.totalSupply(), initialTotalSupply + wrapAmount);
 
         /// LOCK
@@ -127,7 +127,7 @@ contract GeneralTest is GIVpowerTest {
 
         assertEq(givPower.balanceOf(sender), wrapAmount + powerIncreaseAfterLock);
         // gGIV balance should not change after lock
-        assertEq(ggivToken.balanceOf(sender), initialgGivBalance + wrapAmount);
+        assertEq(gGivToken.balanceOf(sender), initialgGivBalance + wrapAmount);
 
         /// UNWRAP
 
@@ -137,7 +137,7 @@ contract GeneralTest is GIVpowerTest {
         vm.expectEmit(true, true, true, true, address(givPower));
         emit Transfer(sender, address(0), wrapAmount - lockAmount);
 
-        vm.expectEmit(true, true, true, true, address(ggivToken));
+        vm.expectEmit(true, true, true, true, address(gGivToken));
         emit Transfer(sender, address(0), wrapAmount - lockAmount);
 
         tokenManager.unwrap(wrapAmount - lockAmount);

@@ -12,13 +12,15 @@ import 'contracts/GardenUnipoolTokenDistributor.sol';
 import './interfaces/IERC20Bridged.sol';
 
 contract GIVpowerTest is Test {
+    uint256 public constant MAX_GIV_BALANCE = 10 ** 28; // 10 Billion, Total minted giv is 1B at the moment
+
     ProxyAdmin gardenUnipoolProxyAdmin;
     TransparentUpgradeableProxy gardenUnipoolProxy;
     GIVpower implementation;
     GIVpower givPower;
     ITokenManager tokenManager;
     IERC20Bridged givToken;
-    IERC20 ggivToken;
+    IERC20 gGivToken;
     address givethMultisig;
 
     // accounts
@@ -44,6 +46,7 @@ contract GIVpowerTest is Test {
 
     event Staked(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
     event Transfer(address indexed from, address indexed to, uint256 amount);
     event TokenLocked(address indexed account, uint256 amount, uint256 rounds, uint256 untilRound);
     event TokenUnlocked(address indexed account, uint256 amount, uint256 round);
@@ -61,7 +64,7 @@ contract GIVpowerTest is Test {
 
         givToken = IERC20Bridged(address(tokenManager.wrappableToken()));
 
-        ggivToken = IERC20(address(tokenManager.token()));
+        gGivToken = IERC20(address(tokenManager.token()));
 
         givethMultisig = gardenUnipoolProxyAdmin.owner();
     }
@@ -79,6 +82,7 @@ contract GIVpowerTest is Test {
         givToken.mint(sender, 100 ether);
 
         // labels
+        vm.label(sender, 'sender');
         vm.label(senderWithNoBalance, 'senderWithNoBalance');
         vm.label(givethMultisig, 'givethMultisig');
         vm.label(address(gardenUnipoolProxyAdmin), 'ProxyAdmin');
@@ -86,7 +90,7 @@ contract GIVpowerTest is Test {
         vm.label(address(givPower), 'GIVpower');
         vm.label(address(tokenManager), 'TokenManager');
         vm.label(address(givToken), 'GivethToken');
-        vm.label(address(ggivToken), 'gGivToken');
+        vm.label(address(gGivToken), 'gGivToken');
     }
 
     function getImplementationStorageData(address[] memory _users) public view returns (StorageData memory) {
