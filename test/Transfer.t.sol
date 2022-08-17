@@ -12,16 +12,6 @@ contract TransferTest is GIVpowerTest {
         vm.stopPrank();
     }
 
-    function testInitialBalance() public {
-        assertEq(givToken.balanceOf(sender), MAX_GIV_BALANCE);
-        assertEq(gGivToken.balanceOf(sender), 0);
-        assertEq(givPower.balanceOf(sender), 0);
-
-        assertEq(givToken.balanceOf(senderWithNoBalance), 0);
-        assertEq(gGivToken.balanceOf(senderWithNoBalance), 0);
-        assertEq(givPower.balanceOf(senderWithNoBalance), 0);
-    }
-
     function testDirectTransfer(uint256 amount) public {
         vm.assume(amount <= 100 ether);
         vm.assume(amount > 0);
@@ -46,10 +36,6 @@ contract TransferTest is GIVpowerTest {
 
         tokenManager.wrap(amount);
 
-        assertEq(givToken.balanceOf(sender), MAX_GIV_BALANCE - amount);
-        assertEq(gGivToken.balanceOf(sender), amount);
-        assertEq(givPower.balanceOf(sender), amount);
-
         vm.expectRevert(GIVpower.TokenNonTransferable.selector);
         givPower.transfer(senderWithNoBalance, amount);
 
@@ -66,15 +52,6 @@ contract TransferTest is GIVpowerTest {
         emit Transfer(sender, senderWithNoBalance, amount);
 
         gGivToken.transfer(senderWithNoBalance, amount);
-
-        assertEq(givToken.balanceOf(sender), MAX_GIV_BALANCE - amount);
-        assertEq(gGivToken.balanceOf(sender), 0);
-        assertEq(givPower.balanceOf(sender), 0);
-
-        assertEq(givToken.balanceOf(senderWithNoBalance), 0);
-        assertEq(gGivToken.balanceOf(senderWithNoBalance), amount);
-        assertEq(givPower.balanceOf(senderWithNoBalance), amount);
-
         vm.stopPrank();
     }
 
@@ -89,9 +66,6 @@ contract TransferTest is GIVpowerTest {
         vm.startPrank(sender);
         givToken.approve(address(tokenManager), amount);
         tokenManager.wrap(amount);
-
-        assertEq(gGivToken.balanceOf(sender), amount);
-        assertEq(givPower.balanceOf(sender), amount);
 
         vm.expectRevert(GIVpower.TokenNonTransferable.selector);
         givPower.transfer(senderWithNoBalance, amount);
@@ -108,9 +82,6 @@ contract TransferTest is GIVpowerTest {
 
         uint256 unlockRound = givPower.currentRound() + rounds;
         givPower.lock(amount, rounds);
-
-        assertEq(gGivToken.balanceOf(sender), amount);
-        assertEq(givPower.balanceOf(sender), amount + lockReward);
 
         vm.expectRevert(GIVpower.TokenNonTransferable.selector);
         givPower.transfer(senderWithNoBalance, amount);
