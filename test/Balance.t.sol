@@ -16,10 +16,12 @@ contract BalanceTest is GIVpowerTest {
         assertEq(givToken.balanceOf(sender), MAX_GIV_BALANCE);
         assertEq(gGivToken.balanceOf(sender), 0);
         assertEq(givPower.balanceOf(sender), 0);
+        assertEq(givPower.userLocks(sender), 0);
 
         assertEq(givToken.balanceOf(senderWithNoBalance), 0);
         assertEq(gGivToken.balanceOf(senderWithNoBalance), 0);
         assertEq(givPower.balanceOf(senderWithNoBalance), 0);
+        assertEq(givPower.userLocks(senderWithNoBalance), 0);
     }
 
     function testDirectTransfer(uint256 amount) public {
@@ -34,16 +36,19 @@ contract BalanceTest is GIVpowerTest {
         assertEq(givToken.balanceOf(sender), MAX_GIV_BALANCE - amount);
         assertEq(gGivToken.balanceOf(sender), amount);
         assertEq(givPower.balanceOf(sender), amount);
+        assertEq(givPower.userLocks(sender), 0);
 
         gGivToken.transfer(senderWithNoBalance, amount);
 
         assertEq(givToken.balanceOf(sender), MAX_GIV_BALANCE - amount);
         assertEq(gGivToken.balanceOf(sender), 0);
         assertEq(givPower.balanceOf(sender), 0);
+        assertEq(givPower.userLocks(sender), 0);
 
         assertEq(givToken.balanceOf(senderWithNoBalance), 0);
         assertEq(gGivToken.balanceOf(senderWithNoBalance), amount);
         assertEq(givPower.balanceOf(senderWithNoBalance), amount);
+        assertEq(givPower.userLocks(senderWithNoBalance), 0);
 
         vm.stopPrank();
     }
@@ -62,6 +67,7 @@ contract BalanceTest is GIVpowerTest {
 
         assertEq(gGivToken.balanceOf(sender), amount);
         assertEq(givPower.balanceOf(sender), amount);
+        assertEq(givPower.userLocks(sender), 0);
 
         uint256 lockReward = givPower.calculatePower(amount, rounds) - amount;
 
@@ -72,6 +78,7 @@ contract BalanceTest is GIVpowerTest {
 
         assertEq(gGivToken.balanceOf(sender), amount);
         assertEq(givPower.balanceOf(sender), amount + lockReward);
+        assertEq(givPower.userLocks(sender), amount);
 
         skip(givPower.ROUND_DURATION() * (rounds + 1));
 
@@ -80,6 +87,8 @@ contract BalanceTest is GIVpowerTest {
         givPower.unlock(unlockAccounts, unlockRound);
 
         assertEq(givPower.balanceOf(sender), amount);
+        assertEq(givPower.balanceOf(sender), amount);
+        assertEq(givPower.userLocks(sender), 0);
 
         ///////////// Lock half the amount, the rest must be transferable
         uint256 lockAmount = amount / 2;
@@ -92,13 +101,16 @@ contract BalanceTest is GIVpowerTest {
 
         unlockRound = givPower.currentRound() + rounds;
         givPower.lock(lockAmount, rounds);
+        assertEq(givPower.userLocks(sender), lockAmount);
 
         gGivToken.transfer(senderWithNoBalance, amount - lockAmount);
 
         assertEq(gGivToken.balanceOf(sender), lockAmount);
         assertEq(gGivToken.balanceOf(senderWithNoBalance), amount - lockAmount);
+        assertEq(givPower.userLocks(sender), lockAmount);
         assertEq(givPower.balanceOf(sender), lockAmount + lockReward);
         assertEq(givPower.balanceOf(senderWithNoBalance), amount - lockAmount);
+        assertEq(givPower.userLocks(senderWithNoBalance), 0);
 
         skip(givPower.ROUND_DURATION() * (rounds + 1));
         givPower.unlock(unlockAccounts, unlockRound);
@@ -107,6 +119,8 @@ contract BalanceTest is GIVpowerTest {
         assertEq(gGivToken.balanceOf(senderWithNoBalance), amount - lockAmount);
         assertEq(givPower.balanceOf(sender), lockAmount);
         assertEq(givPower.balanceOf(senderWithNoBalance), amount - lockAmount);
+        assertEq(givPower.userLocks(sender), 0);
+        assertEq(givPower.userLocks(senderWithNoBalance), 0);
 
         gGivToken.transfer(senderWithNoBalance, lockAmount);
 
