@@ -102,4 +102,58 @@ contract LockRounds is GIVpowerTest {
         emit Transfer(sender, address(0), lockRewards);
         givPower.unlock(accounts, untilRound);
     }
+
+    function testLockForDifferentRounds(uint256 amount1, uint8 rounds1, uint256 amount2, uint8 rounds2) public {
+        uint256 roundDuration = givPower.ROUND_DURATION();
+        uint256 maxLockRounds = givPower.MAX_LOCK_ROUNDS();
+        address[] memory accounts = new address[](1);
+        accounts[0] = sender;
+
+        vm.assume(rounds1 > 0);
+        vm.assume(rounds2 > 0);
+        vm.assume(rounds1 <= maxLockRounds);
+        vm.assume(rounds2 <= maxLockRounds);
+        // rounds2 should be longer then rounds1
+        vm.assume(rounds1 < rounds2);
+
+        vm.assume(amount1 > 0);
+        vm.assume(amount2 > 0);
+        vm.assume(amount1 < MAX_GIV_BALANCE);
+        vm.assume(amount2 < MAX_GIV_BALANCE);
+        vm.assume(amount1 < (MAX_GIV_BALANCE - amount2)); // Same as (amount1 + amount2) < MAX_GIV_BALANCE; to avoid overflow
+
+        vm.assume(amount1 < givPower.calculatePower(amount1, rounds1));
+        vm.assume(amount2 < givPower.calculatePower(amount2, rounds2));
+
+        vm.startPrank(sender);
+
+        givToken.approve(address(tokenManager), amount1 + amount2);
+        tokenManager.wrap(amount1 + amount2);
+
+        uint256 untilRound1 = givPower.currentRound() + rounds1;
+        uint256 untilRound2 = givPower.currentRound() + rounds2;
+
+        vm.expectEmit(true, true, true, true);
+        emit TokenLocked(sender, amount1, rounds1, untilRound1);
+        givPower.lock(amount1, rounds1);
+
+        vm.expectEmit(true, true, true, true);
+        emit TokenLocked(sender, amount2, rounds2, untilRound2);
+        givPower.lock(amount2, rounds2);
+
+        skip(roundDuration * rounds1 + roundDuration);
+
+        vm.expectEmit(true, true, true, true);
+        emit TokenUnlocked(sender, amount1, untilRound1);
+        givPower.unlock(accounts, untilRound1);
+
+        vm.expectRevert(GIVpower.CannotUnlockUntilRoundIsFinished.selector);
+        givPower.unlock(accounts, untilRound2);
+
+        skip(roundDuration * (rounds2 - rounds1));
+
+        vm.expectEmit(true, true, true, true);
+        emit TokenUnlocked(sender, amount2, untilRound2);
+        givPower.unlock(accounts, untilRound2);
+    }
 }
