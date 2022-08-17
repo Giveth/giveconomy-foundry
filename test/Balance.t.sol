@@ -48,7 +48,7 @@ contract BalanceTest is GIVpowerTest {
         vm.stopPrank();
     }
 
-    function testLock(uint256 amount, uint8 rounds) public {
+    function testLockUnlock(uint256 amount, uint8 rounds) public {
         uint256 maxLockRounds = givPower.MAX_LOCK_ROUNDS();
 
         vm.assume(amount < MAX_GIV_BALANCE);
