@@ -165,4 +165,95 @@ contract BalanceTest is GIVpowerTest {
 
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply);
     }
+
+    function testTowAccountLock(uint256 amount1, uint8 rounds1, uint256 amount2, uint8 rounds2) public {
+        address user1 = address(100);
+        address user2 = address(200);
+
+        address[] memory accounts = new address[](2);
+        accounts[0] = user1;
+        accounts[1] = user2;
+
+        vm.assume(rounds1 > 0);
+        vm.assume(rounds2 > 0);
+        vm.assume(rounds1 <= givPower.MAX_LOCK_ROUNDS());
+        vm.assume(rounds2 <= givPower.MAX_LOCK_ROUNDS());
+        // rounds2 should be longer then rounds1
+        vm.assume(rounds1 < rounds2);
+
+        vm.assume(amount1 > 0);
+        vm.assume(amount2 > 0);
+        vm.assume(amount1 < MAX_GIV_BALANCE);
+        vm.assume(amount2 < MAX_GIV_BALANCE);
+        vm.assume(amount1 < (MAX_GIV_BALANCE - amount2)); // Same as (amount1 + amount2) < MAX_GIV_BALANCE; to avoid overflow
+
+        vm.assume(amount1 < givPower.calculatePower(amount1, rounds1));
+        vm.assume(amount2 < givPower.calculatePower(amount2, rounds2));
+
+        vm.startPrank(sender);
+        givToken.transfer(user1, amount1);
+        givToken.transfer(user2, amount2);
+
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+        givToken.approve(address(tokenManager), amount1);
+        tokenManager.wrap(amount1);
+        assertEq(givToken.balanceOf(user1), 0);
+        assertEq(gGivToken.balanceOf(user1), amount1);
+        assertEq(givPower.balanceOf(user1), amount1);
+        assertEq(givPower.userLocks(user1), 0);
+        assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount1);
+        vm.stopPrank();
+
+        vm.startPrank(user2);
+        givToken.approve(address(tokenManager), amount2);
+        tokenManager.wrap(amount2);
+        assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount1 + amount2);
+        vm.stopPrank();
+
+        uint256 untilRound1 = givPower.currentRound() + rounds1;
+        uint256 untilRound2 = givPower.currentRound() + rounds2;
+
+        uint256 power1 = givPower.calculatePower(amount1, rounds1);
+        uint256 power2 = givPower.calculatePower(amount2, rounds2);
+
+        vm.prank(user1);
+        givPower.lock(amount1, rounds1);
+        assertEq(givToken.balanceOf(user1), 0);
+        assertEq(gGivToken.balanceOf(user1), amount1);
+        assertEq(givPower.balanceOf(user1), power1);
+        assertEq(givPower.userLocks(user1), amount1);
+        assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + power1 + amount2);
+
+        vm.prank(user2);
+        givPower.lock(amount2, rounds2);
+        assertEq(givToken.balanceOf(user2), 0);
+        assertEq(gGivToken.balanceOf(user2), amount2);
+        assertEq(givPower.balanceOf(user2), power2);
+        assertEq(givPower.userLocks(user2), amount2);
+        assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + power1 + power2);
+
+        skip(givPower.ROUND_DURATION() * (rounds1 + 1));
+        address[] memory unlockAccounts = new address[](1);
+        unlockAccounts[0] = user1;
+
+        givPower.unlock(unlockAccounts, untilRound1);
+        assertEq(givToken.balanceOf(user1), 0);
+        assertEq(gGivToken.balanceOf(user1), amount1);
+        assertEq(givPower.balanceOf(user1), amount1);
+        assertEq(givPower.userLocks(user1), 0);
+        assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount1 + power2);
+
+        skip(givPower.ROUND_DURATION() * (rounds2 - rounds1));
+
+        unlockAccounts[0] = user2;
+
+        givPower.unlock(unlockAccounts, untilRound2);
+        assertEq(givToken.balanceOf(user2), 0);
+        assertEq(gGivToken.balanceOf(user2), amount2);
+        assertEq(givPower.balanceOf(user2), amount2);
+        assertEq(givPower.userLocks(user2), 0);
+        assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount1 + amount2);
+    }
 }
