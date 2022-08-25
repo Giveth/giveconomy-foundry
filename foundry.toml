@@ -1,0 +1,17 @@
+[profile.default]
+src = 'contracts'
+out = 'out'
+libs = ['lib']
+remappings = [
+    'ds-test/=lib/forge-std/lib/ds-test/src/',
+    'forge-std/=lib/forge-std/src/',
+    'solmate/=lib/solmate/src/',
+    '@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/',
+    '@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/'
+]
+
+[fmt]
+line_length = 120
+quote_style = 'single'
+
+# See more config options https://github.com/foundry-rs/foundry/tree/master/config

@@ -59,11 +59,7 @@ interface IDistro {
      * @param amount allocated amount
      * @param claim whether claim after allocate
      */
-    function allocate(
-        address recipient,
-        uint256 amount,
-        bool claim
-    ) external;
+    function allocate(address recipient, uint256 amount, bool claim) external;
 
     /**
      * Function that allows to the distributor address to allocate some amounts of tokens to specific recipients
