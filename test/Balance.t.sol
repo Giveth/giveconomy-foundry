@@ -63,11 +63,8 @@ contract BalanceTest is GIVpowerTest {
 
     function testLockUnlock(uint256 amount, uint8 rounds) public {
         uint256 maxLockRounds = givPower.MAX_LOCK_ROUNDS();
-
-        vm.assume(amount < MAX_GIV_BALANCE);
-        vm.assume(amount > 0);
-        vm.assume(rounds <= maxLockRounds);
-        vm.assume(rounds > 0);
+        amount = bound(amount, 1, MAX_GIV_BALANCE);
+        rounds = uint8(bound(rounds, 1, maxLockRounds));
 
         vm.startPrank(sender);
         givToken.approve(address(tokenManager), amount);
@@ -80,7 +77,7 @@ contract BalanceTest is GIVpowerTest {
 
         uint256 lockReward = givPower.calculatePower(amount, rounds) - amount;
 
-        vm.assume(lockReward > 0);
+        //        vm.assume(lockReward > 0);
 
         uint256 unlockRound = givPower.currentRound() + rounds;
         givPower.lock(amount, rounds);
@@ -167,6 +164,16 @@ contract BalanceTest is GIVpowerTest {
     }
 
     function testTowAccountLock(uint256 amount1, uint8 rounds1, uint256 amount2, uint8 rounds2) public {
+        amount1 = bound(amount1, 1, MAX_GIV_BALANCE - 1);
+        amount2 = bound(amount2, 1, MAX_GIV_BALANCE - 1);
+        rounds1 = uint8(bound(rounds1, 1, givPower.MAX_LOCK_ROUNDS()));
+        rounds2 = uint8(bound(rounds2, 1, givPower.MAX_LOCK_ROUNDS()));
+
+        vm.assume(amount1 < (MAX_GIV_BALANCE - amount2)); // Same as (amount1 + amount2) < MAX_GIV_BALANCE; to avoid overflow
+
+        // rounds2 should be longer then rounds1
+        vm.assume(rounds1 < rounds2);
+
         address user1 = address(100);
         address user2 = address(200);
 
@@ -174,21 +181,8 @@ contract BalanceTest is GIVpowerTest {
         accounts[0] = user1;
         accounts[1] = user2;
 
-        vm.assume(rounds1 > 0);
-        vm.assume(rounds2 > 0);
-        vm.assume(rounds1 <= givPower.MAX_LOCK_ROUNDS());
-        vm.assume(rounds2 <= givPower.MAX_LOCK_ROUNDS());
-        // rounds2 should be longer then rounds1
-        vm.assume(rounds1 < rounds2);
-
-        vm.assume(amount1 > 0);
-        vm.assume(amount2 > 0);
-        vm.assume(amount1 < MAX_GIV_BALANCE);
-        vm.assume(amount2 < MAX_GIV_BALANCE);
-        vm.assume(amount1 < (MAX_GIV_BALANCE - amount2)); // Same as (amount1 + amount2) < MAX_GIV_BALANCE; to avoid overflow
-
-        vm.assume(amount1 < givPower.calculatePower(amount1, rounds1));
-        vm.assume(amount2 < givPower.calculatePower(amount2, rounds2));
+        // vm.assume(amount1 < givPower.calculatePower(amount1, rounds1));
+        // vm.assume(amount2 < givPower.calculatePower(amount2, rounds2));
 
         vm.startPrank(sender);
         givToken.transfer(user1, amount1);

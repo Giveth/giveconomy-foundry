@@ -43,6 +43,8 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
     error NotEnoughBalanceToLock();
     /// Must lock for positive number of rounds
     error ZeroLockRound();
+    /// Must lock for positive amount
+    error ZeroLockAmount();
     /// Locking has limitation on number of rounds - maxLockRounds
     error LockRoundLimit();
     /// Token is not transferable
@@ -66,6 +68,9 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
         if (rounds < 1) {
             revert ZeroLockRound();
         }
+        if (amount == 0) {
+            revert ZeroLockAmount();
+        }
         if (rounds > MAX_LOCK_ROUNDS) {
             revert LockRoundLimit();
         }
@@ -87,8 +92,10 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
 
         _roundBalance.releasablePowerAmount = _roundBalance.releasablePowerAmount.add(_gainedPowerAmount);
 
-        // Add power/farming benefit of locking
-        super.stake(msg.sender, _gainedPowerAmount);
+        if (_gainedPowerAmount > 0) {
+            // Add power/farming benefit of locking
+            super.stake(msg.sender, _gainedPowerAmount);
+        }
 
         emit TokenLocked(msg.sender, amount, rounds, _endRound);
         emit Transfer(address(0), msg.sender, _gainedPowerAmount);
@@ -121,8 +128,10 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
             _roundBalance.releasablePowerAmount = 0;
             _roundBalance.unlockableTokenAmount = 0;
 
-            // Reduce power/farming benefit of locking
-            super.withdraw(_account, _releasablePowerAmount);
+            if (_releasablePowerAmount > 0) {
+                // Reduce power/farming benefit of locking
+                super.withdraw(_account, _releasablePowerAmount);
+            }
 
             emit TokenUnlocked(_account, _unlockableTokenAmount, round);
             emit Transfer(_account, address(0), _releasablePowerAmount);

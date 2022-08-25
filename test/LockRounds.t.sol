@@ -48,11 +48,9 @@ contract LockRounds is GIVpowerTest {
 
         vm.assume(rounds > 0);
         vm.assume(rounds <= maxLockRounds);
-        vm.assume(amount > 0);
-        vm.assume(amount < MAX_GIV_BALANCE);
+        amount = bound(amount, 1, MAX_GIV_BALANCE);
 
         uint256 lockRewards = givPower.calculatePower(amount, rounds) - amount;
-        vm.assume(lockRewards > 0);
 
         vm.startPrank(sender);
 
@@ -92,14 +90,19 @@ contract LockRounds is GIVpowerTest {
 
         skip(roundDuration - passedSeconds);
 
-        vm.expectEmit(true, true, true, true);
-        emit Withdrawn(sender, lockRewards);
+        if (lockRewards > 0) {
+            vm.expectEmit(true, true, true, true);
+            emit Withdrawn(sender, lockRewards);
+        }
 
         vm.expectEmit(true, true, true, true);
         emit TokenUnlocked(sender, amount, untilRound);
 
-        vm.expectEmit(true, true, true, true, address(givPower));
-        emit Transfer(sender, address(0), lockRewards);
+        if (lockRewards > 0) {
+            vm.expectEmit(true, true, true, true, address(givPower));
+            emit Transfer(sender, address(0), lockRewards);
+        }
+
         givPower.unlock(accounts, untilRound);
     }
 
@@ -109,21 +112,14 @@ contract LockRounds is GIVpowerTest {
         address[] memory accounts = new address[](1);
         accounts[0] = sender;
 
-        vm.assume(rounds1 > 0);
-        vm.assume(rounds2 > 0);
-        vm.assume(rounds1 <= maxLockRounds);
-        vm.assume(rounds2 <= maxLockRounds);
+        rounds1 = uint8(bound(rounds1, 1, maxLockRounds));
+        rounds2 = uint8(bound(rounds2, 1, maxLockRounds));
         // rounds2 should be longer then rounds1
         vm.assume(rounds1 < rounds2);
 
-        vm.assume(amount1 > 0);
-        vm.assume(amount2 > 0);
-        vm.assume(amount1 < MAX_GIV_BALANCE);
-        vm.assume(amount2 < MAX_GIV_BALANCE);
+        amount1 = bound(amount1, 1, MAX_GIV_BALANCE);
+        amount2 = bound(amount2, 1, MAX_GIV_BALANCE);
         vm.assume(amount1 < (MAX_GIV_BALANCE - amount2)); // Same as (amount1 + amount2) < MAX_GIV_BALANCE; to avoid overflow
-
-        vm.assume(amount1 < givPower.calculatePower(amount1, rounds1));
-        vm.assume(amount2 < givPower.calculatePower(amount2, rounds2));
 
         vm.startPrank(sender);
 
