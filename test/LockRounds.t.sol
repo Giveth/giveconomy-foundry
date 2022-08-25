@@ -93,15 +93,13 @@ contract LockRounds is GIVpowerTest {
         if (lockRewards > 0) {
             vm.expectEmit(true, true, true, true);
             emit Withdrawn(sender, lockRewards);
+
+            vm.expectEmit(true, true, true, true, address(givPower));
+            emit Transfer(sender, address(0), lockRewards);
         }
 
         vm.expectEmit(true, true, true, true);
         emit TokenUnlocked(sender, amount, untilRound);
-
-        if (lockRewards > 0) {
-            vm.expectEmit(true, true, true, true, address(givPower));
-            emit Transfer(sender, address(0), lockRewards);
-        }
 
         givPower.unlock(accounts, untilRound);
     }

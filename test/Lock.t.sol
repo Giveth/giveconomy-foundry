@@ -56,15 +56,13 @@ contract LockTest is GIVpowerTest {
         if (powerIncreaseAfterLock > 0) {
             vm.expectEmit(true, true, true, true);
             emit Staked(sender, powerIncreaseAfterLock);
+
+            vm.expectEmit(true, true, true, true, address(givPower));
+            emit Transfer(address(0), sender, powerIncreaseAfterLock);
         }
 
         vm.expectEmit(true, true, true, true);
         emit TokenLocked(sender, amount, rounds, untilRound);
-
-        if (powerIncreaseAfterLock > 0) {
-            vm.expectEmit(true, true, true, true, address(givPower));
-            emit Transfer(address(0), sender, powerIncreaseAfterLock);
-        }
 
         givPower.lock(amount, rounds);
     }

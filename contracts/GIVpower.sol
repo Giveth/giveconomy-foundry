@@ -95,10 +95,10 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
         if (_gainedPowerAmount > 0) {
             // Add power/farming benefit of locking
             super.stake(msg.sender, _gainedPowerAmount);
+            emit Transfer(address(0), msg.sender, _gainedPowerAmount);
         }
 
         emit TokenLocked(msg.sender, amount, rounds, _endRound);
-        emit Transfer(address(0), msg.sender, _gainedPowerAmount);
     }
 
     /// @notice Unlock tokens belongs to accounts which are locked till the end of round
@@ -131,10 +131,10 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
             if (_releasablePowerAmount > 0) {
                 // Reduce power/farming benefit of locking
                 super.withdraw(_account, _releasablePowerAmount);
+                emit Transfer(_account, address(0), _releasablePowerAmount);
             }
 
             emit TokenUnlocked(_account, _unlockableTokenAmount, round);
-            emit Transfer(_account, address(0), _releasablePowerAmount);
         }
     }
 
