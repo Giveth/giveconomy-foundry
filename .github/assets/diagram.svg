@@ -1,0 +1,458 @@
+<?xml version="1.0" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="754pt" height="1326pt" viewBox="0.00 0.00 754.26 1326.00">
+<g id="graph0" class="graph" transform="translate(42.39094447515379,1248.2380810622785) scale(0.9312063824485066)" data-name="G">
+
+<polygon fill="#2e3e56" stroke="transparent" points="-4,4 -4,-1322 750.26,-1322 750.26,4 -4,4" style=""/>
+<g id="clust1" class="cluster" data-name="clusterGIVpower">
+
+<path fill="#445773" stroke="#445773" d="M20,-340C20,-340 726.26,-340 726.26,-340 732.26,-340 738.26,-346 738.26,-352 738.26,-352 738.26,-1161 738.26,-1161 738.26,-1167 732.26,-1173 726.26,-1173 726.26,-1173 20,-1173 20,-1173 14,-1173 8,-1167 8,-1161 8,-1161 8,-352 8,-352 8,-346 14,-340 20,-340" style=""/>
+<text text-anchor="middle" x="373.13" y="-1156.4" font-family="Times,serif" font-size="14.00" fill="#f0f0f0" style="">GIVpower</text>
+</g>
+<g id="clust2" class="cluster" data-name="clusterIERC20">
+
+<path fill="#3b4b63" stroke="#e8726d" stroke-dasharray="5,2" d="M330.7,-255C330.7,-255 424.12,-255 424.12,-255 430.12,-255 436.12,-261 436.12,-267 436.12,-267 436.12,-320 436.12,-320 436.12,-326 430.12,-332 424.12,-332 424.12,-332 330.7,-332 330.7,-332 324.7,-332 318.7,-326 318.7,-320 318.7,-320 318.7,-267 318.7,-267 318.7,-261 324.7,-255 330.7,-255" style=""/>
+<text text-anchor="middle" x="377.41" y="-315.4" font-family="Times,serif" font-size="14.00" fill="#f0f0f0" style="">IERC20</text>
+</g>
+<g id="clust3" class="cluster" data-name="clusterIERC20MetadataUpgradeable">
+
+<path fill="#3b4b63" stroke="#e8726d" stroke-dasharray="5,2" d="M297.18,-8C297.18,-8 458.63,-8 458.63,-8 464.63,-8 470.63,-14 470.63,-20 470.63,-20 470.63,-235 470.63,-235 470.63,-241 464.63,-247 458.63,-247 458.63,-247 297.18,-247 297.18,-247 291.18,-247 285.18,-241 285.18,-235 285.18,-235 285.18,-20 285.18,-20 285.18,-14 291.18,-8 297.18,-8" style=""/>
+<text text-anchor="middle" x="377.91" y="-230.4" font-family="Times,serif" font-size="14.00" fill="#f0f0f0" style="">IERC20MetadataUpgradeable</text>
+</g>
+<g id="clust4" class="cluster" data-name="clusteramount">
+
+<path fill="#3b4b63" stroke="#e8726d" stroke-dasharray="5,2" d="M625.44,-255C625.44,-255 671.44,-255 671.44,-255 677.44,-255 683.44,-261 683.44,-267 683.44,-267 683.44,-320 683.44,-320 683.44,-326 677.44,-332 671.44,-332 671.44,-332 625.44,-332 625.44,-332 619.44,-332 613.44,-326 613.44,-320 613.44,-320 613.44,-267 613.44,-267 613.44,-261 619.44,-255 625.44,-255" style=""/>
+<text text-anchor="middle" x="648.44" y="-315.4" font-family="Times,serif" font-size="14.00" fill="#f0f0f0" style="">amount</text>
+</g>
+<g id="clust5" class="cluster" data-name="clusterrounds">
+
+<path fill="#3b4b63" stroke="#e8726d" stroke-dasharray="5,2" d="M625.44,-170C625.44,-170 671.44,-170 671.44,-170 677.44,-170 683.44,-176 683.44,-182 683.44,-182 683.44,-235 683.44,-235 683.44,-241 677.44,-247 671.44,-247 671.44,-247 625.44,-247 625.44,-247 619.44,-247 613.44,-241 613.44,-235 613.44,-235 613.44,-182 613.44,-182 613.44,-176 619.44,-170 625.44,-170" style=""/>
+<text text-anchor="middle" x="648.44" y="-230.4" font-family="Times,serif" font-size="14.00" fill="#f0f0f0" style="">rounds</text>
+</g>
+<g id="clust6" class="cluster" data-name="cluster_01">
+
+<polygon fill="#2e3e56" stroke="black" points="29.1,-1181 29.1,-1310 412.41,-1310 412.41,-1181 29.1,-1181" style=""/>
+<text text-anchor="middle" x="220.75" y="-1293.4" font-family="Times,serif" font-size="14.00" style="">Legend</text>
+</g>
+<!-- GIVpower._getToken -->
+<g id="node1" class="node" pointer-events="visible" data-name="GIVpower._getToken">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="377.41" cy="-960" rx="52.17" ry="18" style=""/>
+<text text-anchor="middle" x="377.41" y="-955.8" font-family="Times,serif" font-size="14.00" style="">_getToken</text>
+</g>
+<!-- GIVpower.ITokenManager -->
+<g id="node20" class="node" pointer-events="visible" data-name="GIVpower.ITokenManager">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="648.44" cy="-1014" rx="73.48" ry="18" style=""/>
+<text text-anchor="middle" x="648.44" y="-1009.8" font-family="Times,serif" font-size="14.00" style="">ITokenManager</text>
+</g>
+<!-- GIVpower._getToken&#45;&gt;GIVpower.ITokenManager -->
+<g id="edge1" class="edge" data-name="GIVpower._getToken-&gt;GIVpower.ITokenManager">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M425.16,-967.65C455.33,-972.75 495.38,-979.81 530.61,-987 548.52,-990.65 567.88,-994.98 585.59,-999.08" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="585.27,-1002.6 595.8,-1001.46 586.86,-995.78 585.27,-1002.6" style=""/>
+</g>
+<!-- GIVpower.getTokenManager -->
+<g id="node21" class="node" pointer-events="visible" data-name="GIVpower.getTokenManager">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="648.44" cy="-960" rx="81.65" ry="18" style=""/>
+<text text-anchor="middle" x="648.44" y="-955.8" font-family="Times,serif" font-size="14.00" style="">getTokenManager</text>
+</g>
+<!-- GIVpower._getToken&#45;&gt;GIVpower.getTokenManager -->
+<g id="edge2" class="edge" data-name="GIVpower._getToken-&gt;GIVpower.getTokenManager">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M429.96,-960C465.7,-960 514.25,-960 556.41,-960" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="556.42,-963.5 566.42,-960 556.42,-956.5 556.42,-963.5" style=""/>
+</g>
+<!-- GIVpower.lock -->
+<g id="node2" class="node" pointer-events="visible" data-name="GIVpower.lock">
+
+<ellipse fill="#ffbdb9" stroke="#ffbdb9" stroke-width="3" cx="102.1" cy="-1122" rx="27.83" ry="18" style=""/>
+<text text-anchor="middle" x="102.1" y="-1117.8" font-family="Times,serif" font-size="14.00" style="">lock</text>
+</g>
+<!-- GIVpower.lock&#45;&gt;GIVpower._getToken -->
+<g id="edge5" class="edge" data-name="GIVpower.lock-&gt;GIVpower._getToken">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M129.77,-1119.84C148.4,-1116.97 172.63,-1110.34 188.2,-1095 224.23,-1059.48 185.9,-1020.07 224.2,-987 249.11,-965.49 285.08,-958.39 315.8,-956.83" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="316.11,-960.33 326,-956.51 315.89,-953.33 316.11,-960.33" style=""/>
+</g>
+<!-- GIVpower.currentRound -->
+<g id="node4" class="node" pointer-events="visible" data-name="GIVpower.currentRound">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="377.41" cy="-852" rx="64.27" ry="18" style=""/>
+<text text-anchor="middle" x="377.41" y="-847.8" font-family="Times,serif" font-size="14.00" style="">currentRound</text>
+</g>
+<!-- GIVpower.lock&#45;&gt;GIVpower.currentRound -->
+<g id="edge8" class="edge" data-name="GIVpower.lock-&gt;GIVpower.currentRound">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M129.72,-1120.65C148.83,-1118.21 173.68,-1111.75 188.2,-1095 251.96,-1021.47 155.74,-948.18 224.2,-879 245.14,-857.84 276.51,-849.95 305.34,-847.8" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="305.61,-851.29 315.41,-847.27 305.24,-844.3 305.61,-851.29" style=""/>
+</g>
+<!-- GIVpower.calculatePower -->
+<g id="node6" class="node" pointer-events="visible" data-name="GIVpower.calculatePower">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="377.41" cy="-906" rx="70.04" ry="18" style=""/>
+<text text-anchor="middle" x="377.41" y="-901.8" font-family="Times,serif" font-size="14.00" style="">calculatePower</text>
+</g>
+<!-- GIVpower.lock&#45;&gt;GIVpower.calculatePower -->
+<g id="edge9" class="edge" data-name="GIVpower.lock-&gt;GIVpower.calculatePower">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M129.86,-1120.37C148.78,-1117.77 173.34,-1111.24 188.2,-1095 237.99,-1040.59 170.93,-984.02 224.2,-933 243.88,-914.15 271.89,-906.01 298.53,-903.04" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="298.99,-906.51 308.65,-902.15 298.38,-899.54 298.99,-906.51" style=""/>
+</g>
+<!-- GIVpower.ZeroLockRound -->
+<g id="node22" class="node" pointer-events="visible" data-name="GIVpower.ZeroLockRound">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="377.41" cy="-1014" rx="74.73" ry="18" style=""/>
+<text text-anchor="middle" x="377.41" y="-1009.8" font-family="Times,serif" font-size="14.00" style="">ZeroLockRound</text>
+</g>
+<!-- GIVpower.lock&#45;&gt;GIVpower.ZeroLockRound -->
+<g id="edge3" class="edge" data-name="GIVpower.lock-&gt;GIVpower.ZeroLockRound">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M129.39,-1118.35C147.37,-1114.8 170.98,-1107.95 188.2,-1095 211.25,-1077.66 200.06,-1056.79 224.2,-1041 244.34,-1027.83 269.05,-1020.57 292.66,-1016.7" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="293.3,-1020.14 302.69,-1015.24 292.29,-1013.22 293.3,-1020.14" style=""/>
+</g>
+<!-- GIVpower.LockRoundLimit -->
+<g id="node23" class="node" pointer-events="visible" data-name="GIVpower.LockRoundLimit">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="377.41" cy="-1068" rx="78.19" ry="18" style=""/>
+<text text-anchor="middle" x="377.41" y="-1063.8" font-family="Times,serif" font-size="14.00" style="">LockRoundLimit</text>
+</g>
+<!-- GIVpower.lock&#45;&gt;GIVpower.LockRoundLimit -->
+<g id="edge4" class="edge" data-name="GIVpower.lock-&gt;GIVpower.LockRoundLimit">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M128.55,-1115.99C153,-1110.29 191.04,-1101.63 224.2,-1095 250.1,-1089.82 278.59,-1084.63 303.84,-1080.2" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="304.46,-1083.65 313.71,-1078.48 303.26,-1076.75 304.46,-1083.65" style=""/>
+</g>
+<!-- GIVpower.NotEnoughBalanceToLock -->
+<g id="node24" class="node" pointer-events="visible" data-name="GIVpower.NotEnoughBalanceToLock">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="377.41" cy="-1122" rx="117.46" ry="18" style=""/>
+<text text-anchor="middle" x="377.41" y="-1117.8" font-family="Times,serif" font-size="14.00" style="">NotEnoughBalanceToLock</text>
+</g>
+<!-- GIVpower.lock&#45;&gt;GIVpower.NotEnoughBalanceToLock -->
+<g id="edge7" class="edge" data-name="GIVpower.lock-&gt;GIVpower.NotEnoughBalanceToLock">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M129.8,-1122C158.02,-1122 204.61,-1122 249.74,-1122" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="249.95,-1125.5 259.95,-1122 249.95,-1118.5 249.95,-1125.5" style=""/>
+</g>
+<!-- GIVpower.Transfer -->
+<g id="node25" class="node" pointer-events="visible" data-name="GIVpower.Transfer">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="377.41" cy="-744" rx="43.99" ry="18" style=""/>
+<text text-anchor="middle" x="377.41" y="-739.8" font-family="Times,serif" font-size="14.00" style="">Transfer</text>
+</g>
+<!-- GIVpower.lock&#45;&gt;GIVpower.Transfer -->
+<g id="edge11" class="edge" data-name="GIVpower.lock-&gt;GIVpower.Transfer">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M129.99,-1120.88C149.23,-1118.55 174.14,-1112.14 188.2,-1095 280.1,-982.99 125.13,-876.72 224.2,-771 249.48,-744.02 291.62,-738.26 325.16,-738.69" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="325.16,-742.2 335.27,-739.01 325.38,-735.2 325.16,-742.2" style=""/>
+</g>
+<!-- IERC20.balanceOf -->
+<g id="node30" class="node" pointer-events="visible" data-name="IERC20.balanceOf">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="377.41" cy="-281" rx="50.92" ry="18" style=""/>
+<text text-anchor="middle" x="377.41" y="-276.8" font-family="Times,serif" font-size="14.00" style="">balanceOf</text>
+</g>
+<!-- GIVpower.lock&#45;&gt;IERC20.balanceOf -->
+<g id="edge6" class="edge" data-name="GIVpower.lock-&gt;IERC20.balanceOf">
+
+<path fill="none" stroke="white" stroke-width="2" d="M129.9,-1121.18C149.37,-1119.03 174.59,-1112.69 188.2,-1095 291.12,-961.14 123.94,-471.87 224.2,-336 245.82,-306.7 284.56,-292.97 317.54,-286.56" style=""/>
+<polygon fill="white" stroke="white" stroke-width="2" points="318.32,-289.97 327.56,-284.79 317.11,-283.08 318.32,-289.97" style=""/>
+</g>
+<!-- IERC20MetadataUpgradeable.stake -->
+<g id="node31" class="node" pointer-events="visible" data-name="IERC20MetadataUpgradeable.stake">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="377.41" cy="-196" rx="30.76" ry="18" style=""/>
+<text text-anchor="middle" x="377.41" y="-191.8" font-family="Times,serif" font-size="14.00" style="">stake</text>
+</g>
+<!-- GIVpower.lock&#45;&gt;IERC20MetadataUpgradeable.stake -->
+<g id="edge10" class="edge" data-name="GIVpower.lock-&gt;IERC20MetadataUpgradeable.stake">
+
+<path fill="none" stroke="white" stroke-width="2" d="M129.92,-1121.2C149.41,-1119.05 174.64,-1112.73 188.2,-1095 245.23,-1020.45 168.65,-326.66 224.2,-251 250.08,-215.75 300.75,-203.03 336.5,-198.48" style=""/>
+<polygon fill="white" stroke="white" stroke-width="2" points="337.06,-201.94 346.61,-197.36 336.29,-194.98 337.06,-201.94" style=""/>
+</g>
+<!-- GIVpower.unlock -->
+<g id="node3" class="node" pointer-events="visible" data-name="GIVpower.unlock">
+
+<ellipse fill="#ffbdb9" stroke="#ffbdb9" stroke-width="3" cx="102.1" cy="-1068" rx="37.14" ry="18" style=""/>
+<text text-anchor="middle" x="102.1" y="-1063.8" font-family="Times,serif" font-size="14.00" style="">unlock</text>
+</g>
+<!-- GIVpower.unlock&#45;&gt;GIVpower.currentRound -->
+<g id="edge12" class="edge" data-name="GIVpower.unlock-&gt;GIVpower.currentRound">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M139,-1064.85C156.16,-1061.51 175.64,-1054.72 188.2,-1041 237.99,-986.59 170.93,-930.02 224.2,-879 245.34,-858.75 276.11,-850.85 304.46,-848.46" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="305.01,-851.93 314.77,-847.82 304.57,-844.95 305.01,-851.93" style=""/>
+</g>
+<!-- GIVpower.unlock&#45;&gt;GIVpower.Transfer -->
+<g id="edge15" class="edge" data-name="GIVpower.unlock-&gt;GIVpower.Transfer">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M139.08,-1065.38C156.47,-1062.19 176.14,-1055.37 188.2,-1041 266.01,-948.26 140.46,-858.42 224.2,-771 249.69,-744.39 291.62,-738.56 325.02,-738.87" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="324.99,-742.37 335.09,-739.15 325.19,-735.37 324.99,-742.37" style=""/>
+</g>
+<!-- GIVpower.CannotUnlockUntilRoundIsFinished -->
+<g id="node26" class="node" pointer-events="visible" data-name="GIVpower.CannotUnlockUntilRoundIsFinished">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="377.41" cy="-798" rx="153.42" ry="18" style=""/>
+<text text-anchor="middle" x="377.41" y="-793.8" font-family="Times,serif" font-size="14.00" style="">CannotUnlockUntilRoundIsFinished</text>
+</g>
+<!-- GIVpower.unlock&#45;&gt;GIVpower.CannotUnlockUntilRoundIsFinished -->
+<g id="edge13" class="edge" data-name="GIVpower.unlock-&gt;GIVpower.CannotUnlockUntilRoundIsFinished">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M139.32,-1065.13C156.55,-1061.86 176.01,-1055.05 188.2,-1041 251.96,-967.47 155.74,-894.18 224.2,-825 228.84,-820.31 234,-816.26 239.53,-812.79" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="241.48,-815.72 248.51,-807.8 238.07,-809.6 241.48,-815.72" style=""/>
+</g>
+<!-- IERC20MetadataUpgradeable.withdraw -->
+<g id="node32" class="node" pointer-events="visible" data-name="IERC20MetadataUpgradeable.withdraw">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="377.41" cy="-142" rx="47.52" ry="18" style=""/>
+<text text-anchor="middle" x="377.41" y="-137.8" font-family="Times,serif" font-size="14.00" style="">withdraw</text>
+</g>
+<!-- GIVpower.unlock&#45;&gt;IERC20MetadataUpgradeable.withdraw -->
+<g id="edge14" class="edge" data-name="GIVpower.unlock-&gt;IERC20MetadataUpgradeable.withdraw">
+
+<path fill="none" stroke="white" stroke-width="2" d="M139.2,-1065.9C156.85,-1062.86 176.72,-1056.03 188.2,-1041 247.07,-963.94 160.39,-242.02 224.2,-169 247.89,-141.9 288.53,-135.78 321.87,-136.1" style=""/>
+<polygon fill="white" stroke="white" stroke-width="2" points="321.85,-139.6 331.95,-136.39 322.06,-132.61 321.85,-139.6" style=""/>
+</g>
+<!-- GIVpower.roundEndsIn -->
+<g id="node5" class="node" pointer-events="visible" data-name="GIVpower.roundEndsIn">
+
+<ellipse fill="#ffbdb9" stroke="#ffbdb9" stroke-width="3" cx="102.1" cy="-1014" rx="60.85" ry="18" style=""/>
+<text text-anchor="middle" x="102.1" y="-1009.8" font-family="Times,serif" font-size="14.00" style="">roundEndsIn</text>
+</g>
+<!-- GIVpower._sqrt -->
+<g id="node7" class="node" pointer-events="visible" data-name="GIVpower._sqrt">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="648.44" cy="-906" rx="30.2" ry="18" style=""/>
+<text text-anchor="middle" x="648.44" y="-901.8" font-family="Times,serif" font-size="14.00" style="">_sqrt</text>
+</g>
+<!-- GIVpower.calculatePower&#45;&gt;GIVpower._sqrt -->
+<g id="edge17" class="edge" data-name="GIVpower.calculatePower-&gt;GIVpower._sqrt">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M447.69,-906C498.5,-906 565.69,-906 607.73,-906" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="607.86,-909.5 617.86,-906 607.86,-902.5 607.86,-909.5" style=""/>
+</g>
+<!-- amount.mul -->
+<g id="node35" class="node" pointer-events="visible" data-name="amount.mul">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="648.44" cy="-281" rx="27" ry="18" style=""/>
+<text text-anchor="middle" x="648.44" y="-276.8" font-family="Times,serif" font-size="14.00" style="">mul</text>
+</g>
+<!-- GIVpower.calculatePower&#45;&gt;amount.mul -->
+<g id="edge16" class="edge" data-name="GIVpower.calculatePower-&gt;amount.mul">
+
+<path fill="none" stroke="white" stroke-width="2" d="M444.21,-911.51C474.91,-910.29 509.3,-902.78 530.61,-879 611.32,-788.94 506.55,-440.96 566.61,-336 577.42,-317.11 597.69,-303.34 615.22,-294.31" style=""/>
+<polygon fill="white" stroke="white" stroke-width="2" points="617.12,-297.27 624.6,-289.77 614.08,-290.97 617.12,-297.27" style=""/>
+</g>
+<!-- rounds.add -->
+<g id="node36" class="node" pointer-events="visible" data-name="rounds.add">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="648.44" cy="-196" rx="27" ry="18" style=""/>
+<text text-anchor="middle" x="648.44" y="-191.8" font-family="Times,serif" font-size="14.00" style="">add</text>
+</g>
+<!-- GIVpower.calculatePower&#45;&gt;rounds.add -->
+<g id="edge18" class="edge" data-name="GIVpower.calculatePower-&gt;rounds.add">
+
+<path fill="none" stroke="white" stroke-width="2" d="M444.3,-911.59C475.03,-910.39 509.41,-902.88 530.61,-879 623.44,-774.49 497.73,-372.64 566.61,-251 577.34,-232.06 597.6,-218.29 615.16,-209.27" style=""/>
+<polygon fill="white" stroke="white" stroke-width="2" points="617.06,-212.24 624.55,-204.74 614.02,-205.93 617.06,-212.24" style=""/>
+</g>
+<!-- GIVpower._onTransfer -->
+<g id="node8" class="node" pointer-events="visible" data-name="GIVpower._onTransfer">
+
+<ellipse fill="#f2c383" stroke="#f2c383" stroke-width="3" cx="102.1" cy="-960" rx="58.46" ry="18" style=""/>
+<text text-anchor="middle" x="102.1" y="-955.8" font-family="Times,serif" font-size="14.00" style="">_onTransfer</text>
+</g>
+<!-- GIVpower._onTransfer&#45;&gt;GIVpower._getToken -->
+<g id="edge20" class="edge" data-name="GIVpower._onTransfer-&gt;GIVpower._getToken">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M160.39,-960C205.51,-960 268.27,-960 314.53,-960" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="314.73,-963.5 324.73,-960 314.73,-956.5 314.73,-963.5" style=""/>
+</g>
+<!-- GIVpower._onTransfer&#45;&gt;GIVpower.Transfer -->
+<g id="edge22" class="edge" data-name="GIVpower._onTransfer-&gt;GIVpower.Transfer">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M155.71,-952.53C167.8,-948.52 179.62,-942.38 188.2,-933 237.99,-878.59 170.93,-822.02 224.2,-771 250.43,-745.87 291.47,-739.77 324.33,-739.6" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="324.64,-743.1 334.68,-739.73 324.73,-736.1 324.64,-743.1" style=""/>
+</g>
+<!-- GIVpower.TokensAreLocked -->
+<g id="node27" class="node" pointer-events="visible" data-name="GIVpower.TokensAreLocked">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="377.41" cy="-690" rx="82.8" ry="18" style=""/>
+<text text-anchor="middle" x="377.41" y="-685.8" font-family="Times,serif" font-size="14.00" style="">TokensAreLocked</text>
+</g>
+<!-- GIVpower._onTransfer&#45;&gt;GIVpower.TokensAreLocked -->
+<g id="edge21" class="edge" data-name="GIVpower._onTransfer-&gt;GIVpower.TokensAreLocked">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M156.06,-952.84C168.15,-948.82 179.87,-942.6 188.2,-933 251.96,-859.47 155.74,-786.18 224.2,-717 240.4,-700.63 262.84,-692.2 285.51,-688.23" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="286.19,-691.67 295.57,-686.75 285.17,-684.74 286.19,-691.67" style=""/>
+</g>
+<!-- IERC20MetadataUpgradeable._onTransfer -->
+<g id="node33" class="node" pointer-events="visible" data-name="IERC20MetadataUpgradeable._onTransfer">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="377.41" cy="-88" rx="58.46" ry="18" style=""/>
+<text text-anchor="middle" x="377.41" y="-83.8" font-family="Times,serif" font-size="14.00" style="">_onTransfer</text>
+</g>
+<!-- GIVpower._onTransfer&#45;&gt;IERC20MetadataUpgradeable._onTransfer -->
+<g id="edge19" class="edge" data-name="GIVpower._onTransfer-&gt;IERC20MetadataUpgradeable._onTransfer">
+
+<path fill="none" stroke="white" stroke-width="2" d="M156.89,-953.52C168.96,-949.49 180.47,-943.09 188.2,-933 243.53,-860.78 164.24,-183.42 224.2,-115 245.57,-90.61 280.68,-83.23 311.8,-82.24" style=""/>
+<polygon fill="white" stroke="white" stroke-width="2" points="312.21,-85.73 322.17,-82.13 312.14,-78.73 312.21,-85.73" style=""/>
+</g>
+<!-- GIVpower.name -->
+<g id="node9" class="node" pointer-events="visible" data-name="GIVpower.name">
+
+<ellipse fill="#ffbdb9" stroke="#ffbdb9" stroke-width="3" cx="102.1" cy="-906" rx="31.9" ry="18" style=""/>
+<text text-anchor="middle" x="102.1" y="-901.8" font-family="Times,serif" font-size="14.00" style="">name</text>
+</g>
+<!-- GIVpower.symbol -->
+<g id="node10" class="node" pointer-events="visible" data-name="GIVpower.symbol">
+
+<ellipse fill="#ffbdb9" stroke="#ffbdb9" stroke-width="3" cx="102.1" cy="-852" rx="39.45" ry="18" style=""/>
+<text text-anchor="middle" x="102.1" y="-847.8" font-family="Times,serif" font-size="14.00" style="">symbol</text>
+</g>
+<!-- GIVpower.decimals -->
+<g id="node11" class="node" pointer-events="visible" data-name="GIVpower.decimals">
+
+<ellipse fill="#ffbdb9" stroke="#ffbdb9" stroke-width="3" cx="102.1" cy="-798" rx="45.22" ry="18" style=""/>
+<text text-anchor="middle" x="102.1" y="-793.8" font-family="Times,serif" font-size="14.00" style="">decimals</text>
+</g>
+<!-- GIVpower.totalSupply -->
+<g id="node12" class="node" pointer-events="visible" data-name="GIVpower.totalSupply">
+
+<ellipse fill="#ffbdb9" stroke="#ffbdb9" stroke-width="3" cx="102.1" cy="-744" rx="55.64" ry="18" style=""/>
+<text text-anchor="middle" x="102.1" y="-739.8" font-family="Times,serif" font-size="14.00" style="">totalSupply</text>
+</g>
+<!-- GIVpower._totalSupply -->
+<g id="node28" class="node" pointer-events="visible" data-name="GIVpower._totalSupply">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="377.41" cy="-636" rx="60.29" ry="18" style=""/>
+<text text-anchor="middle" x="377.41" y="-631.8" font-family="Times,serif" font-size="14.00" style="">_totalSupply</text>
+</g>
+<!-- GIVpower.totalSupply&#45;&gt;GIVpower._totalSupply -->
+<g id="edge23" class="edge" data-name="GIVpower.totalSupply-&gt;GIVpower._totalSupply">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M150.42,-735.11C163.53,-731.08 177.18,-725.29 188.2,-717 211.25,-699.66 200.06,-678.79 224.2,-663 248.4,-647.17 279.2,-639.88 306.75,-636.75" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="307.13,-640.23 316.74,-635.78 306.45,-633.27 307.13,-640.23" style=""/>
+</g>
+<!-- GIVpower.balanceOf -->
+<g id="node13" class="node" pointer-events="visible" data-name="GIVpower.balanceOf">
+
+<ellipse fill="#ffbdb9" stroke="#ffbdb9" stroke-width="3" cx="102.1" cy="-366" rx="50.92" ry="18" style=""/>
+<text text-anchor="middle" x="102.1" y="-361.8" font-family="Times,serif" font-size="14.00" style="">balanceOf</text>
+</g>
+<!-- IERC20MetadataUpgradeable._balanceOf -->
+<g id="node34" class="node" pointer-events="visible" data-name="IERC20MetadataUpgradeable._balanceOf">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="377.41" cy="-34" rx="55.58" ry="18" style=""/>
+<text text-anchor="middle" x="377.41" y="-29.8" font-family="Times,serif" font-size="14.00" style="">_balanceOf</text>
+</g>
+<!-- GIVpower.balanceOf&#45;&gt;IERC20MetadataUpgradeable._balanceOf -->
+<g id="edge24" class="edge" data-name="GIVpower.balanceOf-&gt;IERC20MetadataUpgradeable._balanceOf">
+
+<path fill="none" stroke="white" stroke-width="2" d="M104.41,-347.7C109.29,-294.16 131.26,-136.8 224.2,-61 248.57,-41.12 282.52,-33.79 312.18,-31.67" style=""/>
+<polygon fill="white" stroke="white" stroke-width="2" points="312.66,-35.15 322.46,-31.13 312.29,-28.16 312.66,-35.15" style=""/>
+</g>
+<!-- GIVpower.transfer -->
+<g id="node14" class="node" pointer-events="visible" data-name="GIVpower.transfer">
+
+<ellipse fill="#ffbdb9" stroke="#ffbdb9" stroke-width="3" cx="102.1" cy="-690" rx="40.55" ry="18" style=""/>
+<text text-anchor="middle" x="102.1" y="-685.8" font-family="Times,serif" font-size="14.00" style="">transfer</text>
+</g>
+<!-- GIVpower.TokenNonTransferable -->
+<g id="node29" class="node" pointer-events="visible" data-name="GIVpower.TokenNonTransferable">
+
+<ellipse fill="#edad56" stroke="#edad56" stroke-width="3" cx="377.41" cy="-528" rx="101.25" ry="18" style=""/>
+<text text-anchor="middle" x="377.41" y="-523.8" font-family="Times,serif" font-size="14.00" style="">TokenNonTransferable</text>
+</g>
+<!-- GIVpower.transfer&#45;&gt;GIVpower.TokenNonTransferable -->
+<g id="edge25" class="edge" data-name="GIVpower.transfer-&gt;GIVpower.TokenNonTransferable">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M140.42,-683.89C156.3,-679.91 174.33,-673.44 188.2,-663 211.25,-645.66 202.82,-628.36 224.2,-609 253.25,-582.69 292.41,-562.1 323.73,-548.26" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="325.39,-551.36 333.18,-544.19 322.61,-544.93 325.39,-551.36" style=""/>
+</g>
+<!-- GIVpower.allowance -->
+<g id="node15" class="node" pointer-events="visible" data-name="GIVpower.allowance">
+
+<ellipse fill="#ffbdb9" stroke="#ffbdb9" stroke-width="3" cx="102.1" cy="-582" rx="50.36" ry="18" style=""/>
+<text text-anchor="middle" x="102.1" y="-577.8" font-family="Times,serif" font-size="14.00" style="">allowance</text>
+</g>
+<!-- GIVpower.approve -->
+<g id="node16" class="node" pointer-events="visible" data-name="GIVpower.approve">
+
+<ellipse fill="#ffbdb9" stroke="#ffbdb9" stroke-width="3" cx="102.1" cy="-636" rx="42.28" ry="18" style=""/>
+<text text-anchor="middle" x="102.1" y="-631.8" font-family="Times,serif" font-size="14.00" style="">approve</text>
+</g>
+<!-- GIVpower.approve&#45;&gt;GIVpower.TokenNonTransferable -->
+<g id="edge26" class="edge" data-name="GIVpower.approve-&gt;GIVpower.TokenNonTransferable">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M137.32,-625.99C152.96,-621.2 171.64,-615.17 188.2,-609 237.82,-590.5 293.39,-566.12 331.19,-548.96" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="332.76,-552.09 340.41,-544.76 329.86,-545.72 332.76,-552.09" style=""/>
+</g>
+<!-- GIVpower.transferFrom -->
+<g id="node17" class="node" pointer-events="visible" data-name="GIVpower.transferFrom">
+
+<ellipse fill="#ffbdb9" stroke="#ffbdb9" stroke-width="3" cx="102.1" cy="-528" rx="61.41" ry="18" style=""/>
+<text text-anchor="middle" x="102.1" y="-523.8" font-family="Times,serif" font-size="14.00" style="">transferFrom</text>
+</g>
+<!-- GIVpower.transferFrom&#45;&gt;GIVpower.TokenNonTransferable -->
+<g id="edge27" class="edge" data-name="GIVpower.transferFrom-&gt;GIVpower.TokenNonTransferable">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M163.76,-528C193.81,-528 231.06,-528 265.95,-528" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="266.2,-531.5 276.2,-528 266.2,-524.5 266.2,-531.5" style=""/>
+</g>
+<!-- GIVpower.increaseAllowance -->
+<g id="node18" class="node" pointer-events="visible" data-name="GIVpower.increaseAllowance">
+
+<ellipse fill="#ffbdb9" stroke="#ffbdb9" stroke-width="3" cx="102.1" cy="-474" rx="84.49" ry="18" style=""/>
+<text text-anchor="middle" x="102.1" y="-469.8" font-family="Times,serif" font-size="14.00" style="">increaseAllowance</text>
+</g>
+<!-- GIVpower.increaseAllowance&#45;&gt;GIVpower.TokenNonTransferable -->
+<g id="edge28" class="edge" data-name="GIVpower.increaseAllowance-&gt;GIVpower.TokenNonTransferable">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M164.78,-486.19C204.42,-494.02 256.26,-504.26 298.71,-512.65" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="298.24,-516.12 308.73,-514.63 299.59,-509.26 298.24,-516.12" style=""/>
+</g>
+<!-- GIVpower.decreaseAllowance -->
+<g id="node19" class="node" pointer-events="visible" data-name="GIVpower.decreaseAllowance">
+
+<ellipse fill="#ffbdb9" stroke="#ffbdb9" stroke-width="3" cx="102.1" cy="-420" rx="86.2" ry="18" style=""/>
+<text text-anchor="middle" x="102.1" y="-415.8" font-family="Times,serif" font-size="14.00" style="">decreaseAllowance</text>
+</g>
+<!-- GIVpower.decreaseAllowance&#45;&gt;GIVpower.TokenNonTransferable -->
+<g id="edge29" class="edge" data-name="GIVpower.decreaseAllowance-&gt;GIVpower.TokenNonTransferable">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M152.43,-434.74C164.23,-438.51 176.73,-442.72 188.2,-447 237.82,-465.5 293.39,-489.88 331.19,-507.04" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="329.86,-510.28 340.41,-511.24 332.76,-503.91 329.86,-510.28" style=""/>
+</g>
+<!-- key -->
+<g id="node37" class="node" pointer-events="visible" data-name="key">
+
+<polygon fill="#edad56" stroke="transparent" stroke-width="3" points="167.1,-1277 37.1,-1277 37.1,-1189 167.1,-1189 167.1,-1277" style=""/>
+<text text-anchor="start" x="86.74" y="-1258.4" font-family="Times,serif" font-size="14.00" style="">Internal Call</text>
+<text text-anchor="start" x="82.85" y="-1238.4" font-family="Times,serif" font-size="14.00" style="">External Call</text>
+<text text-anchor="start" x="60.3" y="-1218.4" font-family="Times,serif" font-size="14.00" style="">Defined Contract</text>
+<text text-anchor="start" x="46.7" y="-1198.4" font-family="Times,serif" font-size="14.00" style="">Undefined Contract</text>
+</g>
+<!-- key2 -->
+<g id="node38" class="node" pointer-events="visible" data-name="key2">
+
+<polygon fill="#edad56" stroke="transparent" stroke-width="3" points="404.41,-1277 350.41,-1277 350.41,-1189 404.41,-1189 404.41,-1277" style=""/>
+<text text-anchor="start" x="367.41" y="-1258.4" font-family="Times,serif" font-size="14.00" style="">   </text>
+<text text-anchor="start" x="367.41" y="-1238.4" font-family="Times,serif" font-size="14.00" style="">   </text>
+<polygon fill="#445773" stroke="transparent" points="365.41,-1213 365.41,-1233 390.41,-1233 390.41,-1213 365.41,-1213" style=""/>
+<text text-anchor="start" x="367.41" y="-1218.4" font-family="Times,serif" font-size="14.00" style="">   </text>
+<polygon fill="none" stroke="#e8726d" points="367.41,-1195 367.41,-1211 388.41,-1211 388.41,-1195 367.41,-1195" style=""/>
+</g>
+<!-- key&#45;&gt;key2 -->
+<g id="edge30" class="edge" data-name="key-&gt;key2">
+
+<path fill="none" stroke="#1bc6a6" stroke-width="2" d="M160.1,-1263C247.44,-1263 271.78,-1263 354.32,-1263" style=""/>
+<polygon fill="#1bc6a6" stroke="#1bc6a6" stroke-width="2" points="354.41,-1266.5 364.41,-1263 354.41,-1259.5 354.41,-1266.5" style=""/>
+</g>
+<!-- key&#45;&gt;key2 -->
+<g id="edge31" class="edge" data-name="key-&gt;key2">
+
+<path fill="none" stroke="white" stroke-width="2" d="M160.1,-1243C247.44,-1243 271.78,-1243 354.32,-1243" style=""/>
+<polygon fill="white" stroke="white" stroke-width="2" points="354.41,-1246.5 364.41,-1243 354.41,-1239.5 354.41,-1246.5" style=""/>
+</g>
+</g>
+</svg>
