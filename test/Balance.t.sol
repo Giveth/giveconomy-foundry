@@ -120,9 +120,9 @@ contract BalanceTest is GIVpowerTest {
 
         assertEq(gGivToken.balanceOf(sender), lockAmount);
         assertEq(gGivToken.balanceOf(senderWithNoBalance), amount - lockAmount);
-        assertEq(givPower.userLocks(sender), lockAmount);
         assertEq(givPower.balanceOf(sender), lockAmount + lockReward);
         assertEq(givPower.balanceOf(senderWithNoBalance), amount - lockAmount);
+        assertEq(givPower.userLocks(sender), lockAmount);
         assertEq(givPower.userLocks(senderWithNoBalance), 0);
 
         // Must not change on transfer
