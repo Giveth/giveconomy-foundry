@@ -96,7 +96,7 @@ contract BalanceTest is GIVpowerTest {
         unlockAccounts[0] = sender;
         givPower.unlock(unlockAccounts, unlockRound);
 
-        assertEq(givPower.balanceOf(sender), amount);
+        assertEq(gGivToken.balanceOf(sender), amount);
         assertEq(givPower.balanceOf(sender), amount);
         assertEq(givPower.userLocks(sender), 0);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount);
