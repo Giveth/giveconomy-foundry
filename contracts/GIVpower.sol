@@ -65,7 +65,7 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
     /// @param amount Amount of unlocked tokens to lock
     /// @param rounds Number of rounds to lock amount of tokens
     function lock(uint256 amount, uint256 rounds) external {
-        if (rounds < 1) {
+        if (rounds == 0) {
             revert ZeroLockRound();
         }
         if (amount == 0) {
