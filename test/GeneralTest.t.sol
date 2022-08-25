@@ -117,11 +117,11 @@ contract GeneralTest is GIVpowerTest {
         vm.expectEmit(true, true, true, true);
         emit Staked(sender, powerIncreaseAfterLock);
 
-        vm.expectEmit(true, true, true, true);
-        emit TokenLocked(sender, lockAmount, numberOfRounds, untilRound);
-
         vm.expectEmit(true, true, true, true, address(givPower));
         emit Transfer(address(0), sender, powerIncreaseAfterLock);
+
+        vm.expectEmit(true, true, true, true);
+        emit TokenLocked(sender, lockAmount, numberOfRounds, untilRound);
 
         givPower.lock(lockAmount, numberOfRounds);
 
@@ -149,11 +149,11 @@ contract GeneralTest is GIVpowerTest {
         vm.expectEmit(true, true, true, true);
         emit Withdrawn(sender, powerIncreaseAfterLock);
 
-        vm.expectEmit(true, true, true, true);
-        emit TokenUnlocked(sender, lockAmount, untilRound);
-
         vm.expectEmit(true, true, true, true, address(givPower));
         emit Transfer(sender, address(0), powerIncreaseAfterLock);
+
+        vm.expectEmit(true, true, true, true);
+        emit TokenUnlocked(sender, lockAmount, untilRound);
 
         givPower.unlock(accounts, untilRound);
 

@@ -72,13 +72,13 @@ contract TransferTest is GIVpowerTest {
 
         uint256 lockReward = givPower.calculatePower(amount, rounds) - amount;
 
-        vm.assume(lockReward > 0);
+        if (lockReward > 0) {
+            vm.expectEmit(true, true, true, true, address(givPower));
+            emit Staked(sender, lockReward);
 
-        vm.expectEmit(true, true, true, true, address(givPower));
-        emit Staked(sender, lockReward);
-
-        vm.expectEmit(true, true, true, true, address(givPower));
-        emit Transfer(address(0), sender, lockReward);
+            vm.expectEmit(true, true, true, true, address(givPower));
+            emit Transfer(address(0), sender, lockReward);
+        }
 
         uint256 unlockRound = givPower.currentRound() + rounds;
         givPower.lock(amount, rounds);
@@ -94,10 +94,12 @@ contract TransferTest is GIVpowerTest {
 
         skip(givPower.ROUND_DURATION() * (rounds + 1));
 
-        vm.expectEmit(true, true, true, true, address(givPower));
-        emit Withdrawn(sender, lockReward);
-        vm.expectEmit(true, true, true, true, address(givPower));
-        emit Transfer(sender, address(0), lockReward);
+        if (lockReward > 0) {
+            vm.expectEmit(true, true, true, true, address(givPower));
+            emit Withdrawn(sender, lockReward);
+            vm.expectEmit(true, true, true, true, address(givPower));
+            emit Transfer(sender, address(0), lockReward);
+        }
 
         address[] memory unlockAccounts = new address[](1);
         unlockAccounts[0] = sender;
@@ -109,8 +111,6 @@ contract TransferTest is GIVpowerTest {
         vm.assume(lockAmount > 0);
 
         lockReward = givPower.calculatePower(lockAmount, rounds) - lockAmount;
-
-        vm.assume(lockReward > 0);
 
         unlockRound = givPower.currentRound() + rounds;
         givPower.lock(lockAmount, rounds);
