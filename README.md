@@ -37,7 +37,7 @@ TBD
 
 ## Foundry
 
-To install [Foundry](https://github.com/foundry-rs/foundry) (assuming a Linux or macOS system):
+This project use [Foundry](https://github.com/foundry-rs/foundry). To install (assuming a Linux or macOS system):
 
 ```
 curl -L https://foundry.paradigm.xyz | bash
