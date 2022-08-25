@@ -46,7 +46,7 @@ contract LockRounds is GIVpowerTest {
         uint256 maxLockRounds = givPower.MAX_LOCK_ROUNDS();
         uint256 roundDuration = givPower.ROUND_DURATION();
 
-        rounds = bound(rounds, 1, maxLockRounds);
+        rounds = uint8(bound(rounds, 1, maxLockRounds));
         amount = bound(amount, 1, MAX_GIV_BALANCE);
 
         uint256 lockRewards = givPower.calculatePower(amount, rounds) - amount;
