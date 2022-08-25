@@ -77,8 +77,6 @@ contract BalanceTest is GIVpowerTest {
 
         uint256 lockReward = givPower.calculatePower(amount, rounds) - amount;
 
-        //        vm.assume(lockReward > 0);
-
         uint256 unlockRound = givPower.currentRound() + rounds;
         givPower.lock(amount, rounds);
 
@@ -180,9 +178,6 @@ contract BalanceTest is GIVpowerTest {
         address[] memory accounts = new address[](2);
         accounts[0] = user1;
         accounts[1] = user2;
-
-        // vm.assume(amount1 < givPower.calculatePower(amount1, rounds1));
-        // vm.assume(amount2 < givPower.calculatePower(amount2, rounds2));
 
         vm.startPrank(sender);
         givToken.transfer(user1, amount1);
