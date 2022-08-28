@@ -9,7 +9,15 @@ TBD
 
 ### Upgrade script
 
-TBD
+1. Deploy a new instance of GIVpower by script
+```
+forge create --rpc-url <RPC_URL> --private-key <PRIVATE_KEY> contracts/GIVpower.sol:GIVpower 
+```
+> **_NOTE:_**  The verification part (--verify --etherscan-api-key <ETHERSCAN_API_KEY>) is optional  
+2. Grab the address of new GIVpower instance deployed above and use it in calling `upgrade` method on `ProxyAdmin` contract by a privilaged account.
+```
+upgrade(<PROXY_CONTRACT_ADDRESS>, <NEW_GIVPOWER_IMPLEMENTATION_ADDRESS>)
+```
 
 ## Deployments
 
