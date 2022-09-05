@@ -109,32 +109,33 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
             revert CannotUnlockUntilRoundIsFinished();
         }
 
-        for (uint256 i = 0; i < accounts.length; i++) {
+        for (uint256 i = 0; i < accounts.length;) {
             address _account = accounts[i];
             UserLock storage _userLock = userLocks[_account];
             RoundBalance storage _roundBalance = _userLock.roundBalances[round];
 
             // @dev Based on the design, unlockableTokenAmount and releasablePowerAmount are both zero or both positive
-            if (_roundBalance.unlockableTokenAmount == 0) {
-                // && _roundBalance._releasablePowerAmount == 0
-                continue;
+            if (_roundBalance.unlockableTokenAmount > 0) {
+
+                 uint256 _releasablePowerAmount = _roundBalance.releasablePowerAmount;
+                uint256 _unlockableTokenAmount = _roundBalance.unlockableTokenAmount;
+
+                _userLock.totalAmountLocked = _userLock.totalAmountLocked.sub(_unlockableTokenAmount);
+
+                _roundBalance.releasablePowerAmount = 0;
+                _roundBalance.unlockableTokenAmount = 0;
+
+                if (_releasablePowerAmount > 0) {
+                    // Reduce power/farming benefit of locking
+                    super.withdraw(_account, _releasablePowerAmount);
+                    emit Transfer(_account, address(0), _releasablePowerAmount);
+                }
+
+                emit TokenUnlocked(_account, _unlockableTokenAmount, round);
             }
-
-            uint256 _releasablePowerAmount = _roundBalance.releasablePowerAmount;
-            uint256 _unlockableTokenAmount = _roundBalance.unlockableTokenAmount;
-
-            _userLock.totalAmountLocked = _userLock.totalAmountLocked.sub(_unlockableTokenAmount);
-
-            _roundBalance.releasablePowerAmount = 0;
-            _roundBalance.unlockableTokenAmount = 0;
-
-            if (_releasablePowerAmount > 0) {
-                // Reduce power/farming benefit of locking
-                super.withdraw(_account, _releasablePowerAmount);
-                emit Transfer(_account, address(0), _releasablePowerAmount);
+            unchecked {
+                i++;
             }
-
-            emit TokenUnlocked(_account, _unlockableTokenAmount, round);
         }
     }
 
