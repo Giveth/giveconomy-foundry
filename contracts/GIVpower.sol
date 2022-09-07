@@ -116,8 +116,7 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
 
             // @dev Based on the design, unlockableTokenAmount and releasablePowerAmount are both zero or both positive
             if (_roundBalance.unlockableTokenAmount > 0) {
-
-                 uint256 _releasablePowerAmount = _roundBalance.releasablePowerAmount;
+                uint256 _releasablePowerAmount = _roundBalance.releasablePowerAmount;
                 uint256 _unlockableTokenAmount = _roundBalance.unlockableTokenAmount;
 
                 _userLock.totalAmountLocked = _userLock.totalAmountLocked.sub(_unlockableTokenAmount);
