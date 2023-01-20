@@ -37,7 +37,8 @@ contract GeneralTest is GIVpowerTest {
         for (uint256 i = 0; i < storageDataBeforeUpgrade.usersBalances.length; i++) {
             assertEq(storageDataBeforeUpgrade.usersBalances[i], storageDataAfterUpgrade.usersBalances[i]);
             assertEq(
-                storageDataBeforeUpgrade.usersRewardsPerTokenPaid[i], storageDataAfterUpgrade.usersRewardsPerTokenPaid[i]
+                storageDataBeforeUpgrade.usersRewardsPerTokenPaid[i],
+                storageDataAfterUpgrade.usersRewardsPerTokenPaid[i]
             );
             assertEq(storageDataBeforeUpgrade.usersRewards[i], storageDataAfterUpgrade.usersRewards[i]);
         }

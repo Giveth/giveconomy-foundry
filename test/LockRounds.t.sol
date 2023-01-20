@@ -61,7 +61,9 @@ contract LockRounds is GIVpowerTest {
         uint256 passedSeconds = this.roundHasStartedInSeconds();
 
         assertGt(
-            roundDuration, passedSeconds, 'Seconds passed from the start of round should be less than the round duration'
+            roundDuration,
+            passedSeconds,
+            'Seconds passed from the start of round should be less than the round duration'
         );
 
         address[] memory accounts = new address[](1);
