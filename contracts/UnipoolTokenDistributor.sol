@@ -4,7 +4,7 @@ pragma solidity ^0.8.6;
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol';
-import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol';
 import './interfaces/IDistro.sol';
 
 // Based on: https://github.com/Synthetixio/Unipool/tree/master/contracts
@@ -28,10 +28,7 @@ contract LPTokenWrapper is Initializable {
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
 
-    function __LPTokenWrapper_initialize(IERC20Upgradeable _uni)
-        public
-        initializer
-    {
+    function __LPTokenWrapper_initialize(IERC20Upgradeable _uni) public initializer {
         uni = _uni;
     }
 
@@ -84,10 +81,7 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
     bytes4 private constant _PERMIT_SIGNATURE_BRIDGE = 0x8fcbaf0c;
 
     modifier onlyRewardDistribution() {
-        require(
-            _msgSender() == rewardDistribution,
-            "Caller is not reward distribution"
-        );
+        require(_msgSender() == rewardDistribution, 'Caller is not reward distribution');
         _;
     }
 
@@ -101,11 +95,7 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
         _;
     }
 
-    function initialize(
-        IDistro _tokenDistribution,
-        IERC20Upgradeable _uni,
-        uint256 _duration
-    ) public initializer {
+    function initialize(IDistro _tokenDistribution, IERC20Upgradeable _uni, uint256 _duration) public initializer {
         __Ownable_init();
         __LPTokenWrapper_initialize(_uni);
         tokenDistro = _tokenDistribution;
@@ -122,33 +112,26 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
         if (totalSupply() == 0) {
             return rewardPerTokenStored;
         }
-        return
-            rewardPerTokenStored.add(
-                lastTimeRewardApplicable()
-                    .sub(lastUpdateTime)
-                    .mul(rewardRate)
-                    .mul(1e18)
-                    .div(totalSupply())
-            );
+        return rewardPerTokenStored.add(
+            lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(1e18).div(totalSupply())
+        );
     }
 
     function earned(address account) public view returns (uint256) {
-        return
-            balanceOf(account)
-                .mul(rewardPerToken().sub(userRewardPerTokenPaid[account]))
-                .div(1e18)
-                .add(rewards[account]);
+        return balanceOf(account).mul(rewardPerToken().sub(userRewardPerTokenPaid[account])).div(1e18).add(
+            rewards[account]
+        );
     }
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
     function stake(uint256 amount) public override updateReward(msg.sender) {
-        require(amount > 0, "Cannot stake 0");
+        require(amount > 0, 'Cannot stake 0');
         super.stake(amount);
         emit Staked(msg.sender, amount);
     }
 
     function withdraw(uint256 amount) public override updateReward(msg.sender) {
-        require(amount > 0, "Cannot withdraw 0");
+        require(amount > 0, 'Cannot withdraw 0');
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
     }
@@ -168,11 +151,7 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
         }
     }
 
-    function notifyRewardAmount(uint256 reward)
-        external
-        onlyRewardDistribution
-        updateReward(address(0))
-    {
+    function notifyRewardAmount(uint256 reward) external onlyRewardDistribution updateReward(address(0)) {
         uint256 _timestamp = _getBlockTimestamp();
         if (_timestamp >= periodFinish) {
             rewardRate = reward.div(duration);
@@ -186,10 +165,7 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
         emit RewardAdded(reward);
     }
 
-    function setRewardDistribution(address _rewardDistribution)
-        external
-        onlyOwner
-    {
+    function setRewardDistribution(address _rewardDistribution) external onlyOwner {
         rewardDistribution = _rewardDistribution;
     }
 
@@ -198,11 +174,8 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
      * @param amount the amount to be staked, it has to match the amount that appears in the signature
      * @param permit the bytes of the signed permit function call
      */
-    function stakeWithPermit(uint256 amount, bytes calldata permit)
-        public
-        updateReward(msg.sender)
-    {
-        require(amount > 0, "Cannot stake 0");
+    function stakeWithPermit(uint256 amount, bytes calldata permit) public updateReward(msg.sender) {
+        require(amount > 0, 'Cannot stake 0');
         // we call without checking the result, in case it fails and he doesn't have enough balance
         // the following transferFrom should be fail. This prevents DoS attacks from using a signature
         // before the smartcontract call
@@ -234,50 +207,15 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
         bytes4 sig = getSelector(_permitData);
 
         if (sig == _PERMIT_SIGNATURE) {
-            (
-                address owner,
-                address spender,
-                uint256 value,
-                uint256 deadline,
-                uint8 v,
-                bytes32 r,
-                bytes32 s
-            ) = abi.decode(
-                    _permitData[4:],
-                    (
-                        address,
-                        address,
-                        uint256,
-                        uint256,
-                        uint8,
-                        bytes32,
-                        bytes32
-                    )
-                );
-            require(
-                owner == msg.sender,
-                "UnipoolTokenDistributor: OWNER_NOT_EQUAL_SENDER"
-            );
-            require(
-                spender == address(this),
-                "UnipoolTokenDistributor: SPENDER_NOT_EQUAL_THIS"
-            );
-            require(value == _amount, "UnipoolTokenDistributor: WRONG_AMOUNT");
+            (address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+                abi.decode(_permitData[4:], (address, address, uint256, uint256, uint8, bytes32, bytes32));
+            require(owner == msg.sender, 'UnipoolTokenDistributor: OWNER_NOT_EQUAL_SENDER');
+            require(spender == address(this), 'UnipoolTokenDistributor: SPENDER_NOT_EQUAL_THIS');
+            require(value == _amount, 'UnipoolTokenDistributor: WRONG_AMOUNT');
 
             /* solhint-disable avoid-low-level-calls avoid-call-value */
             return
-                address(uni).call(
-                    abi.encodeWithSelector(
-                        _PERMIT_SIGNATURE,
-                        owner,
-                        spender,
-                        value,
-                        deadline,
-                        v,
-                        r,
-                        s
-                    )
-                );
+                address(uni).call(abi.encodeWithSelector(_PERMIT_SIGNATURE, owner, spender, value, deadline, v, r, s));
         } else if (sig == _PERMIT_SIGNATURE_BRIDGE) {
             (
                 address _holder,
@@ -288,43 +226,14 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
                 uint8 v,
                 bytes32 r,
                 bytes32 s
-            ) = abi.decode(
-                    _permitData[4:],
-                    (
-                        address,
-                        address,
-                        uint256,
-                        uint256,
-                        bool,
-                        uint8,
-                        bytes32,
-                        bytes32
-                    )
-                );
-            require(
-                _holder == msg.sender,
-                "UnipoolTokenDistributor: OWNER_NOT_EQUAL_SENDER"
+            ) = abi.decode(_permitData[4:], (address, address, uint256, uint256, bool, uint8, bytes32, bytes32));
+            require(_holder == msg.sender, 'UnipoolTokenDistributor: OWNER_NOT_EQUAL_SENDER');
+            require(_spender == address(this), 'UnipoolTokenDistributor: SPENDER_NOT_EQUAL_THIS');
+            return address(uni).call(
+                abi.encodeWithSelector(_PERMIT_SIGNATURE_BRIDGE, _holder, _spender, _nonce, _expiry, _allowed, v, r, s)
             );
-            require(
-                _spender == address(this),
-                "UnipoolTokenDistributor: SPENDER_NOT_EQUAL_THIS"
-            );
-            return
-                address(uni).call(
-                    abi.encodeWithSelector(
-                        _PERMIT_SIGNATURE_BRIDGE,
-                        _holder,
-                        _spender,
-                        _nonce,
-                        _expiry,
-                        _allowed,
-                        v,
-                        r,
-                        s
-                    )
-                );
         } else {
-            revert("UnipoolTokenDistributor: NOT_VALID_CALL_SIGNATURE");
+            revert('UnipoolTokenDistributor: NOT_VALID_CALL_SIGNATURE');
         }
     }
 
