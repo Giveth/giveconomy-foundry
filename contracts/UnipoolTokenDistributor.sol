@@ -25,31 +25,40 @@ contract LPTokenWrapper is Initializable {
 
     IERC20Upgradeable public uni;
 
-    uint256 private _totalSupply;
+    uint256 private _totalStaked;
     mapping(address => uint256) private _balances;
 
     function __LPTokenWrapper_initialize(IERC20Upgradeable _uni) public initializer {
         uni = _uni;
     }
 
-    function totalSupply() public view returns (uint256) {
-        return _totalSupply;
+
+    function _totalSupply() internal view returns (uint256) {
+        return _totalStaked;
     }
 
-    function balanceOf(address account) public view returns (uint256) {
+    function _balanceOf(address account) internal view returns (uint256) {
         return _balances[account];
     }
 
     function stake(uint256 amount) public virtual {
-        _totalSupply = _totalSupply.add(amount);
-        _balances[msg.sender] = _balances[msg.sender].add(amount);
-        uni.safeTransferFrom(msg.sender, address(this), amount);
+        _stake(msg.sender, amount);
+    }
+
+    function _stake(address account, uint256 amount) internal virtual {
+        _totalStaked = _totalStaked.add(amount);
+        _balances[account] = _balances[account].add(amount);
+        uni.safeTransferFrom(account, address(this), amount);
     }
 
     function withdraw(uint256 amount) public virtual {
-        _totalSupply = _totalSupply.sub(amount);
-        _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        uni.safeTransfer(msg.sender, amount);
+        _withdraw(msg.sender, amount);
+    }
+
+    function _withdraw(address account, uint256 amount) internal virtual {
+        _totalStaked = _totalStaked.sub(amount);
+        _balances[account] = _balances[account].sub(amount);
+        uni.safeTransfer(account, amount);
     }
 }
 
@@ -109,35 +118,45 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
     }
 
     function rewardPerToken() public view returns (uint256) {
-        if (totalSupply() == 0) {
+        if (_totalSupply() == 0) {
             return rewardPerTokenStored;
         }
         return rewardPerTokenStored.add(
-            lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(1e18).div(totalSupply())
+            lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(1e18).div(_totalSupply())
         );
     }
 
     function earned(address account) public view returns (uint256) {
-        return balanceOf(account).mul(rewardPerToken().sub(userRewardPerTokenPaid[account])).div(1e18).add(
+        return _balanceOf(account).mul(rewardPerToken().sub(userRewardPerTokenPaid[account])).div(1e18).add(
             rewards[account]
         );
     }
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
-    function stake(uint256 amount) public override updateReward(msg.sender) {
-        require(amount > 0, 'Cannot stake 0');
-        super.stake(amount);
-        emit Staked(msg.sender, amount);
+    // stake visibility is public as overriding LPTokenWrapper's stake() function
+    function stake(uint256 amount) public override {
+       _stake(msg.sender, amount);
     }
 
-    function withdraw(uint256 amount) public override updateReward(msg.sender) {
+    // stake visibility is public as overriding LPTokenWrapper's stake() function
+    function _stake(address account, uint256 amount) internal override updateReward(account) {
+        require(amount > 0, 'Cannot stake 0');
+        super._stake(account, amount);
+        emit Staked(account, amount);
+    }
+
+    function withdraw(uint256 amount) public override {
+            _withdraw(msg.sender, amount);
+        }
+
+    function _withdraw(address account, uint256 amount) internal override updateReward(account) {
         require(amount > 0, 'Cannot withdraw 0');
-        super.withdraw(amount);
-        emit Withdrawn(msg.sender, amount);
+        super._withdraw(account, amount);
+        emit Withdrawn(account, amount);
     }
 
     function exit() external {
-        withdraw(balanceOf(msg.sender));
+        withdraw(_balanceOf(msg.sender));
         getReward();
     }
 
