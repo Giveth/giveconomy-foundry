@@ -32,7 +32,6 @@ contract LPTokenWrapper is Initializable {
         uni = _uni;
     }
 
-
     function _totalSupply() internal view returns (uint256) {
         return _totalStaked;
     }
@@ -135,7 +134,7 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
     // stake visibility is public as overriding LPTokenWrapper's stake() function
     // stake visibility is public as overriding LPTokenWrapper's stake() function
     function stake(uint256 amount) public override {
-       _stake(msg.sender, amount);
+        _stake(msg.sender, amount);
     }
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
@@ -146,8 +145,8 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
     }
 
     function withdraw(uint256 amount) public override {
-            _withdraw(msg.sender, amount);
-        }
+        _withdraw(msg.sender, amount);
+    }
 
     function _withdraw(address account, uint256 amount) internal override updateReward(account) {
         require(amount > 0, 'Cannot withdraw 0');

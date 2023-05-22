@@ -7,9 +7,9 @@ import 'solmate/utils/FixedPointMathLib.sol';
 import './UnipoolTokenDistributor.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 
-
 contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
     using SafeMathUpgradeable for uint256;
+
     address private depositToken;
     /// @dev Start time of the first round
     uint256 public constant INITIAL_DATE = 1654415235; // block 22501098
@@ -106,9 +106,9 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
         if (_getToken().balanceOf(msg.sender).sub(amount) < userLocks[msg.sender].totalAmountLocked) {
             revert TokensAreLocked();
         }
-        super.withdraw( amount);
+        super.withdraw(amount);
     }
- 
+
     /// @notice Unlock tokens belongs to accountswhich are locked till the end of round
     /// @param accounts List of accounts to unlock their tokens
     /// @param round The round number token are locked till the end of
@@ -167,7 +167,6 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
     function calculatePower(uint256 amount, uint256 rounds) public pure returns (uint256) {
         return amount.mul(FixedPointMathLib.sqrt(rounds.add(1).mul(10 ** 18))).div(10 ** 9);
     }
-
 
     /// @inheritdoc IERC20MetadataUpgradeable
     function name() external pure override returns (string memory) {
