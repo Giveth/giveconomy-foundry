@@ -5,6 +5,7 @@ import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol';
+import './interfaces/IERC20BridgedOptimism.sol';
 import './interfaces/IDistro.sol';
 
 // Based on: https://github.com/Synthetixio/Unipool/tree/master/contracts
@@ -144,7 +145,7 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
         emit Staked(account, amount);
     }
 
-    function withdraw(uint256 amount) public override {
+    function withdraw(uint256 amount) public virtual override {
         _withdraw(msg.sender, amount);
     }
 
