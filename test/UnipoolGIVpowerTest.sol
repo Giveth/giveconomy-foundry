@@ -9,7 +9,7 @@ import 'forge-std/console.sol';
 import 'solmate/utils/FixedPointMathLib.sol';
 import '../contracts/UnipoolGIVpower.sol';
 import '../contracts/UnipoolTokenDistributor.sol';
-import './interfaces/IERC20Bridged.sol';
+import './interfaces/IL2StandardERC20.sol';
 
 contract UnipoolGIVpowerTest is Test {
     using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -22,7 +22,7 @@ contract UnipoolGIVpowerTest is Test {
     ProxyAdmin unipoolGIVpowerProxyAdmin;
     TransparentUpgradeableProxy unipoolGIVpowerProxy;
     IERC20Upgradeable givToken;
-    IERC20Bridged bridgedGivToken;
+    IL2StandardERC20 bridgedGivToken;
     IERC20 gGivToken;
     address givethMultisig;
     IDistro iDistro;
@@ -69,7 +69,7 @@ contract UnipoolGIVpowerTest is Test {
 
     function setUp() public virtual {
         givToken = IERC20Upgradeable(givTokenAddressOptimism);
-        bridgedGivToken = IERC20Bridged(givTokenAddressOptimism);
+        bridgedGivToken = IL2StandardERC20(givTokenAddressOptimism);
         unipoolGIVpowerProxyAdmin = new ProxyAdmin();
         givethMultisig = unipoolGIVpowerProxyAdmin.owner();
         // new implementation
