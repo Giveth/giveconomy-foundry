@@ -10,7 +10,7 @@ contract UnipoolBalanceTest is UnipoolGIVpowerTest {
         super.setUp();
 
         vm.startPrank(optimismL2Bridge);
-        bridgedGivToken.bridgeMint(sender, MAX_GIV_BALANCE - givToken.balanceOf(sender));
+        bridgedGivToken.mint(sender, MAX_GIV_BALANCE - givToken.balanceOf(sender));
         vm.stopPrank();
 
         givPowerInitialTotalSupply = givPower.totalSupply();

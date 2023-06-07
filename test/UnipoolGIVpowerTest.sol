@@ -9,7 +9,7 @@ import 'forge-std/console.sol';
 import 'solmate/utils/FixedPointMathLib.sol';
 import '../contracts/UnipoolGIVpower.sol';
 import '../contracts/UnipoolTokenDistributor.sol';
-import './interfaces/IERC20BridgedOptimism.sol';
+import './interfaces/IERC20Bridged.sol';
 
 
 contract UnipoolGIVpowerTest is Test {
@@ -28,10 +28,10 @@ contract UnipoolGIVpowerTest is Test {
     IDistro iDistro;
 
     // token
-    address givTokenAddressOptimism = 0x92834c37dF982A13bb0f8C3F6608E26F0546538e;
+    address givTokenAddressOptimism = 0x528CDc92eAB044E1E39FE43B9514bfdAB4412B98;
 
     // bridge
-    address optimismL2Bridge = 0x528CDc92eAB044E1E39FE43B9514bfdAB4412B98;
+    address optimismL2Bridge = 0x4200000000000000000000000000000000000010;
 
     // accounts
     address sender = address(1);
@@ -61,35 +61,27 @@ contract UnipoolGIVpowerTest is Test {
     event TokenUnlocked(address indexed account, uint256 amount, uint256 round);
 
     constructor() {
-        uint256 forkId = vm.createFork('https://mainnet.optimism.io/', 100894420);
+        uint256 forkId = vm.createFork('https://opt-mainnet.g.alchemy.com/v2/0WACYnGuFHam6HpS-PcYPZqwSPFHmnjk', 105235052);
         vm.selectFork(forkId);
-
-
-
         // wrap in ABI to support easier calls
-        
-        givToken = IERC20Upgradeable(givTokenAddressOptimism);
-
-        bridgedGivToken = IERC20Bridged(givTokenAddressOptimism);
-        
-        givethMultisig = unipoolGIVpowerProxyAdmin.owner();
     }
 
     function setUp() public virtual {
+        givToken = IERC20Upgradeable(givTokenAddressOptimism);
+        bridgedGivToken = IERC20Bridged(givTokenAddressOptimism);
+        unipoolGIVpowerProxyAdmin = new ProxyAdmin();
+        givethMultisig = unipoolGIVpowerProxyAdmin.owner();
         // new implementation
         implementation = new UnipoolGIVpower();
-        unipoolGIVpowerProxyAdmin = new ProxyAdmin();
-        unipoolGIVpowerProxy = new TransparentUpgradeableProxy(payable(address(implementation)), address(unipoolGIVpowerProxyAdmin), '');
+        unipoolGIVpowerProxy = new TransparentUpgradeableProxy(payable(address(implementation)), address(unipoolGIVpowerProxyAdmin),
+         abi.encodeWithSelector(UnipoolGIVpower(givPower).initialize.selector, iDistro, givToken, 14 days));
         givPower = UnipoolGIVpower(address(unipoolGIVpowerProxy));
-        givPower.initialize(iDistro, givToken, 14 days);
         
-        // upgrade to new implementation
-        vm.prank(givethMultisig);
-        //unipoolProxyAdmin.upgrade(unipoolProxy, address(implementation));
-
+        
         // mint
         vm.prank(optimismL2Bridge);
-        bridgedGivToken.bridgeMint(sender, 100 ether);
+        bridgedGivToken.mint(sender, 100 ether);
+        console.log('log');
 
         // labels
         vm.label(sender, 'sender');
