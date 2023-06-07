@@ -11,9 +11,9 @@ import '../contracts/UnipoolGIVpower.sol';
 import '../contracts/UnipoolTokenDistributor.sol';
 import './interfaces/IERC20Bridged.sol';
 
-
 contract UnipoolGIVpowerTest is Test {
     using SafeERC20Upgradeable for IERC20Upgradeable;
+
     uint256 public constant MAX_GIV_BALANCE = 10 ** 28; // 10 Billion, Total minted giv is 1B at the moment
 
     UnipoolGIVpower implementation;
@@ -61,7 +61,8 @@ contract UnipoolGIVpowerTest is Test {
     event TokenUnlocked(address indexed account, uint256 amount, uint256 round);
 
     constructor() {
-        uint256 forkId = vm.createFork('https://opt-mainnet.g.alchemy.com/v2/0WACYnGuFHam6HpS-PcYPZqwSPFHmnjk', 105235052);
+        uint256 forkId =
+            vm.createFork('https://opt-mainnet.g.alchemy.com/v2/0WACYnGuFHam6HpS-PcYPZqwSPFHmnjk', 105235052);
         vm.selectFork(forkId);
         // wrap in ABI to support easier calls
     }
@@ -73,15 +74,16 @@ contract UnipoolGIVpowerTest is Test {
         givethMultisig = unipoolGIVpowerProxyAdmin.owner();
         // new implementation
         implementation = new UnipoolGIVpower();
-        unipoolGIVpowerProxy = new TransparentUpgradeableProxy(payable(address(implementation)), address(unipoolGIVpowerProxyAdmin),
+        unipoolGIVpowerProxy =
+        new TransparentUpgradeableProxy(payable(address(implementation)), address(unipoolGIVpowerProxyAdmin),
          abi.encodeWithSelector(UnipoolGIVpower(givPower).initialize.selector, iDistro, givToken, 14 days));
         givPower = UnipoolGIVpower(address(unipoolGIVpowerProxy));
-        
-        
+
+        uint256 senderBalance = bridgedGivToken.balanceOf(sender);
         // mint
         vm.prank(optimismL2Bridge);
         bridgedGivToken.mint(sender, 100 ether);
-        console.log('log');
+        console.log(senderBalance, sender);
 
         // labels
         vm.label(sender, 'sender');
