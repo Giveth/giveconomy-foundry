@@ -133,13 +133,13 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
     // stake visibility is public as overriding LPTokenWrapper's stake() function
-    function stake(uint256 amount) public override {
+    function stake(uint256 amount) public virtual override {
         _stake(msg.sender, amount);
         uni.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
-    function _stake(address account, uint256 amount) internal override updateReward(account) {
+    function _stake(address account, uint256 amount) internal virtual override updateReward(account) {
         require(amount > 0, 'Cannot stake 0');
         super._stake(account, amount);
         emit Staked(account, amount);
@@ -150,7 +150,7 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
         uni.safeTransfer(msg.sender, amount);
     }
 
-    function _withdraw(address account, uint256 amount) internal override updateReward(account) {
+    function _withdraw(address account, uint256 amount) internal virtual override updateReward(account) {
         require(amount > 0, 'Cannot withdraw 0');
         super._withdraw(account, amount);
         emit Withdrawn(account, amount);

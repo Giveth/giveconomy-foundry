@@ -36,7 +36,9 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
 
     /// @notice Mapping with all accounts have locked tokens
     mapping(address => UserLock) public userLocks;
-    
+
+    mapping(address => uint256) public uniBalances;
+
     /// Tokens are locked
     error TokensAreLocked();
     /// Must unlock after the round finishes
@@ -93,17 +95,33 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
         if (_gainedPowerAmount > 0) {
             // Add power/farming benefit of locking
             _stake(msg.sender, _gainedPowerAmount);
-            emit Transfer(address(0), msg.sender, _gainedPowerAmount);
         }
 
         emit TokenLocked(msg.sender, amount, rounds, _endRound);
     }
 
+    function _stake(address account, uint256 amount) internal override {
+        super._stake(account, amount);
+        emit Transfer(address(0), account, amount);
+    }
+
+    function _withdraw(address account, uint256 amount) internal override {
+        super._withdraw(account, amount);
+        emit Transfer(account, address(0), amount);
+    }
+
+    // stake visibility is public as overriding LPTokenWrapper's stake() function
+    function stake(uint256 amount) public override {
+        super.stake(amount);
+        uniBalances[msg.sender] = uniBalances[msg.sender].add(amount);
+    }
+
     function withdraw(uint256 amount) public virtual override {
-        if (_balanceOf(msg.sender).sub(amount) < userLocks[msg.sender].totalAmountLocked) {
+        if (uniBalances[msg.sender].sub(amount) < userLocks[msg.sender].totalAmountLocked) {
             revert TokensAreLocked();
         }
         super.withdraw(amount);
+        uniBalances[msg.sender] = uniBalances[msg.sender].sub(amount);
     }
 
     /// @notice Unlock tokens belongs to accountswhich are locked till the end of round
@@ -131,8 +149,7 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
 
                 if (_releasablePowerAmount > 0) {
                     // Reduce power/farming benefit of locking
-                    super._withdraw(_account, _releasablePowerAmount);
-                    emit Transfer(_account, address(0), _releasablePowerAmount);
+                    _withdraw(_account, _releasablePowerAmount);
                 }
 
                 emit TokenUnlocked(_account, _unlockableTokenAmount, round);
