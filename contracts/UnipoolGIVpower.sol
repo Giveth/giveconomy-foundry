@@ -78,7 +78,7 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
 
         UserLock storage _userLock = userLocks[msg.sender];
 
-        if (_balanceOf(msg.sender).sub(_userLock.totalAmountLocked) < amount) {
+        if (uniBalances[msg.sender].sub(_userLock.totalAmountLocked) < amount) {
             revert NotEnoughBalanceToLock();
         }
 
