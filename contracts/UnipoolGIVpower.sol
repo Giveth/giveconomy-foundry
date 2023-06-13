@@ -33,7 +33,6 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
         mapping(uint256 => RoundBalance) roundBalances;
     }
 
-
     /// @notice Mapping with all accounts have locked tokens
     mapping(address => UserLock) public userLocks;
 

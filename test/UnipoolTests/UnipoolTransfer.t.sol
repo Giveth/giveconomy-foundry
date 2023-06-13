@@ -48,7 +48,6 @@ contract TransferTest is UnipoolGIVpowerTest {
         // vm.expectEmit(true, true, true, true, address(givPower));
         // emit Transfer(sender, senderWithNoBalance, amount);
 
-
         // vm.expectEmit(true, true, true, true, address(gGivToken));
         // emit Transfer(sender, senderWithNoBalance, amount);
 
@@ -135,7 +134,7 @@ contract TransferTest is UnipoolGIVpowerTest {
         // gGivToken.transfer(senderWithNoBalance, amount - lockAmount);
 
         skip(givPower.ROUND_DURATION() * (rounds + 1));
-        
+
         vm.expectEmit(true, true, true, true, address(givPower));
         emit TokenUnlocked(sender, lockAmount, unlockRound);
 
