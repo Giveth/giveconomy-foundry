@@ -7,9 +7,9 @@ import '@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol';
 import 'forge-std/Test.sol';
 import 'forge-std/console.sol';
 import 'solmate/utils/FixedPointMathLib.sol';
-import '../contracts/UnipoolGIVpower.sol';
-import '../contracts/UnipoolTokenDistributor.sol';
-import './interfaces/IL2StandardERC20.sol';
+import '../../contracts/UnipoolGIVpower.sol';
+import '../../contracts/UnipoolTokenDistributor.sol';
+import '../interfaces/IL2StandardERC20.sol';
 
 contract UnipoolGIVpowerTest is Test {
     using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -18,7 +18,6 @@ contract UnipoolGIVpowerTest is Test {
 
     UnipoolGIVpower implementation;
     UnipoolGIVpower givPower;
-    UnipoolTokenDistributor unipoolTokenDistro;
     ProxyAdmin unipoolGIVpowerProxyAdmin;
     TransparentUpgradeableProxy unipoolGIVpowerProxy;
     IERC20Upgradeable givToken;
@@ -79,11 +78,9 @@ contract UnipoolGIVpowerTest is Test {
          abi.encodeWithSelector(UnipoolGIVpower(givPower).initialize.selector, iDistro, givToken, 14 days));
         givPower = UnipoolGIVpower(address(unipoolGIVpowerProxy));
 
-        uint256 senderBalance = bridgedGivToken.balanceOf(sender);
         // mint
         vm.prank(optimismL2Bridge);
         bridgedGivToken.mint(sender, 100 ether);
-        console.log(senderBalance, sender);
 
         // labels
         vm.label(sender, 'sender');

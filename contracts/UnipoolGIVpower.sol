@@ -33,9 +33,10 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
         mapping(uint256 => RoundBalance) roundBalances;
     }
 
+
     /// @notice Mapping with all accounts have locked tokens
     mapping(address => UserLock) public userLocks;
-
+    
     /// Tokens are locked
     error TokensAreLocked();
     /// Must unlock after the round finishes
@@ -58,9 +59,6 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
 
     /// @dev Used to fetch 1Hive Garden wrapped token by the help of Token Manager, gGIV for Giveth
     /// @return Garden GIV wrapped token (gGIV) address
-    function _getToken() private view returns (IERC20) {
-        return IERC20(depositToken);
-    }
 
     /// @notice Lock the user's unlocked tokens for a number rounds
     /// @param amount Amount of unlocked tokens to lock
@@ -77,9 +75,8 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
         }
 
         UserLock storage _userLock = userLocks[msg.sender];
-        IERC20 token = _getToken();
 
-        if (token.balanceOf(msg.sender).sub(_userLock.totalAmountLocked) < amount) {
+        if (_balanceOf(msg.sender).sub(_userLock.totalAmountLocked) < amount) {
             revert NotEnoughBalanceToLock();
         }
 
@@ -103,7 +100,7 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
     }
 
     function withdraw(uint256 amount) public virtual override {
-        if (_getToken().balanceOf(msg.sender).sub(amount) < userLocks[msg.sender].totalAmountLocked) {
+        if (_balanceOf(msg.sender).sub(amount) < userLocks[msg.sender].totalAmountLocked) {
             revert TokensAreLocked();
         }
         super.withdraw(amount);

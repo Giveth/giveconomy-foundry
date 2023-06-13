@@ -42,22 +42,22 @@ contract LPTokenWrapper is Initializable {
 
     function stake(uint256 amount) public virtual {
         _stake(msg.sender, amount);
+        uni.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     function _stake(address account, uint256 amount) internal virtual {
         _totalStaked = _totalStaked.add(amount);
         _balances[account] = _balances[account].add(amount);
-        uni.safeTransferFrom(account, address(this), amount);
     }
 
     function withdraw(uint256 amount) public virtual {
         _withdraw(msg.sender, amount);
+        uni.safeTransfer(msg.sender, amount);
     }
 
     function _withdraw(address account, uint256 amount) internal virtual {
         _totalStaked = _totalStaked.sub(amount);
         _balances[account] = _balances[account].sub(amount);
-        uni.safeTransfer(account, amount);
     }
 }
 
@@ -135,6 +135,7 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
     // stake visibility is public as overriding LPTokenWrapper's stake() function
     function stake(uint256 amount) public override {
         _stake(msg.sender, amount);
+        uni.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
@@ -146,6 +147,7 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
 
     function withdraw(uint256 amount) public virtual override {
         _withdraw(msg.sender, amount);
+        uni.safeTransfer(msg.sender, amount);
     }
 
     function _withdraw(address account, uint256 amount) internal override updateReward(account) {
