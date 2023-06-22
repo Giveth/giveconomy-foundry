@@ -38,20 +38,6 @@ contract TransferTest is UnipoolGIVpowerTest {
 
         vm.expectRevert(UnipoolGIVpower.TokenNonTransferable.selector);
         givPower.transfer(senderWithNoBalance, amount);
-
-        // vm.expectEmit(true, true, true, true, address(givPower));
-        // emit Withdrawn(sender, amount);
-
-        // vm.expectEmit(true, true, true, true, address(givPower));
-        // emit Staked(senderWithNoBalance, amount);
-
-        // vm.expectEmit(true, true, true, true, address(givPower));
-        // emit Transfer(sender, senderWithNoBalance, amount);
-
-        // vm.expectEmit(true, true, true, true, address(gGivToken));
-        // emit Transfer(sender, senderWithNoBalance, amount);
-
-        // gGivToken.transfer(senderWithNoBalance, amount);
         vm.stopPrank();
     }
 
@@ -89,9 +75,6 @@ contract TransferTest is UnipoolGIVpowerTest {
         vm.expectRevert(UnipoolGIVpower.TokenNonTransferable.selector);
         givPower.transfer(senderWithNoBalance, amount + lockReward);
 
-        // vm.expectRevert(UnipoolGIVpower.TokensAreLocked.selector);
-        // gGivToken.transfer(senderWithNoBalance, amount);
-
         skip(givPower.ROUND_DURATION() * (rounds + 1));
 
         if (lockReward > 0) {
@@ -115,30 +98,11 @@ contract TransferTest is UnipoolGIVpowerTest {
         unlockRound = givPower.currentRound() + rounds;
         givPower.lock(lockAmount, rounds);
 
-        // vm.expectRevert(UnipoolGIVpower.TokensAreLocked.selector);
-        // gGivToken.transfer(senderWithNoBalance, amount - lockAmount + 1);
-
-        // These seem repetitive
-        // vm.expectEmit(true, true, true, true, address(givPower));
-        // emit Withdrawn(sender, amount - lockAmount);
-
-        // vm.expectEmit(true, true, true, true, address(givPower));
-        // emit Staked(senderWithNoBalance, amount - lockAmount);
-
-        // vm.expectEmit(true, true, true, true, address(givPower));
-        // emit Transfer(sender, senderWithNoBalance, amount - lockAmount);
-
-        // vm.expectEmit(true, true, true, true, address(gGivToken));
-        // emit Transfer(sender, senderWithNoBalance, amount - lockAmount);
-
-        // gGivToken.transfer(senderWithNoBalance, amount - lockAmount);
-
         skip(givPower.ROUND_DURATION() * (rounds + 1));
 
         vm.expectEmit(true, true, true, true, address(givPower));
         emit TokenUnlocked(sender, lockAmount, unlockRound);
 
         givPower.unlock(unlockAccounts, unlockRound);
-        // gGivToken.transfer(senderWithNoBalance, lockAmount);
     }
 }
