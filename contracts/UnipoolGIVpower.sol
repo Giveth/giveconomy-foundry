@@ -93,19 +93,19 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
 
         if (_gainedPowerAmount > 0) {
             // Add power/farming benefit of locking
-            _stake(msg.sender, _gainedPowerAmount);
+            _addBalance(msg.sender, _gainedPowerAmount);
         }
 
         emit TokenLocked(msg.sender, amount, rounds, _endRound);
     }
 
-    function _stake(address account, uint256 amount) internal override {
-        super._stake(account, amount);
+    function _addBalance(address account, uint256 amount) internal override {
+        super._addBalance(account, amount);
         emit Transfer(address(0), account, amount);
     }
 
-    function _withdraw(address account, uint256 amount) internal override {
-        super._withdraw(account, amount);
+    function _subBalance(address account, uint256 amount) internal override {
+        super._subBalance(account, amount);
         emit Transfer(account, address(0), amount);
     }
 
@@ -121,6 +121,13 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
         }
         super.withdraw(amount);
         uniBalances[msg.sender] = uniBalances[msg.sender].sub(amount);
+    }
+
+    function exit() public override {
+        if (userLocks[msg.sender].totalAmountLocked > 0) {
+            revert TokensAreLocked();
+        }
+        super.exit();
     }
 
     /// @notice Unlock tokens belongs to accountswhich are locked till the end of round
@@ -148,7 +155,7 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
 
                 if (_releasablePowerAmount > 0) {
                     // Reduce power/farming benefit of locking
-                    _withdraw(_account, _releasablePowerAmount);
+                    _subBalance(_account, _releasablePowerAmount);
                 }
 
                 emit TokenUnlocked(_account, _unlockableTokenAmount, round);
