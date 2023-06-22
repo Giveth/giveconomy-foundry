@@ -161,7 +161,7 @@ contract BalanceTest is GIVpowerTest {
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply);
     }
 
-    function testTowAccountLock(uint256 amount1, uint8 rounds1, uint256 amount2, uint8 rounds2) public {
+    function testTwoAccountLock(uint256 amount1, uint8 rounds1, uint256 amount2, uint8 rounds2) public {
         amount1 = bound(amount1, 1, MAX_GIV_BALANCE - 1);
         amount2 = bound(amount2, 1, MAX_GIV_BALANCE - 1);
         rounds1 = uint8(bound(rounds1, 1, givPower.MAX_LOCK_ROUNDS()));
