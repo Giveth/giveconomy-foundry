@@ -54,13 +54,7 @@ contract LockRounds is UnipoolGIVpowerTest {
         vm.startPrank(sender);
 
         givToken.approve(address(givPower), amount);
-
-        console.log('this is the amount', amount);
-        console.log('this is the user balance', givPower.balanceOf(sender));
-        console.log('this is the user locks', givPower.userLocks(sender));
         givPower.stake(amount);
-        console.log('this is the user balance', givPower.balanceOf(sender));
-
         givPower.lock(amount, rounds);
 
         uint256 untilRound = givPower.currentRound() + rounds;
@@ -78,25 +72,13 @@ contract LockRounds is UnipoolGIVpowerTest {
         vm.expectRevert(UnipoolGIVpower.CannotUnlockUntilRoundIsFinished.selector);
         givPower.unlock(accounts, untilRound);
 
-        // vm.expectRevert(UnipoolGIVpower.TokensAreLocked.selector);
-        // gGivToken.transfer(senderWithNoBalance, amount);
-
-        console.log('this is the amount', amount);
-        console.log('this is the user balance', givPower.balanceOf(sender));
-        console.log('this is the user locks', givPower.userLocks(sender));
-
-        // broken here
         vm.expectRevert(UnipoolGIVpower.TokensAreLocked.selector);
         givPower.withdraw(amount);
-        // -----------------
 
         skip(rounds * roundDuration);
 
         vm.expectRevert(UnipoolGIVpower.CannotUnlockUntilRoundIsFinished.selector);
         givPower.unlock(accounts, untilRound);
-
-        // vm.expectRevert(UnipoolGIVpower.TokensAreLocked.selector);
-        // gGivToken.transfer(senderWithNoBalance, amount);
 
         vm.expectRevert(UnipoolGIVpower.TokensAreLocked.selector);
         givPower.withdraw(amount);
