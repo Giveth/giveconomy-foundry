@@ -11,36 +11,8 @@ contract GeneralTest is UnipoolGIVpowerTest {
     StorageData storageDataBeforeUpgrade;
 
     function setUp() public override {
-        // broken here - need to sort out testUsers on network or omit
-        // storageDataBeforeUpgrade = getImplementationStorageData(testUsers);
         super.setUp();
     }
-
-    // function testImplementationStorage() public {
-    //     StorageData memory storageDataAfterUpgrade = getImplementationStorageData(testUsers);
-
-    //     assertEq(givPower.ROUND_DURATION(), 14 days);
-    //     assertEq(givPower.MAX_LOCK_ROUNDS(), 26);
-
-    //     // assertEq(storageDataBeforeUpgrade.tokenManager, storageDataAfterUpgrade.tokenManager);
-    //     assertEq(storageDataBeforeUpgrade.tokenDistro, storageDataAfterUpgrade.tokenDistro);
-    //     assertEq(storageDataBeforeUpgrade.duration, storageDataAfterUpgrade.duration);
-    //     assertEq(storageDataBeforeUpgrade.rewardDistribution, storageDataAfterUpgrade.rewardDistribution);
-    //     assertEq(storageDataBeforeUpgrade.periodFinish, storageDataAfterUpgrade.periodFinish);
-    //     assertEq(storageDataBeforeUpgrade.rewardRate, storageDataAfterUpgrade.rewardRate);
-    //     assertEq(storageDataBeforeUpgrade.lastUpdateTime, storageDataAfterUpgrade.lastUpdateTime);
-    //     assertEq(storageDataBeforeUpgrade.rewardPerTokenStored, storageDataAfterUpgrade.rewardPerTokenStored);
-    //     assertEq(storageDataBeforeUpgrade.totalSupply, storageDataAfterUpgrade.totalSupply);
-
-    //     for (uint256 i = 0; i < storageDataBeforeUpgrade.usersBalances.length; i++) {
-    //         assertEq(storageDataBeforeUpgrade.usersBalances[i], storageDataAfterUpgrade.usersBalances[i]);
-    //         assertEq(
-    //             storageDataBeforeUpgrade.usersRewardsPerTokenPaid[i],
-    //             storageDataAfterUpgrade.usersRewardsPerTokenPaid[i]
-    //         );
-    //         assertEq(storageDataBeforeUpgrade.usersRewards[i], storageDataAfterUpgrade.usersRewards[i]);
-    //     }
-    // }
 
     function testZeroLockRound() public {
         vm.expectRevert(UnipoolGIVpower.ZeroLockRound.selector);
@@ -53,7 +25,6 @@ contract GeneralTest is UnipoolGIVpowerTest {
     }
 
     function testNotEnoughBalanceToLock() public {
-        console.log('balance of sender with no balance', givPower.balanceOf(senderWithNoBalance));
         vm.expectRevert(UnipoolGIVpower.NotEnoughBalanceToLock.selector);
         vm.prank(senderWithNoBalance);
         givPower.lock(2 ether, 2);
@@ -75,7 +46,7 @@ contract GeneralTest is UnipoolGIVpowerTest {
     }
 
     function testWrapLockUnwrapUnlockProperly() public {
-        uint256 wrapAmount = 20 ether;
+        uint256 stakeAmount = 20 ether;
         uint256 lockAmount = 10 ether;
         uint256 numberOfRounds = 1;
         address[] memory accounts = new address[](1);
@@ -87,30 +58,22 @@ contract GeneralTest is UnipoolGIVpowerTest {
 
         uint256 initialTotalSupply = givPower.totalSupply();
         uint256 initialUnipoolBalance = givPower.balanceOf(sender);
-        // uint256 initialgGivBalance = gGivToken.balanceOf(sender);
-
-        // Before lock unipool balance should be same as gGiv balance
-        // assertEq(initialgGivBalance, initialgGivBalance);
 
         vm.startPrank(sender);
-        givToken.approve(address(givPower), wrapAmount);
+        givToken.approve(address(givPower), stakeAmount);
 
         /// WRAP
 
         vm.expectEmit(true, true, true, true);
-        emit Staked(sender, wrapAmount);
+        emit Staked(sender, stakeAmount);
 
         vm.expectEmit(true, true, true, true, address(givPower));
-        emit Transfer(address(0), sender, wrapAmount);
+        emit Transfer(address(0), sender, stakeAmount);
 
-        // vm.expectEmit(true, true, true, true, address(gGivToken));
-        // emit Transfer(address(0), sender, wrapAmount);
+        givPower.stake(stakeAmount);
 
-        givPower.stake(wrapAmount);
-
-        assertEq(givPower.balanceOf(sender), initialUnipoolBalance + wrapAmount);
-        // assertEq(gGivToken.balanceOf(sender), initialgGivBalance + wrapAmount);
-        assertEq(givPower.totalSupply(), initialTotalSupply + wrapAmount);
+        assertEq(givPower.balanceOf(sender), initialUnipoolBalance + stakeAmount);
+        assertEq(givPower.totalSupply(), initialTotalSupply + stakeAmount);
 
         /// LOCK
 
@@ -125,22 +88,20 @@ contract GeneralTest is UnipoolGIVpowerTest {
 
         givPower.lock(lockAmount, numberOfRounds);
 
-        assertEq(givPower.balanceOf(sender), wrapAmount + powerIncreaseAfterLock);
-        // gGIV balance should not change after lock
-        // assertEq(gGivToken.balanceOf(sender), initialgGivBalance + wrapAmount);
+        assertEq(givPower.balanceOf(sender), stakeAmount + powerIncreaseAfterLock);
 
         /// UNWRAP
 
         vm.expectEmit(true, true, true, true);
-        emit Withdrawn(sender, wrapAmount - lockAmount);
+        emit Withdrawn(sender, stakeAmount - lockAmount);
 
         vm.expectEmit(true, true, true, true, address(givPower));
-        emit Transfer(sender, address(0), wrapAmount - lockAmount);
+        emit Transfer(sender, address(0), stakeAmount - lockAmount);
 
-        // vm.expectEmit(true, true, true, true, address(gGivToken));
-        // emit Transfer(sender, address(0), wrapAmount - lockAmount);
+        vm.expectEmit(true, true, true, true, address(givToken));
+        emit Transfer(address(givPower), sender, stakeAmount - lockAmount);
 
-        givPower.withdraw(wrapAmount - lockAmount);
+        givPower.withdraw(stakeAmount - lockAmount);
 
         skip(14 days * (numberOfRounds + 1));
 
@@ -175,7 +136,6 @@ contract GeneralTest is UnipoolGIVpowerTest {
         assertEq(givPower.symbol(), 'POW');
         assertEq(givPower.decimals(), 18);
         assertEq(givPower.balanceOf(address(0)), 0);
-        // assertFalse(givPower.totalSupply() == 0);
 
         assertEq(givPower.allowance(givethMultisig, givethMultisig), 0);
 
