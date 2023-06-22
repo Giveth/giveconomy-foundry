@@ -41,20 +41,8 @@ contract UnipoolBalanceTest is UnipoolGIVpowerTest {
         assertEq(givPower.userLocks(sender), 0);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount);
 
-        // gGivToken.transfer(senderWithNoBalance, amount);
-
-        // assertEq(givToken.balanceOf(sender), MAX_GIV_BALANCE - amount);
-        // assertEq(gGivToken.balanceOf(sender), 0);
-        // assertEq(givPower.balanceOf(sender), 0);
-        // assertEq(givPower.userLocks(sender), 0);
-
-        // assertEq(givToken.balanceOf(senderWithNoBalance), 0);
-        // assertEq(gGivToken.balanceOf(senderWithNoBalance), amount);
-        // assertEq(givPower.balanceOf(senderWithNoBalance), amount);
-        // assertEq(givPower.userLocks(senderWithNoBalance), 0);
-
-        // The same as previous check
-        assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount);
+        vm.expectRevert(UnipoolGIVpower.TokenNonTransferable.selector);
+        givPower.transfer(senderWithNoBalance, amount);
 
         vm.stopPrank();
     }
@@ -65,23 +53,22 @@ contract UnipoolBalanceTest is UnipoolGIVpowerTest {
         rounds = uint8(bound(rounds, 1, maxLockRounds));
 
         vm.startPrank(sender);
-        uint256 lockReward = givPower.calculatePower(amount, rounds) - amount;
-        givToken.approve(address(givPower), amount + lockReward);
+        givToken.approve(address(givPower), amount);
         givPower.stake(amount);
 
         assertEq(givPower.balanceOf(sender), amount);
         assertEq(givPower.userLocks(sender), 0);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount);
 
+        uint256 lockReward = givPower.calculatePower(amount, rounds) - amount;
+
         uint256 unlockRound = givPower.currentRound() + rounds;
-        console.log('balance', givPower.balanceOf(sender));
-        console.log('amount', amount);
-        console.log('rounds', rounds);
         givPower.lock(amount, rounds);
-        console.log('does this log?');
+
         assertEq(givPower.balanceOf(sender), amount + lockReward);
         assertEq(givPower.userLocks(sender), amount);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount + lockReward);
+
         skip(givPower.ROUND_DURATION() * (rounds + 1));
 
         address[] memory unlockAccounts = new address[](1);
@@ -98,7 +85,7 @@ contract UnipoolBalanceTest is UnipoolGIVpowerTest {
         vm.assume(lockAmount > 0);
 
         lockReward = givPower.calculatePower(lockAmount, rounds) - lockAmount;
-        givToken.approve(address(givPower), lockReward);
+
         vm.assume(lockReward > 0);
 
         unlockRound = givPower.currentRound() + rounds;
@@ -107,27 +94,18 @@ contract UnipoolBalanceTest is UnipoolGIVpowerTest {
         assertEq(givPower.userLocks(sender), lockAmount);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount + lockReward);
 
-        // gGivToken.transfer(senderWithNoBalance, amount - lockAmount);
-
         assertEq(givPower.balanceOf(sender), lockReward + amount);
-        // assertEq(givPower.balanceOf(senderWithNoBalance), amount - lockAmount);
         assertEq(givPower.userLocks(sender), lockAmount);
-        // assertEq(givPower.userLocks(senderWithNoBalance), 0);
 
         // Must not change on transfer
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount + lockReward);
 
-        console.log('amount', amount);
-        console.log('balance', givPower.balanceOf(sender));
-        console.log('user locks', givPower.userLocks(sender));
         skip(givPower.ROUND_DURATION() * (rounds + 1));
         givPower.unlock(unlockAccounts, unlockRound);
 
         // assertion failures start again here
         assertEq(givPower.balanceOf(sender), amount);
-        // assertEq(givPower.balanceOf(senderWithNoBalance), amount - lockAmount);
         assertEq(givPower.userLocks(sender), 0);
-        // assertEq(givPower.userLocks(senderWithNoBalance), 0);
 
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount);
 
@@ -178,9 +156,8 @@ contract UnipoolBalanceTest is UnipoolGIVpowerTest {
         vm.startPrank(user1);
         givToken.approve(address(givPower), amount1);
         givPower.stake(amount1);
-        // broken here
+
         assertEq(givToken.balanceOf(user1), 0);
-        // ---
         assertEq(givPower.balanceOf(user1), amount1);
         assertEq(givPower.userLocks(user1), 0);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount1);
@@ -200,18 +177,15 @@ contract UnipoolBalanceTest is UnipoolGIVpowerTest {
 
         vm.prank(user1);
         givPower.lock(amount1, rounds1);
-        // boken here
+
         assertEq(givToken.balanceOf(user1), 0);
-        /// ---
         assertEq(givPower.balanceOf(user1), power1);
         assertEq(givPower.userLocks(user1), amount1);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + power1 + amount2);
 
         vm.prank(user2);
         givPower.lock(amount2, rounds2);
-        // broken here
         assertEq(givToken.balanceOf(user2), 0);
-        // ---
         assertEq(givPower.balanceOf(user2), power2);
         assertEq(givPower.userLocks(user2), amount2);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + power1 + power2);
@@ -221,9 +195,7 @@ contract UnipoolBalanceTest is UnipoolGIVpowerTest {
         unlockAccounts[0] = user1;
 
         givPower.unlock(unlockAccounts, untilRound1);
-        // broken here
         assertEq(givToken.balanceOf(user1), 0);
-        //
         assertEq(givPower.balanceOf(user1), amount1);
         assertEq(givPower.userLocks(user1), 0);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount1 + power2);
@@ -233,9 +205,7 @@ contract UnipoolBalanceTest is UnipoolGIVpowerTest {
         unlockAccounts[0] = user2;
 
         givPower.unlock(unlockAccounts, untilRound2);
-        // brokn here
         assertEq(givToken.balanceOf(user2), 0);
-        // ---
         assertEq(givPower.balanceOf(user2), amount2);
         assertEq(givPower.userLocks(user2), 0);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount1 + amount2);
