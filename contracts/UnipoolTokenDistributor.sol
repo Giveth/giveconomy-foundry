@@ -40,22 +40,12 @@ contract LPTokenWrapper is Initializable {
         return _balances[account];
     }
 
-    function stake(uint256 amount) public virtual {
-        _stake(msg.sender, amount);
-        uni.safeTransferFrom(msg.sender, address(this), amount);
-    }
-
-    function _stake(address account, uint256 amount) internal virtual {
+    function _addBalance(address account, uint256 amount) internal virtual {
         _totalStaked = _totalStaked.add(amount);
         _balances[account] = _balances[account].add(amount);
     }
 
-    function withdraw(uint256 amount) public virtual {
-        _withdraw(msg.sender, amount);
-        uni.safeTransfer(msg.sender, amount);
-    }
-
-    function _withdraw(address account, uint256 amount) internal virtual {
+    function _subBalance(address account, uint256 amount) internal virtual {
         _totalStaked = _totalStaked.sub(amount);
         _balances[account] = _balances[account].sub(amount);
     }
@@ -133,30 +123,30 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
     // stake visibility is public as overriding LPTokenWrapper's stake() function
-    function stake(uint256 amount) public virtual override {
-        _stake(msg.sender, amount);
+    function stake(uint256 amount) public virtual {
+        _addBalance(msg.sender, amount);
         uni.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
-    function _stake(address account, uint256 amount) internal virtual override updateReward(account) {
+    function _addBalance(address account, uint256 amount) internal virtual override updateReward(account) {
         require(amount > 0, 'Cannot stake 0');
-        super._stake(account, amount);
+        super._addBalance(account, amount);
         emit Staked(account, amount);
     }
 
-    function withdraw(uint256 amount) public virtual override {
-        _withdraw(msg.sender, amount);
+    function withdraw(uint256 amount) public virtual {
+        _subBalance(msg.sender, amount);
         uni.safeTransfer(msg.sender, amount);
     }
 
-    function _withdraw(address account, uint256 amount) internal virtual override updateReward(account) {
+    function _subBalance(address account, uint256 amount) internal virtual override updateReward(account) {
         require(amount > 0, 'Cannot withdraw 0');
-        super._withdraw(account, amount);
+        super._subBalance(account, amount);
         emit Withdrawn(account, amount);
     }
 
-    function exit() external {
+    function exit() public virtual {
         withdraw(_balanceOf(msg.sender));
         getReward();
     }
@@ -195,13 +185,11 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
      * @param permit the bytes of the signed permit function call
      */
     function stakeWithPermit(uint256 amount, bytes calldata permit) public updateReward(msg.sender) {
-        require(amount > 0, 'Cannot stake 0');
         // we call without checking the result, in case it fails and he doesn't have enough balance
         // the following transferFrom should be fail. This prevents DoS attacks from using a signature
         // before the smartcontract call
         _permit(amount, permit);
-        super.stake(amount);
-        emit Staked(msg.sender, amount);
+        stake(amount);
     }
 
     /**
