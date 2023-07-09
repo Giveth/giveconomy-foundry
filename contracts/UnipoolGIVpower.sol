@@ -57,6 +57,11 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
     /// Emitted when the user tokens locked till end of round are unlocked
     event TokenUnlocked(address indexed account, uint256 amount, uint256 round);
 
+    /// Emitted when deposit token is deposited
+    event DepositTokenDeposited(address indexed account, uint256 amount);
+    /// Emitted when deposit token is withdrawn
+    event DepositTokenWithdrawn(address indexed account, uint256 amount);
+
     /// @dev Used to fetch 1Hive Garden wrapped token by the help of Token Manager, gGIV for Giveth
     /// @return Garden GIV wrapped token (gGIV) address
 
@@ -112,6 +117,7 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
     function stake(uint256 amount) public override {
         super.stake(amount);
         depositTokenBalance[msg.sender] = depositTokenBalance[msg.sender].add(amount);
+        emit DepositTokenDeposited(msg.sender, amount);
     }
 
     function withdraw(uint256 amount) public virtual override {
@@ -120,6 +126,7 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
         }
         super.withdraw(amount);
         depositTokenBalance[msg.sender] = depositTokenBalance[msg.sender].sub(amount);
+        emit DepositTokenWithdrawn(msg.sender, amount);
     }
 
     function exit() public override {

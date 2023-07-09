@@ -34,6 +34,9 @@ contract TransferTest is UnipoolGIVpowerTest {
         vm.expectEmit(true, true, true, true, address(givToken));
         emit Approval(sender, address(givPower), 0);
 
+        vm.expectEmit(true, true, true, true, address(givPower));
+        emit DepositTokenDeposited(sender, amount);
+
         givPower.stake(amount);
 
         vm.expectRevert(UnipoolGIVpower.TokenNonTransferable.selector);

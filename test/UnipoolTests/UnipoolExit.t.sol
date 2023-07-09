@@ -37,6 +37,9 @@ contract TransferTest is UnipoolGIVpowerTest {
         vm.expectEmit(true, true, true, true, address(givToken));
         emit Approval(sender, address(givPower), 0);
 
+        vm.expectEmit(true, true, true, true, address(givPower));
+        emit DepositTokenDeposited(sender, amount);
+
         givPower.stake(amount);
 
         vm.expectEmit(true, true, true, true, address(givPower));
@@ -47,6 +50,10 @@ contract TransferTest is UnipoolGIVpowerTest {
 
         vm.expectEmit(true, true, true, true, address(givToken));
         emit Transfer(address(givPower), sender, amount);
+
+        vm.expectEmit(true, true, true, true, address(givPower));
+        emit DepositTokenWithdrawn(sender, amount);
+
         givPower.exit();
 
         vm.stopPrank();
@@ -76,6 +83,9 @@ contract TransferTest is UnipoolGIVpowerTest {
 
         vm.expectEmit(true, true, true, true, address(givToken));
         emit Approval(sender, address(givPower), 0);
+
+        vm.expectEmit(true, true, true, true, address(givPower));
+        emit DepositTokenDeposited(sender, amount);
 
         givPower.stake(amount);
 

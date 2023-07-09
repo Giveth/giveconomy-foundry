@@ -62,13 +62,14 @@ contract GeneralTest is UnipoolGIVpowerTest {
         vm.startPrank(sender);
         givToken.approve(address(givPower), stakeAmount);
 
-        /// WRAP
-
         vm.expectEmit(true, true, true, true);
         emit Staked(sender, stakeAmount);
 
         vm.expectEmit(true, true, true, true, address(givPower));
         emit Transfer(address(0), sender, stakeAmount);
+
+        vm.expectEmit(true, true, true, true, address(givPower));
+        emit DepositTokenDeposited(sender, stakeAmount);
 
         givPower.stake(stakeAmount);
 
@@ -100,6 +101,9 @@ contract GeneralTest is UnipoolGIVpowerTest {
 
         vm.expectEmit(true, true, true, true, address(givToken));
         emit Transfer(address(givPower), sender, stakeAmount - lockAmount);
+
+        vm.expectEmit(true, true, true, true, address(givPower));
+        emit DepositTokenWithdrawn(sender, stakeAmount - lockAmount);
 
         givPower.withdraw(stakeAmount - lockAmount);
 
