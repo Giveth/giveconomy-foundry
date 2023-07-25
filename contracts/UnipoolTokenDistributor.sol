@@ -23,13 +23,13 @@ contract LPTokenWrapper is Initializable {
     using SafeMathUpgradeable for uint256;
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
-    IERC20Upgradeable public uni;
+    IERC20Upgradeable public depositToken;
 
     uint256 private _totalStaked;
     mapping(address => uint256) private _balances;
 
-    function __LPTokenWrapper_initialize(IERC20Upgradeable _uni) public initializer {
-        uni = _uni;
+    function __LPTokenWrapper_initialize(IERC20Upgradeable _depositToken) public initializer {
+        depositToken = _depositToken;
     }
 
     function _totalSupply() internal view returns (uint256) {
@@ -93,17 +93,27 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
         _;
     }
 
-    function initialize(IDistro _tokenDistribution, IERC20Upgradeable _uni, uint256 _duration) public initializer {
+    function initialize(IDistro _tokenDistribution, IERC20Upgradeable _depositToken, uint256 _duration)
+        public
+        initializer
+    {
         __Ownable_init();
-        __LPTokenWrapper_initialize(_uni);
+        __LPTokenWrapper_initialize(_depositToken);
         tokenDistro = _tokenDistribution;
         duration = _duration;
         periodFinish = 0;
         rewardRate = 0;
     }
 
+    /**
+     * Function to get the current timestamp from the block
+     */
+    function getTimestamp() public view virtual returns (uint256) {
+        return block.timestamp;
+    }
+
     function lastTimeRewardApplicable() public view returns (uint256) {
-        return MathUpgradeable.min(_getBlockTimestamp(), periodFinish);
+        return MathUpgradeable.min(getTimestamp(), periodFinish);
     }
 
     function rewardPerToken() public view returns (uint256) {
@@ -125,7 +135,7 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
     // stake visibility is public as overriding LPTokenWrapper's stake() function
     function stake(uint256 amount) public virtual {
         _addBalance(msg.sender, amount);
-        uni.safeTransferFrom(msg.sender, address(this), amount);
+        depositToken.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
@@ -137,7 +147,7 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
 
     function withdraw(uint256 amount) public virtual {
         _subBalance(msg.sender, amount);
-        uni.safeTransfer(msg.sender, amount);
+        depositToken.safeTransfer(msg.sender, amount);
     }
 
     function _subBalance(address account, uint256 amount) internal virtual override updateReward(account) {
@@ -162,7 +172,7 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
     }
 
     function notifyRewardAmount(uint256 reward) external onlyRewardDistribution updateReward(address(0)) {
-        uint256 _timestamp = _getBlockTimestamp();
+        uint256 _timestamp = getTimestamp();
         if (_timestamp >= periodFinish) {
             rewardRate = reward.div(duration);
         } else {
@@ -222,8 +232,9 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
             require(value == _amount, 'UnipoolTokenDistributor: WRONG_AMOUNT');
 
             /* solhint-disable avoid-low-level-calls avoid-call-value */
-            return
-                address(uni).call(abi.encodeWithSelector(_PERMIT_SIGNATURE, owner, spender, value, deadline, v, r, s));
+            return address(depositToken).call(
+                abi.encodeWithSelector(_PERMIT_SIGNATURE, owner, spender, value, deadline, v, r, s)
+            );
         } else if (sig == _PERMIT_SIGNATURE_BRIDGE) {
             (
                 address _holder,
@@ -237,19 +248,11 @@ contract UnipoolTokenDistributor is LPTokenWrapper, OwnableUpgradeable {
             ) = abi.decode(_permitData[4:], (address, address, uint256, uint256, bool, uint8, bytes32, bytes32));
             require(_holder == msg.sender, 'UnipoolTokenDistributor: OWNER_NOT_EQUAL_SENDER');
             require(_spender == address(this), 'UnipoolTokenDistributor: SPENDER_NOT_EQUAL_THIS');
-            return address(uni).call(
+            return address(depositToken).call(
                 abi.encodeWithSelector(_PERMIT_SIGNATURE_BRIDGE, _holder, _spender, _nonce, _expiry, _allowed, v, r, s)
             );
         } else {
             revert('UnipoolTokenDistributor: NOT_VALID_CALL_SIGNATURE');
         }
-    }
-
-    /// @dev Internal method that returns the current block timestamp
-    /// We expect this function call to be optimized away
-    /// Mock implementations can override this to set a fixed block timestamp value
-    /// @return The current block timestamp
-    function _getBlockTimestamp() internal view virtual returns (uint256) {
-        return block.timestamp;
     }
 }

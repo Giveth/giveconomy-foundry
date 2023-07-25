@@ -10,7 +10,6 @@ import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
     using SafeMathUpgradeable for uint256;
 
-    address private depositToken;
     /// @dev Start time of the first round
     uint256 public constant INITIAL_DATE = 1654415235; // block 22501098
     /// @notice Duration of each round
@@ -36,7 +35,7 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
     /// @notice Mapping with all accounts have locked tokens
     mapping(address => UserLock) public userLocks;
 
-    mapping(address => uint256) public uniBalances;
+    mapping(address => uint256) public depositTokenBalance;
 
     /// Tokens are locked
     error TokensAreLocked();
@@ -58,6 +57,11 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
     /// Emitted when the user tokens locked till end of round are unlocked
     event TokenUnlocked(address indexed account, uint256 amount, uint256 round);
 
+    /// Emitted when deposit token is deposited
+    event DepositTokenDeposited(address indexed account, uint256 amount);
+    /// Emitted when deposit token is withdrawn
+    event DepositTokenWithdrawn(address indexed account, uint256 amount);
+
     /// @dev Used to fetch 1Hive Garden wrapped token by the help of Token Manager, gGIV for Giveth
     /// @return Garden GIV wrapped token (gGIV) address
 
@@ -77,7 +81,7 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
 
         UserLock storage _userLock = userLocks[msg.sender];
 
-        if (uniBalances[msg.sender].sub(_userLock.totalAmountLocked) < amount) {
+        if (depositTokenBalance[msg.sender].sub(_userLock.totalAmountLocked) < amount) {
             revert NotEnoughBalanceToLock();
         }
 
@@ -112,15 +116,17 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
     // stake visibility is public as overriding LPTokenWrapper's stake() function
     function stake(uint256 amount) public override {
         super.stake(amount);
-        uniBalances[msg.sender] = uniBalances[msg.sender].add(amount);
+        depositTokenBalance[msg.sender] = depositTokenBalance[msg.sender].add(amount);
+        emit DepositTokenDeposited(msg.sender, amount);
     }
 
     function withdraw(uint256 amount) public virtual override {
-        if (uniBalances[msg.sender].sub(amount) < userLocks[msg.sender].totalAmountLocked) {
+        if (depositTokenBalance[msg.sender].sub(amount) < userLocks[msg.sender].totalAmountLocked) {
             revert TokensAreLocked();
         }
         super.withdraw(amount);
-        uniBalances[msg.sender] = uniBalances[msg.sender].sub(amount);
+        depositTokenBalance[msg.sender] = depositTokenBalance[msg.sender].sub(amount);
+        emit DepositTokenWithdrawn(msg.sender, amount);
     }
 
     function exit() public override {

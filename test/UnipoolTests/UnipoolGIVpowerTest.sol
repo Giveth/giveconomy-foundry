@@ -58,6 +58,8 @@ contract UnipoolGIVpowerTest is Test {
     event Transfer(address indexed from, address indexed to, uint256 amount);
     event TokenLocked(address indexed account, uint256 amount, uint256 rounds, uint256 untilRound);
     event TokenUnlocked(address indexed account, uint256 amount, uint256 round);
+    event DepositTokenDeposited(address indexed account, uint256 amount);
+    event DepositTokenWithdrawn(address indexed account, uint256 amount);
 
     constructor() {
         uint256 forkId =
