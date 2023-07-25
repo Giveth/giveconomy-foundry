@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
 
-pragma solidity ^0.8.6;
+pragma solidity =0.8.10;
 
 import '@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol';
 import 'solmate/utils/FixedPointMathLib.sol';
-import './GardenUnipoolTokenDistributor.sol';
-import './interfaces/ITokenManager.sol';
+import './UnipoolTokenDistributor.sol';
+import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 
-contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
+contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
     using SafeMathUpgradeable for uint256;
 
     /// @dev Start time of the first round
@@ -35,6 +35,8 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
     /// @notice Mapping with all accounts have locked tokens
     mapping(address => UserLock) public userLocks;
 
+    mapping(address => uint256) public depositTokenBalance;
+
     /// Tokens are locked
     error TokensAreLocked();
     /// Must unlock after the round finishes
@@ -55,11 +57,13 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
     /// Emitted when the user tokens locked till end of round are unlocked
     event TokenUnlocked(address indexed account, uint256 amount, uint256 round);
 
+    /// Emitted when deposit token is deposited
+    event DepositTokenDeposited(address indexed account, uint256 amount);
+    /// Emitted when deposit token is withdrawn
+    event DepositTokenWithdrawn(address indexed account, uint256 amount);
+
     /// @dev Used to fetch 1Hive Garden wrapped token by the help of Token Manager, gGIV for Giveth
     /// @return Garden GIV wrapped token (gGIV) address
-    function _getToken() private view returns (IERC20) {
-        return ITokenManager(getTokenManager()).token();
-    }
 
     /// @notice Lock the user's unlocked tokens for a number rounds
     /// @param amount Amount of unlocked tokens to lock
@@ -76,9 +80,8 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
         }
 
         UserLock storage _userLock = userLocks[msg.sender];
-        IERC20 token = _getToken();
 
-        if (token.balanceOf(msg.sender).sub(_userLock.totalAmountLocked) < amount) {
+        if (depositTokenBalance[msg.sender].sub(_userLock.totalAmountLocked) < amount) {
             revert NotEnoughBalanceToLock();
         }
 
@@ -94,14 +97,46 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
 
         if (_gainedPowerAmount > 0) {
             // Add power/farming benefit of locking
-            super.stake(msg.sender, _gainedPowerAmount);
-            emit Transfer(address(0), msg.sender, _gainedPowerAmount);
+            _addBalance(msg.sender, _gainedPowerAmount);
         }
 
         emit TokenLocked(msg.sender, amount, rounds, _endRound);
     }
 
-    /// @notice Unlock tokens belongs to accounts which are locked till the end of round
+    function _addBalance(address account, uint256 amount) internal override {
+        super._addBalance(account, amount);
+        emit Transfer(address(0), account, amount);
+    }
+
+    function _subBalance(address account, uint256 amount) internal override {
+        super._subBalance(account, amount);
+        emit Transfer(account, address(0), amount);
+    }
+
+    // stake visibility is public as overriding LPTokenWrapper's stake() function
+    function stake(uint256 amount) public override {
+        super.stake(amount);
+        depositTokenBalance[msg.sender] = depositTokenBalance[msg.sender].add(amount);
+        emit DepositTokenDeposited(msg.sender, amount);
+    }
+
+    function withdraw(uint256 amount) public virtual override {
+        if (depositTokenBalance[msg.sender].sub(amount) < userLocks[msg.sender].totalAmountLocked) {
+            revert TokensAreLocked();
+        }
+        super.withdraw(amount);
+        depositTokenBalance[msg.sender] = depositTokenBalance[msg.sender].sub(amount);
+        emit DepositTokenWithdrawn(msg.sender, amount);
+    }
+
+    function exit() public override {
+        if (userLocks[msg.sender].totalAmountLocked > 0) {
+            revert TokensAreLocked();
+        }
+        super.exit();
+    }
+
+    /// @notice Unlock tokens belongs to accountswhich are locked till the end of round
     /// @param accounts List of accounts to unlock their tokens
     /// @param round The round number token are locked till the end of
     function unlock(address[] calldata accounts, uint256 round) external {
@@ -126,8 +161,7 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
 
                 if (_releasablePowerAmount > 0) {
                     // Reduce power/farming benefit of locking
-                    super.withdraw(_account, _releasablePowerAmount);
-                    emit Transfer(_account, address(0), _releasablePowerAmount);
+                    _subBalance(_account, _releasablePowerAmount);
                 }
 
                 emit TokenUnlocked(_account, _unlockableTokenAmount, round);
@@ -160,25 +194,6 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
         return amount.mul(FixedPointMathLib.sqrt(rounds.add(1).mul(10 ** 18))).div(10 ** 9);
     }
 
-    /**
-     * @dev This function is called everytime a gGIV is wrapped/unwrapped
-     * @param from 0x0 if we are wrapping gGIV
-     * @param amount Number of gGIV that is wrapped/unwrapped
-     */
-    function _onTransfer(address from, address to, uint256 amount) internal override returns (bool) {
-        require(super._onTransfer(from, to, amount));
-
-        if (from != address(0)) {
-            if (_getToken().balanceOf(from).sub(amount) < userLocks[from].totalAmountLocked) {
-                revert TokensAreLocked();
-            }
-        }
-
-        emit Transfer(from, to, amount);
-
-        return true;
-    }
-
     /// @inheritdoc IERC20MetadataUpgradeable
     function name() external pure override returns (string memory) {
         return 'GIVpower';
@@ -196,12 +211,12 @@ contract GIVpower is GardenUnipoolTokenDistributor, IERC20MetadataUpgradeable {
 
     /// @inheritdoc IERC20Upgradeable
     function totalSupply() external view override returns (uint256) {
-        return _totalSupply();
+        return super._totalSupply();
     }
 
     /// @inheritdoc IERC20Upgradeable
     function balanceOf(address account) external view override returns (uint256) {
-        return super._balanceOf(account);
+        return _balanceOf(account);
     }
 
     /// Token is not transferable

@@ -4,6 +4,6 @@ pragma solidity =0.8.10;
 
 import '@openzeppelin/contracts/interfaces/IERC20.sol';
 
-interface IERC20Bridged is IERC20 {
-    function mint(address, uint256) external returns (bool);
+interface IL2StandardERC20 is IERC20 {
+    function mint(address, uint256) external;
 }

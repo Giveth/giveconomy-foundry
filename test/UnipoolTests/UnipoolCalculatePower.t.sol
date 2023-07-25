@@ -4,13 +4,10 @@ pragma solidity =0.8.10;
 import '@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol';
 import '@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol';
 import 'forge-std/console.sol';
+import '../interfaces/IERC20Bridged.sol';
+import './UnipoolGIVpowerTest.sol';
 
-import 'contracts/GIVpower.sol';
-import 'contracts/GardenUnipoolTokenDistributor.sol';
-import './interfaces/IERC20Bridged.sol';
-import './GIVpowerTest.sol';
-
-contract CalculatePowerTest is GIVpowerTest {
+contract CalculatePowerTest is UnipoolGIVpowerTest {
     function setUp() public override {
         super.setUp();
         string[] memory runJsInputs = new string[](5);
