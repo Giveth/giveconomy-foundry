@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.6;
+pragma solidity ^0.8.10;
 
 import 'forge-std/console.sol';
 import 'forge-std/Script.sol';
@@ -22,6 +22,9 @@ contract deployUnipoolGIVpower is Script {
 
 
 function run() external {
+        uint256 deployerPrivateKey = vm.envUint('PRIVATE_KEY');
+        
+        vm.startBroadcast(deployerPrivateKey);
         givToken = IERC20Upgradeable(givTokenAddressOptimismGoerli);
         unipoolGIVpowerProxyAdmin = new ProxyAdmin();
         // new implementation
