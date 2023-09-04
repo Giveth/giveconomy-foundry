@@ -17,14 +17,15 @@ contract deployTokenDistro is Script {
 
     // token
     address givTokenAddressOptimismGoerli = 0xc916Ce4025Cb479d9BA9D798A80094a449667F5D;
+    address givTokenOptimismMainnet = 0x528CDc92eAB044E1E39FE43B9514bfdAB4412B98;
 
     // initiliaze params for token distro
-    uint256 totalTokens = 1000000000000000000000000000;
-    uint256 startTime = 1654415235; // block 22501098
+    uint256 totalTokens = 2000000000000000000000000000;
+    uint256 startTime = 1640361600; 
     uint256 cliffPeriod = 0;
-    uint256 duration = 365 days;
+    uint256 duration = 157680000;
     uint256 initialPercentage = 1000;
-    IERC20Upgradeable givToken = IERC20Upgradeable(givTokenAddressOptimismGoerli);
+    IERC20Upgradeable givToken = IERC20Upgradeable(givTokenOptimismMainnet);
     bool cancelable = true;
 
     function run() public {
