@@ -11,7 +11,7 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
     using SafeMathUpgradeable for uint256;
 
     /// @dev Start time of the first round
-    uint256 public constant INITIAL_DATE = 1654415235; // block 22501098
+    uint256 public constant INITIAL_DATE = 1640707200; // block 22501098
     /// @notice Duration of each round
     uint256 public constant ROUND_DURATION = 14 days;
     /// @notice Maximum number of rounds to lock
