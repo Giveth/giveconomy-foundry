@@ -9,7 +9,8 @@ remappings = [
     'solmate/=lib/solmate/src/',
     '@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/',
     '@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/',
-    '@connext/interfaces/=lib/interfaces/'
+    '@connext/interfaces/=lib/interfaces/',
+    'aragon-apps/=lib/aragon-apps/apps/'
 ]
 [rpc_endpoints]
 optimism="${OPTIMISIM_RPC_URL}"
@@ -17,5 +18,6 @@ optimism="${OPTIMISIM_RPC_URL}"
 [fmt]
 line_length = 120
 quote_style = 'single'
+auto_detect_solc = true
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config

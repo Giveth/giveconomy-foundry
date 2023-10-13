@@ -11,6 +11,9 @@ contract GivethXCaller is Initializable, AccessControlEnumerableUpgradeable {
     IConnext public connext;
     bytes32 public CALLER_ROLE = keccak256("CALLER_ROLE");
     address public delegate;
+    event ReceiverAdded (uint256 index);
+    event AddBatchesSent (bytes callData);
+    event MintNiceSent (bytes callData);
 
     struct Receiver {
         address to;
@@ -34,6 +37,7 @@ contract GivethXCaller is Initializable, AccessControlEnumerableUpgradeable {
         bytes calldata _callData
     ) external onlyRole(CALLER_ROLE) {
         connext.xcall(receivers[receiverIndex].domainId, receivers[receiverIndex].to, address(0x00) , delegate,0,3,  _callData);
+        emit AddBatchesSent(_callData);
     }
 
     function xMintNice(
@@ -41,11 +45,13 @@ contract GivethXCaller is Initializable, AccessControlEnumerableUpgradeable {
         bytes calldata _callData
     ) external onlyRole(CALLER_ROLE) {
         connext.xcall(receivers[receiverIndex].domainId, receivers[receiverIndex].to, address(0x00) , delegate,0,3,  _callData);
+        emit MintNiceSent(_callData);
     }
 
     function addReceiver (address _to, uint32 _domainId, string memory receiverName) external onlyRole(DEFAULT_ADMIN_ROLE) {
         receivers.push(Receiver(_to, _domainId));
         receiverNames[receivers.length - 1] = receiverName;
+        emit ReceiverAdded(receivers.length - 1);
     }
 
     function modifyReceiver (uint256 _index, address _to, uint32 _domainId) external onlyRole(DEFAULT_ADMIN_ROLE) {
