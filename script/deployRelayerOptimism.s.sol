@@ -44,6 +44,7 @@ function run() external {
         tokenDistro.revokeRole(keccak256('DISTRIBUTOR_ROLE'), address(batcherApp));
         tokenDistro.cancelAllocation(address(batcherApp), 0x0000000000000000000000000000000000000000);
 
+        
 
 
         console.log('proxy admin' , address(givbacksRelayerProxyAdmin));
