@@ -16,3 +16,4 @@ out/
 # Test JS Scripts
 test/**/node_modules
 test/**/package-lock.json
+lib/solmate
