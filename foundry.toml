@@ -8,7 +8,8 @@ remappings = [
     'forge-std/=lib/forge-std/src/',
     'solmate/=lib/solmate/src/',
     '@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/',
-    '@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/'
+    '@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/',
+    '@connext/interfaces/=lib/interfaces/'
 ]
 [rpc_endpoints]
 optimism="${OPTIMISIM_RPC_URL}"
