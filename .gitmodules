@@ -13,9 +13,3 @@
 [submodule "lib/interfaces"]
 	path = lib/interfaces
 	url = https://github.com/connext/interfaces
-[submodule "lib/aragon-apps"]
-	path = lib/aragon-apps
-	url = https://github.com/aragon/aragon-apps
-[submodule "lib/aragonOS"]
-	path = lib/aragonOS
-	url = https://github.com/aragon/aragonOS

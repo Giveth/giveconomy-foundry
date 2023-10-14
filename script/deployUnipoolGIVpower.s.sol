@@ -20,10 +20,9 @@ contract deployUnipoolGIVpower is Script {
     // token
     address givTokenAddressOptimismGoerli = 0xc916Ce4025Cb479d9BA9D798A80094a449667F5D;
 
-
-function run() external {
+    function run() external {
         uint256 deployerPrivateKey = vm.envUint('PRIVATE_KEY');
-        
+
         vm.startBroadcast(deployerPrivateKey);
         givToken = IERC20Upgradeable(givTokenAddressOptimismGoerli);
         unipoolGIVpowerProxyAdmin = new ProxyAdmin();
@@ -34,8 +33,8 @@ function run() external {
          abi.encodeWithSelector(UnipoolGIVpower(givPower).initialize.selector, iDistro, givToken, 14 days));
         givPower = UnipoolGIVpower(address(unipoolGIVpowerProxy));
 
-        console.log('unipoolproxyadmin' , address(unipoolGIVpowerProxyAdmin));
+        console.log('unipoolproxyadmin', address(unipoolGIVpowerProxyAdmin));
         console.log('givpower', address(givPower));
         console.log('givpower implementation', address(implementation));
-}
+    }
 }

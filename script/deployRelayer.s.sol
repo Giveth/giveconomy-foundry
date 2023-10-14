@@ -8,7 +8,6 @@ import '@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol';
 import 'contracts/GIVbacksRelayer.sol';
 
 contract deployRelayer is Script {
-
     GIVbacksRelayer implementation;
     GIVbacksRelayer givbacksRelayer;
     ProxyAdmin givbacksRelayerProxyAdmin;
@@ -23,9 +22,9 @@ contract deployRelayer is Script {
     // address of initial batcher - should be agent or multisig who will be approving sending GIVbacks
     address batcher = 0x06263e1A856B36e073ba7a50D240123411501611;
 
-function run() external {
+    function run() external {
         uint256 deployerPrivateKey = vm.envUint('PRIVATE_KEY');
-        
+
         vm.startBroadcast(deployerPrivateKey);
         givbacksRelayerProxyAdmin = new ProxyAdmin();
         // new implementation
@@ -35,8 +34,8 @@ function run() external {
          abi.encodeWithSelector(GIVbacksRelayer(givbacksRelayer).initialize.selector, tokenDistro, deployer, batcher));
         givbacksRelayer = GIVbacksRelayer(address(givbacksRelayerProxy));
 
-        console.log('proxy admin' , address(givbacksRelayerProxyAdmin));
+        console.log('proxy admin', address(givbacksRelayerProxyAdmin));
         console.log('givbacks relayer', address(givbacksRelayer));
         console.log('givbacks relayer implementation', address(implementation));
-}
+    }
 }
