@@ -4,14 +4,14 @@ pragma solidity =0.8.10;
 
 import '@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol';
 import 'solmate/utils/FixedPointMathLib.sol';
-import './UnipoolTokenDistributor.sol';
+import './setDistroUnipoolTokenDistributor.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 
 contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
     using SafeMathUpgradeable for uint256;
 
     /// @dev Start time of the first round
-    uint256 public constant INITIAL_DATE = 1654012800; // block 22501098
+    uint256 public constant INITIAL_DATE = 1654415235; // block 22501098
     /// @notice Duration of each round
     uint256 public constant ROUND_DURATION = 14 days;
     /// @notice Maximum number of rounds to lock
