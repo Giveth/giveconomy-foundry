@@ -8,9 +8,7 @@ import '@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol';
 import 'contracts/GIVbacksRelayer.sol';
 import 'contracts/TokenDistro.sol';
 
-
 contract deployRelayer is Script {
-
     GIVbacksRelayer implementation;
     GIVbacksRelayer givbacksRelayer;
     ProxyAdmin givbacksRelayerProxyAdmin;
@@ -27,9 +25,9 @@ contract deployRelayer is Script {
     address batcherAgent = 0xB99Aae15ACE6509930760f1bde96c60542d2c0c1;
     address batcherApp = 0xe8E7b58Fe406893986C33DdB809538b6c988680b;
 
-function run() external {
+    function run() external {
         uint256 deployerPrivateKey = vm.envUint('PRIVATE_KEY');
-        
+
         vm.startBroadcast(deployerPrivateKey);
         tokenDistro = TokenDistro(tokenDistroAddress);
         givbacksRelayerProxyAdmin = new ProxyAdmin();
@@ -44,11 +42,8 @@ function run() external {
         tokenDistro.revokeRole(keccak256('DISTRIBUTOR_ROLE'), address(batcherApp));
         tokenDistro.cancelAllocation(address(batcherApp), 0x0000000000000000000000000000000000000000);
 
-        
-
-
-        console.log('proxy admin' , address(givbacksRelayerProxyAdmin));
+        console.log('proxy admin', address(givbacksRelayerProxyAdmin));
         console.log('givbacks relayer', address(givbacksRelayer));
         console.log('givbacks relayer implementation', address(implementation));
-}
+    }
 }

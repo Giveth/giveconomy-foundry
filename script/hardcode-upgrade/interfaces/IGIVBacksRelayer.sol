@@ -71,11 +71,7 @@ interface IGIVBacksRelayer {
      * @param recipients - Parameter passed
      * @param amounts  - Parameter passed
      */
-    function executeBatch(
-        uint256 _nonce,
-        address[] calldata recipients,
-        uint256[] calldata amounts
-    ) external;
+    function executeBatch(uint256 _nonce, address[] calldata recipients, uint256[] calldata amounts) external;
 
     /**
      * @dev This function will produce a hash of parameters for the
@@ -90,11 +86,10 @@ interface IGIVBacksRelayer {
      * @param amounts  - Parameter passed
      * @return The batch hash
      */
-    function hashBatch(
-        uint256 _nonce,
-        address[] calldata recipients,
-        uint256[] calldata amounts
-    ) external pure returns (bytes32);
+    function hashBatch(uint256 _nonce, address[] calldata recipients, uint256[] calldata amounts)
+        external
+        pure
+        returns (bytes32);
 
     /**
      * @dev This function will return the pending status of a batch.

@@ -21,7 +21,7 @@ contract deployTokenDistro is Script {
 
     // initiliaze params for token distro
     uint256 totalTokens = 2000000000000000000000000000;
-    uint256 startTime = 1640361600; 
+    uint256 startTime = 1640361600;
     uint256 cliffPeriod = 0;
     uint256 duration = 157680000;
     uint256 initialPercentage = 1000;
@@ -30,7 +30,7 @@ contract deployTokenDistro is Script {
 
     function run() public {
         uint256 deployerPrivateKey = vm.envUint('PRIVATE_KEY');
-        
+
         vm.startBroadcast(deployerPrivateKey);
         tokenDistroProxyAdmin = new ProxyAdmin();
         // new implementation
@@ -40,9 +40,8 @@ contract deployTokenDistro is Script {
          abi.encodeWithSelector(TokenDistro(tokenDistro).initialize.selector, totalTokens, startTime, cliffPeriod, duration, initialPercentage, givToken, cancelable));
         tokenDistro = TokenDistro(address(tokenDistroProxy));
 
-        console.log('proxy admin' , address(tokenDistroProxyAdmin));
+        console.log('proxy admin', address(tokenDistroProxyAdmin));
         console.log('token distro', address(tokenDistro));
         console.log('token distro implementation', address(implementation));
-
     }
 }

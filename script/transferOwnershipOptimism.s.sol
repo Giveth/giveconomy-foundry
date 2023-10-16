@@ -9,9 +9,7 @@ import 'contracts/GIVbacksRelayer.sol';
 import 'contracts/TokenDistro.sol';
 import 'contracts/UnipoolGIVpower.sol';
 
-
 contract deployRelayer is Script {
-
     GIVbacksRelayer givbacksRelayer;
     ProxyAdmin masterProxyAdmin;
     TokenDistro tokenDistro;
@@ -30,7 +28,7 @@ contract deployRelayer is Script {
     address givbacksRelayerImplementationAddress = 0x2AC383909Ff12F8a119220eEc16Dd081BB22f48E;
     address callerAddress = 0xe1ce7720f9b434ec98382f776e5C3A48C8BA6673;
 
-function run() external {
+    function run() external {
         uint256 deployerPrivateKey = vm.envUint('PRIVATE_KEY');
 
         vm.startBroadcast(deployerPrivateKey);
@@ -58,5 +56,5 @@ function run() external {
         // renoucne admin role for token distro & givbacks relayer implementations
         // TokenDistro(tokenDistroImplementationAddress).renounceRole(adminRole, address(this));
         // GIVbacksRelayer(givbacksRelayerImplementationAddress).renounceRole(adminRole, address(this));
-}
+    }
 }

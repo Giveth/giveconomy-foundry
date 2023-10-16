@@ -14,7 +14,6 @@ contract UpgradeGardenUnipool is Script {
     UnipoolGIVpower implementation;
     UnipoolGIVpower givpower;
     IDistro iDistro;
-    
 
     function run() public {
         unipoolProxyAdmin = ProxyAdmin(address(0x91c5C402B0B514f2D09d84b03b6C9f17Bd689e2D));
@@ -24,7 +23,7 @@ contract UpgradeGardenUnipool is Script {
         // new implementation
 
         uint256 deployerPrivateKey = vm.envUint('PRIVATE_KEY');
-        
+
         vm.startBroadcast(deployerPrivateKey);
         implementation = new UnipoolGIVpower();
 
