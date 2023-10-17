@@ -33,9 +33,7 @@ contract deployTokenDistro is Script {
     uint256 initialPercentage = 1000;
     bool cancelable = true;
 
-
     function run() public {
-
         uint256 deployerPrivateKey = vm.envUint('PRIVATE_KEY');
         vm.startBroadcast(deployerPrivateKey);
         // deploy proxy admin contracts (controls upgrade functions)
@@ -43,11 +41,11 @@ contract deployTokenDistro is Script {
         // deploy giv token implementation contract
         givethTokenImplementation = new GivethToken();
         // deploy giv token proxy contract based off implementation
-        givethTokenProxy = new TransparentUpgradeableProxy(payable(address(givethTokenImplementation)), address(proxyAdmin),
+        givethTokenProxy =
+        new TransparentUpgradeableProxy(payable(address(givethTokenImplementation)), address(proxyAdmin),
          abi.encodeWithSelector(GivethToken(givethToken).initialize.selector, msg.sender, msg.sender));
-         // alias givethToken to the proxy contract
+        // alias givethToken to the proxy contract
         givethToken = GivethToken(address(givethTokenProxy));
-
 
         // new tokenDistroImplementation
         // deploy implementation contract of token distro
@@ -67,8 +65,5 @@ contract deployTokenDistro is Script {
 
         // mint GIV tokens to token Distro
         givethToken.mint(address(tokenDistro), initialTokens);
-
-
     }
-
 }
