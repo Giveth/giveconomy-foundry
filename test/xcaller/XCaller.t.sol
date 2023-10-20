@@ -91,8 +91,7 @@ contract XCallerTest is Test {
         console.log('givethXCaller', address(givethXCaller));
         console.log('givethXCaller implementation', address(givethXCallerImplementation));
 
-        (string memory name, address receiver, uint32 domainId) = givethXCaller.getReceiverData(0);
-        console.log('receiver name', name);
+        (address receiver, uint32 domainId) = givethXCaller.getReceiverData(0);
         console.log('receiver address', receiver);
         console.log('receiver domainId', domainId);
 
@@ -139,6 +138,10 @@ contract XCallerTest is Test {
 
     function testCall() public {
         vm.selectFork(optimismFork);
+        vm.deal(voting, 1 ether);
+        vm.deal(address(givethXCaller), 1 ether);
+        vm.deal(address(aragonAgent), 1 ether);
+        vm.deal(connextOptimism, 1 ether);
         // create dummy distribution data
         address[] memory recipients = new address[](3);
         recipients[0] = address(1);
@@ -169,8 +172,8 @@ contract XCallerTest is Test {
         vm.prank(voting);
         aragonAgent.execute(
             address(givethXCaller),
-            0,
-            abi.encodeWithSelector(GivethXCaller(givethXCaller).xAddBatches.selector, 0, data)
+            0.01 ether,
+            abi.encodeWithSelector(GivethXCaller(givethXCaller).xAddBatches.selector, 0, data, 0.01 ether)
         );
     }
 }
