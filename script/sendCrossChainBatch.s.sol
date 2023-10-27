@@ -33,25 +33,31 @@ contract deployRelayer is Script {
         recipients[1] = address(2);
         recipients[2] = address(3);
 
-        uint256 one = 1;
         uint256[] memory amounts = new uint256[](3);
-        amounts[0] = one.mul(10 ** 18);
-        amounts[1] = one.mul(10 ** 18);
-        amounts[2] = one.mul(10 ** 18);
+        amounts[0] = 1e18;
+        amounts[1] = 1e18;
+        amounts[2] = 1e18;
 
         // hash batches of dummy data
-        bytes32 batchData1 = goerliGIVbacksRelayer.hashBatch(1, recipients, amounts);
-        bytes32 batchData2 = goerliGIVbacksRelayer.hashBatch(2, recipients, amounts);
+        bytes32 batchData1 = goerliGIVbacksRelayer.hashBatch(0, recipients, amounts);
+        bytes32 batchData2 = goerliGIVbacksRelayer.hashBatch(1, recipients, amounts);
 
         // ABI of the function addBatches
         bytes4 ADD_BATCHES_SELECTOR = bytes4(keccak256('addBatches(bytes32[],bytes)'));
 
+        bytes32[] memory batches = new bytes32[](2);
+        batches[0] = batchData1;
+        batches[1] = batchData2;
+
+        bytes memory ipfsData = abi.encodePacked('QmbZTCU7W7h31NsQK9KncsDQorBLYbNmDuYGn7VMme8wH1');
         // Encode the function call
         bytes memory data = abi.encodeWithSelector(
             ADD_BATCHES_SELECTOR,
-            [batchData1, batchData2], // bytes32[] calldata batches
-            'QmbZTCU7W7h31NsQK9KncsDQorBLYbNmDuYGn7VMme8wH1' // bytes calldata ipfsData
+            batches, // bytes32[] calldata batches
+            ipfsData // bytes calldata ipfsData
         );
+
+        console.logBytes(data);
 
         givethXCaller.xAddBatches{value: 0.01 ether}(0, data, 0.01 ether);
     }
