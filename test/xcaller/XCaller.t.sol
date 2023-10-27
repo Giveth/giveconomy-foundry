@@ -27,6 +27,7 @@ contract XCallerTest is Test {
     uint256 optimismFork = vm.createFork('https://mainnet.optimism.io/');
     uint256 gnosisFork = vm.createFork('https://rpc.ankr.com/gnosis'); //https://xdai-archive.blockscout.com/
 
+
     constructor() {}
 
     // optimism givbacks DAO app addresses
@@ -175,5 +176,9 @@ contract XCallerTest is Test {
             0.01 ether,
             abi.encodeWithSelector(GivethXCaller(givethXCaller).xAddBatches.selector, 0, data, 0.01 ether)
         );
+    }
+
+    function testReceiveCall() public {
+
     }
 }

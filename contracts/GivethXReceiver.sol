@@ -13,6 +13,10 @@ contract GivethXReceiver is Initializable, OwnableUpgradeable {
 
     event GivbacksRelayerSet(address indexed target);
     event ForwardedCall(address target, bytes callData);
+    event CallerAddressSet(address indexed callerAddress);
+    event CallerDomainIdSet(uint32 indexed callerDomainId);
+    event ConnextSet(address indexed connext);
+
 
     function initialize(address _connext, address _callerAddress, uint32 _callerDomainId, address _target)
         public
@@ -28,7 +32,7 @@ contract GivethXReceiver is Initializable, OwnableUpgradeable {
     modifier onlySource(address _originSender, uint32 _originDomain) {
         require(
             msg.sender == connext && _originSender == callerAddress && _originDomain == callerDomainId,
-            'GivethXCaller: only source'
+            'GivethXReceiver: only source'
         );
         _;
     }
@@ -50,13 +54,21 @@ contract GivethXReceiver is Initializable, OwnableUpgradeable {
 
     function setCallerAddress(address _callerAddress) external onlyOwner {
         callerAddress = _callerAddress;
+        emit CallerAddressSet(_callerAddress);
     }
 
     function setCallerDomainId(uint32 _callerDomainId) external onlyOwner {
         callerDomainId = _callerDomainId;
+        emit CallerDomainIdSet(_callerDomainId);
     }
 
     function setGivbacksRelayer(address _target) external onlyOwner {
         target = _target;
+        emit GivbacksRelayerSet(_target);
+    }
+
+    function setConnext(address _connext) external onlyOwner {
+        connext = _connext;
+        emit ConnextSet(_connext);
     }
 }
