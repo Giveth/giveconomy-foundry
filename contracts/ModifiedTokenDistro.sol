@@ -1,29 +1,24 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.6;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "./interfaces/IDistroModified.sol";
+import '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
+import '@openzeppelin/contracts/utils/math/SafeMath.sol';
+import './interfaces/IDistroModified.sol';
 
 /**
  * Contract responsible for managing the release of tokens over time.
  * The distributor is in charge of releasing the corresponding amounts to its recipients.
  * This distributor is expected to be another smart contract, such as a merkledrop or the liquidity mining smart contract
  */
-contract TokenDistro is
-    Initializable,
-    IDistro,
-    AccessControlEnumerableUpgradeable
-{   
+contract TokenDistro is Initializable, IDistro, AccessControlEnumerableUpgradeable {
     using SafeMath for uint256;
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
     // bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
-    bytes32 public constant DISTRIBUTOR_ROLE =
-        0xfbd454f36a7e1a388bd6fc3ab10d434aa4578f811acbbcf33afb1c697486313c;
+    bytes32 public constant DISTRIBUTOR_ROLE = 0xfbd454f36a7e1a388bd6fc3ab10d434aa4578f811acbbcf33afb1c697486313c;
 
     // Structure to of the accounting for each account
     struct accountStatus {
@@ -59,15 +54,9 @@ contract TokenDistro is
     event DurationChanged(uint256 newDuration);
 
     modifier onlyDistributor() {
-        require(
-            hasRole(DISTRIBUTOR_ROLE, msg.sender),
-            "TokenDistro::onlyDistributor: ONLY_DISTRIBUTOR_ROLE"
-        );
+        require(hasRole(DISTRIBUTOR_ROLE, msg.sender), 'TokenDistro::onlyDistributor: ONLY_DISTRIBUTOR_ROLE');
 
-        require(
-            balances[msg.sender].claimed == 0,
-            "TokenDistro::onlyDistributor: DISTRIBUTOR_CANNOT_CLAIM"
-        );
+        require(balances[msg.sender].claimed == 0, 'TokenDistro::onlyDistributor: DISTRIBUTOR_CANNOT_CLAIM');
         _;
     }
 
@@ -92,14 +81,8 @@ contract TokenDistro is
         IERC20Upgradeable _token,
         bool _cancelable
     ) public initializer {
-        require(
-            _duration >= _cliffPeriod,
-            "TokenDistro::constructor: DURATION_LESS_THAN_CLIFF"
-        );
-        require(
-            _initialPercentage <= 10000,
-            "TokenDistro::constructor: INITIALPERCENTAGE_GREATER_THAN_100"
-        );
+        require(_duration >= _cliffPeriod, 'TokenDistro::constructor: DURATION_LESS_THAN_CLIFF');
+        require(_initialPercentage <= 10000, 'TokenDistro::constructor: INITIALPERCENTAGE_GREATER_THAN_100');
         __AccessControlEnumerable_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
@@ -124,13 +107,10 @@ contract TokenDistro is
      *
      */
     function setStartTime(uint256 newStartTime) external override {
-        require(
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
-            "TokenDistro::setStartTime: ONLY_ADMIN_ROLE"
-        );
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), 'TokenDistro::setStartTime: ONLY_ADMIN_ROLE');
         require(
             startTime > getTimestamp() && newStartTime > getTimestamp(),
-            "TokenDistro::setStartTime: IF_HAS_NOT_STARTED_YET"
+            'TokenDistro::setStartTime: IF_HAS_NOT_STARTED_YET'
         );
 
         uint256 _cliffPeriod = cliffTime - startTime;
@@ -150,21 +130,11 @@ contract TokenDistro is
      *
      */
     function assign(address distributor, uint256 amount) external override {
-        require(
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
-            "TokenDistro::assign: ONLY_ADMIN_ROLE"
-        );
-        require(
-            hasRole(DISTRIBUTOR_ROLE, distributor),
-            "TokenDistro::assign: ONLY_TO_DISTRIBUTOR_ROLE"
-        );
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), 'TokenDistro::assign: ONLY_ADMIN_ROLE');
+        require(hasRole(DISTRIBUTOR_ROLE, distributor), 'TokenDistro::assign: ONLY_TO_DISTRIBUTOR_ROLE');
 
-        balances[address(this)].allocatedTokens =
-            balances[address(this)].allocatedTokens -
-            amount;
-        balances[distributor].allocatedTokens =
-            balances[distributor].allocatedTokens +
-            amount;
+        balances[address(this)].allocatedTokens = balances[address(this)].allocatedTokens - amount;
+        balances[distributor].allocatedTokens = balances[distributor].allocatedTokens + amount;
 
         emit Assign(msg.sender, distributor, amount);
     }
@@ -201,23 +171,12 @@ contract TokenDistro is
      * Emits a {Allocate} event.
      *
      */
-    function _allocate(
-        address recipient,
-        uint256 amount,
-        bool claim
-    ) internal {
-        require(
-            !hasRole(DISTRIBUTOR_ROLE, recipient),
-            "TokenDistro::allocate: DISTRIBUTOR_NOT_VALID_RECIPIENT"
-        );
+    function _allocate(address recipient, uint256 amount, bool claim) internal {
+        require(!hasRole(DISTRIBUTOR_ROLE, recipient), 'TokenDistro::allocate: DISTRIBUTOR_NOT_VALID_RECIPIENT');
 
-        balances[msg.sender].allocatedTokens =
-            balances[msg.sender].allocatedTokens -
-            amount;
+        balances[msg.sender].allocatedTokens = balances[msg.sender].allocatedTokens - amount;
 
-        balances[recipient].allocatedTokens =
-            balances[recipient].allocatedTokens +
-            amount;
+        balances[recipient].allocatedTokens = balances[recipient].allocatedTokens + amount;
 
         if (claim && claimableNow(recipient) > 0) {
             _claim(recipient);
@@ -226,11 +185,7 @@ contract TokenDistro is
         emit Allocate(msg.sender, recipient, amount);
     }
 
-    function allocate(
-        address recipient,
-        uint256 amount,
-        bool claim
-    ) external override onlyDistributor {
+    function allocate(address recipient, uint256 amount, bool claim) external override onlyDistributor {
         _allocate(recipient, amount, claim);
     }
 
@@ -242,39 +197,24 @@ contract TokenDistro is
      *
      * Unlike allocate method it doesn't claim recipients available balance
      */
-    function _allocateMany(
-        address[] memory recipients,
-        uint256[] memory amounts
-    ) internal onlyDistributor {
-        require(
-            recipients.length == amounts.length,
-            "TokenDistro::allocateMany: INPUT_LENGTH_NOT_MATCH"
-        );
+    function _allocateMany(address[] memory recipients, uint256[] memory amounts) internal onlyDistributor {
+        require(recipients.length == amounts.length, 'TokenDistro::allocateMany: INPUT_LENGTH_NOT_MATCH');
 
         for (uint256 i = 0; i < recipients.length; i++) {
             _allocate(recipients[i], amounts[i], false);
         }
     }
 
-    function allocateMany(address[] memory recipients, uint256[] memory amounts)
-        external
-        override
-    {
+    function allocateMany(address[] memory recipients, uint256[] memory amounts) external override {
         _allocateMany(recipients, amounts);
     }
 
-    function sendGIVbacks(address[] memory recipients, uint256[] memory amounts)
-        external
-        override
-    {
+    function sendGIVbacks(address[] memory recipients, uint256[] memory amounts) external override {
         _allocateMany(recipients, amounts);
         emit GivBackPaid(msg.sender);
     }
 
-    function sendPraiseRewards(
-        address[] memory recipients,
-        uint256[] memory amounts
-    ) external {
+    function sendPraiseRewards(address[] memory recipients, uint256[] memory amounts) external {
         _allocateMany(recipients, amounts);
         emit PraiseRewardPaid(msg.sender);
     }
@@ -295,13 +235,11 @@ contract TokenDistro is
         // );
 
         require(
-            !hasRole(DISTRIBUTOR_ROLE, msg.sender) &&
-                !hasRole(DISTRIBUTOR_ROLE, newAddress),
-            "TokenDistro::changeAddress: DISTRIBUTOR_ROLE_NOT_A_VALID_ADDRESS"
+            !hasRole(DISTRIBUTOR_ROLE, msg.sender) && !hasRole(DISTRIBUTOR_ROLE, newAddress),
+            'TokenDistro::changeAddress: DISTRIBUTOR_ROLE_NOT_A_VALID_ADDRESS'
         );
         // balance adds instead of overwrites
-        balances[newAddress].allocatedTokens += balances[msg.sender]
-            .allocatedTokens;
+        balances[newAddress].allocatedTokens += balances[msg.sender].allocatedTokens;
         balances[msg.sender].allocatedTokens = 0;
 
         balances[newAddress].claimed += balances[msg.sender].claimed;
@@ -322,12 +260,7 @@ contract TokenDistro is
      * @param timestamp Unix time to check the number of tokens claimable
      * @return Number of tokens claimable at that timestamp
      */
-    function globallyClaimableAt(uint256 timestamp)
-        public
-        view
-        override
-        returns (uint256)
-    {
+    function globallyClaimableAt(uint256 timestamp) public view override returns (uint256) {
         if (timestamp < startTime) return 0;
         if (timestamp < cliffTime) return initialAmount;
         if (timestamp > startTime + duration) return totalTokens;
@@ -341,22 +274,10 @@ contract TokenDistro is
      * @param recipient account to query
      * @param timestamp Instant of time in which the calculation is made
      */
-    function claimableAt(address recipient, uint256 timestamp)
-        public
-        view
-        override
-        returns (uint256)
-    {
-        require(
-            !hasRole(DISTRIBUTOR_ROLE, recipient),
-            "TokenDistro::claimableAt: DISTRIBUTOR_ROLE_CANNOT_CLAIM"
-        );
-        require(
-            timestamp >= getTimestamp(),
-            "TokenDistro::claimableAt: NOT_VALID_PAST_TIMESTAMP"
-        );
-        uint256 unlockedAmount = (globallyClaimableAt(timestamp) *
-            balances[recipient].allocatedTokens) / totalTokens;
+    function claimableAt(address recipient, uint256 timestamp) public view override returns (uint256) {
+        require(!hasRole(DISTRIBUTOR_ROLE, recipient), 'TokenDistro::claimableAt: DISTRIBUTOR_ROLE_CANNOT_CLAIM');
+        require(timestamp >= getTimestamp(), 'TokenDistro::claimableAt: NOT_VALID_PAST_TIMESTAMP');
+        uint256 unlockedAmount = (globallyClaimableAt(timestamp) * balances[recipient].allocatedTokens) / totalTokens;
 
         return unlockedAmount - balances[recipient].claimed;
     }
@@ -365,12 +286,7 @@ contract TokenDistro is
      * Function to get the unlocked tokens for a specific address. It uses the current timestamp
      * @param recipient account to query
      */
-    function claimableNow(address recipient)
-        public
-        view
-        override
-        returns (uint256)
-    {
+    function claimableNow(address recipient) public view override returns (uint256) {
         return claimableAt(recipient, getTimestamp());
     }
 
@@ -382,15 +298,11 @@ contract TokenDistro is
      * Emits a {ChangeAddress} event.
      *
      */
-    function transferAllocation(address prevRecipient, address newRecipient)
-        external
-        override
-    {   
-        require(balances[prevRecipient].allocatedTokens > 0, "TokenDistro::transferAllocation: NO_ALLOCATION_TO_TRANSFER");
+    function transferAllocation(address prevRecipient, address newRecipient) external override {
         require(
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
-            "TokenDistro::transferAllocation: ONLY_ADMIN_ROLE"
+            balances[prevRecipient].allocatedTokens > 0, 'TokenDistro::transferAllocation: NO_ALLOCATION_TO_TRANSFER'
         );
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), 'TokenDistro::transferAllocation: ONLY_ADMIN_ROLE');
 
         // require(
         //     balances[newRecipient].allocatedTokens == 0 &&
@@ -399,17 +311,15 @@ contract TokenDistro is
         // );
 
         require(
-            !hasRole(DISTRIBUTOR_ROLE, prevRecipient) &&
-                !hasRole(DISTRIBUTOR_ROLE, newRecipient),
-            "TokenDistro::transferAllocation: DISTRIBUTOR_ROLE_NOT_A_VALID_ADDRESS"
+            !hasRole(DISTRIBUTOR_ROLE, prevRecipient) && !hasRole(DISTRIBUTOR_ROLE, newRecipient),
+            'TokenDistro::transferAllocation: DISTRIBUTOR_ROLE_NOT_A_VALID_ADDRESS'
         );
         // balance adds instead of overwrites
-        balances[newRecipient].allocatedTokens = balances[prevRecipient]
-            .allocatedTokens.add(balances[newRecipient].allocatedTokens);
+        balances[newRecipient].allocatedTokens =
+            balances[prevRecipient].allocatedTokens.add(balances[newRecipient].allocatedTokens);
         balances[prevRecipient].allocatedTokens = 0;
 
-        balances[newRecipient].claimed = balances[prevRecipient].claimed.add(
-            balances[newRecipient].claimed);
+        balances[newRecipient].claimed = balances[prevRecipient].claimed.add(balances[newRecipient].claimed);
 
         balances[prevRecipient].claimed = 0;
 
@@ -425,14 +335,9 @@ contract TokenDistro is
     function _claim(address recipient) private {
         uint256 remainingToClaim = claimableNow(recipient);
 
-        require(
-            remainingToClaim > 0,
-            "TokenDistro::claim: NOT_ENOUGH_TOKENS_TO_CLAIM"
-        );
+        require(remainingToClaim > 0, 'TokenDistro::claim: NOT_ENOUGH_TOKENS_TO_CLAIM');
 
-        balances[recipient].claimed =
-            balances[recipient].claimed +
-            remainingToClaim;
+        balances[recipient].claimed = balances[recipient].claimed + remainingToClaim;
 
         token.safeTransfer(recipient, remainingToClaim);
 
@@ -443,19 +348,12 @@ contract TokenDistro is
      * Function to change the duration
      */
     function setDuration(uint256 newDuration) public {
-        require(
-            hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
-            "TokenDistro::setDuration: ONLY_ADMIN_ROLE"
-        );
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), 'TokenDistro::setDuration: ONLY_ADMIN_ROLE');
 
-        require(
-            startTime > getTimestamp(),
-            "TokenDistro::setDuration: IF_HAS_NOT_STARTED_YET"
-        );
+        require(startTime > getTimestamp(), 'TokenDistro::setDuration: IF_HAS_NOT_STARTED_YET');
 
         duration = newDuration;
 
         emit DurationChanged(newDuration);
     }
-
 }

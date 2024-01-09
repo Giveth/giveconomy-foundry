@@ -157,24 +157,13 @@ pragma solidity ^0.4.24;
  * @dev see https://github.com/ethereum/EIPs/issues/20
  */
 contract ERC20 is ERC20Basic {
-    function allowance(address _owner, address _spender)
-        public
-        view
-        returns (uint256);
+    function allowance(address _owner, address _spender) public view returns (uint256);
 
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _value
-    ) public returns (bool);
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool);
 
     function approve(address _spender, uint256 _value) public returns (bool);
 
-    event Approval(
-        address indexed owner,
-        address indexed spender,
-        uint256 value
-    );
+    event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
 // File: openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol
@@ -197,11 +186,7 @@ contract StandardToken is ERC20, BasicToken {
      * @param _to address The address which you want to transfer to
      * @param _value uint256 the amount of tokens to be transferred
      */
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _value
-    ) public returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
         require(_value <= balances[_from]);
         require(_value <= allowed[_from][msg.sender]);
         require(_to != address(0));
@@ -234,11 +219,7 @@ contract StandardToken is ERC20, BasicToken {
      * @param _spender address The address which will spend the funds.
      * @return A uint256 specifying the amount of tokens still available for the spender.
      */
-    function allowance(address _owner, address _spender)
-        public
-        view
-        returns (uint256)
-    {
+    function allowance(address _owner, address _spender) public view returns (uint256) {
         return allowed[_owner][_spender];
     }
 
@@ -251,13 +232,8 @@ contract StandardToken is ERC20, BasicToken {
      * @param _spender The address which will spend the funds.
      * @param _addedValue The amount of tokens to increase the allowance by.
      */
-    function increaseApproval(address _spender, uint256 _addedValue)
-        public
-        returns (bool)
-    {
-        allowed[msg.sender][_spender] = (
-            allowed[msg.sender][_spender].add(_addedValue)
-        );
+    function increaseApproval(address _spender, uint256 _addedValue) public returns (bool) {
+        allowed[msg.sender][_spender] = (allowed[msg.sender][_spender].add(_addedValue));
         emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
         return true;
     }
@@ -271,10 +247,7 @@ contract StandardToken is ERC20, BasicToken {
      * @param _spender The address which will spend the funds.
      * @param _subtractedValue The amount of tokens to decrease the allowance by.
      */
-    function decreaseApproval(address _spender, uint256 _subtractedValue)
-        public
-        returns (bool)
-    {
+    function decreaseApproval(address _spender, uint256 _subtractedValue) public returns (bool) {
         uint256 oldValue = allowed[msg.sender][_spender];
         if (_subtractedValue >= oldValue) {
             allowed[msg.sender][_spender] = 0;
@@ -299,10 +272,7 @@ contract Ownable {
     address public owner;
 
     event OwnershipRenounced(address indexed previousOwner);
-    event OwnershipTransferred(
-        address indexed previousOwner,
-        address indexed newOwner
-    );
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     /**
      * @dev The Ownable constructor sets the original `owner` of the contract to the sender
@@ -381,12 +351,7 @@ contract MintableToken is StandardToken, Ownable {
      * @param _amount The amount of tokens to mint.
      * @return A boolean that indicates if the operation was successful.
      */
-    function mint(address _to, uint256 _amount)
-        public
-        hasMintPermission
-        canMint
-        returns (bool)
-    {
+    function mint(address _to, uint256 _amount) public hasMintPermission canMint returns (bool) {
         totalSupply_ = totalSupply_.add(_amount);
         balances[_to] = balances[_to].add(_amount);
         emit Mint(_to, _amount);
@@ -420,11 +385,7 @@ contract DetailedERC20 is ERC20 {
     string public symbol;
     uint8 public decimals;
 
-    constructor(
-        string _name,
-        string _symbol,
-        uint8 _decimals
-    ) public {
+    constructor(string _name, string _symbol, uint8 _decimals) public {
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
@@ -467,26 +428,13 @@ library AddressUtils {
 pragma solidity 0.4.24;
 
 contract ERC677 is ERC20 {
-    event Transfer(
-        address indexed from,
-        address indexed to,
-        uint256 value,
-        bytes data
-    );
+    event Transfer(address indexed from, address indexed to, uint256 value, bytes data);
 
-    function transferAndCall(
-        address,
-        uint256,
-        bytes
-    ) external returns (bool);
+    function transferAndCall(address, uint256, bytes) external returns (bool);
 
-    function increaseAllowance(address spender, uint256 addedValue)
-        public
-        returns (bool);
+    function increaseAllowance(address spender, uint256 addedValue) public returns (bool);
 
-    function decreaseAllowance(address spender, uint256 subtractedValue)
-        public
-        returns (bool);
+    function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool);
 }
 
 // File: contracts/interfaces/IBurnableMintableERC677Token.sol
@@ -564,31 +512,17 @@ contract Claimable {
         safeTransfer(_token, _to, balance);
     }
 
-    function safeTransfer(
-        address _token,
-        address _to,
-        uint256 _value
-    ) internal {
+    function safeTransfer(address _token, address _to, uint256 _value) internal {
         bytes memory returnData;
         bool returnDataResult;
         bytes memory callData = abi.encodeWithSelector(TRANSFER, _to, _value);
         assembly {
-            let result := call(
-                gas,
-                _token,
-                0x0,
-                add(callData, 0x20),
-                mload(callData),
-                0,
-                32
-            )
+            let result := call(gas, _token, 0x0, add(callData, 0x20), mload(callData), 0, 32)
             returnData := mload(0)
             returnDataResult := mload(0)
 
             switch result
-            case 0 {
-                revert(0, 0)
-            }
+            case 0 { revert(0, 0) }
         }
 
         // Return data is optional
@@ -606,24 +540,14 @@ pragma solidity 0.4.24;
  * @title ERC677BridgeToken
  * @dev The basic implementation of a bridgeable ERC677-compatible token
  */
-contract ERC677BridgeToken is
-    IBurnableMintableERC677Token,
-    DetailedERC20,
-    BurnableToken,
-    MintableToken,
-    Claimable
-{
+contract ERC677BridgeToken is IBurnableMintableERC677Token, DetailedERC20, BurnableToken, MintableToken, Claimable {
     bytes4 internal constant ON_TOKEN_TRANSFER = 0xa4c0ed36; // onTokenTransfer(address,uint256,bytes)
 
     address internal bridgeContractAddr;
 
     event ContractFallbackCallFailed(address from, address to, uint256 value);
 
-    constructor(
-        string _name,
-        string _symbol,
-        uint8 _decimals
-    ) public DetailedERC20(_name, _symbol, _decimals) {
+    constructor(string _name, string _symbol, uint8 _decimals) public DetailedERC20(_name, _symbol, _decimals) {
         // solhint-disable-previous-line no-empty-blocks
     }
 
@@ -642,11 +566,7 @@ contract ERC677BridgeToken is
         _;
     }
 
-    function transferAndCall(
-        address _to,
-        uint256 _value,
-        bytes _data
-    ) external validRecipient(_to) returns (bool) {
+    function transferAndCall(address _to, uint256 _value, bytes _data) external validRecipient(_to) returns (bool) {
         require(superTransfer(_to, _value));
         emit Transfer(msg.sender, _to, _value, _data);
 
@@ -656,22 +576,11 @@ contract ERC677BridgeToken is
         return true;
     }
 
-    function getTokenInterfacesVersion()
-        external
-        pure
-        returns (
-            uint64 major,
-            uint64 minor,
-            uint64 patch
-        )
-    {
+    function getTokenInterfacesVersion() external pure returns (uint64 major, uint64 minor, uint64 patch) {
         return (2, 2, 0);
     }
 
-    function superTransfer(address _to, uint256 _value)
-        internal
-        returns (bool)
-    {
+    function superTransfer(address _to, uint256 _value) internal returns (bool) {
         return super.transfer(_to, _value);
     }
 
@@ -681,25 +590,14 @@ contract ERC677BridgeToken is
         return true;
     }
 
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _value
-    ) public returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
         require(super.transferFrom(_from, _to, _value));
         callAfterTransfer(_from, _to, _value);
         return true;
     }
 
-    function callAfterTransfer(
-        address _from,
-        address _to,
-        uint256 _value
-    ) internal {
-        if (
-            AddressUtils.isContract(_to) &&
-            !contractFallback(_from, _to, _value, new bytes(0))
-        ) {
+    function callAfterTransfer(address _from, address _to, uint256 _value) internal {
+        if (AddressUtils.isContract(_to) && !contractFallback(_from, _to, _value, new bytes(0))) {
             require(!isBridge(_to));
             emit ContractFallbackCallFailed(_from, _to, _value);
         }
@@ -716,16 +614,8 @@ contract ERC677BridgeToken is
      * @param _value amount of tokens that was sent
      * @param _data set of extra bytes that can be passed to the recipient
      */
-    function contractFallback(
-        address _from,
-        address _to,
-        uint256 _value,
-        bytes _data
-    ) private returns (bool) {
-        return
-            _to.call(
-                abi.encodeWithSelector(ON_TOKEN_TRANSFER, _from, _value, _data)
-            );
+    function contractFallback(address _from, address _to, uint256 _value, bytes _data) private returns (bool) {
+        return _to.call(abi.encodeWithSelector(ON_TOKEN_TRANSFER, _from, _value, _data));
     }
 
     function finishMinting() public returns (bool) {
@@ -736,25 +626,15 @@ contract ERC677BridgeToken is
         revert();
     }
 
-    function claimTokens(address _token, address _to)
-        public
-        onlyOwner
-        validAddress(_to)
-    {
+    function claimTokens(address _token, address _to) public onlyOwner validAddress(_to) {
         claimValues(_token, _to);
     }
 
-    function increaseAllowance(address spender, uint256 addedValue)
-        public
-        returns (bool)
-    {
+    function increaseAllowance(address spender, uint256 addedValue) public returns (bool) {
         return super.increaseApproval(spender, addedValue);
     }
 
-    function decreaseAllowance(address spender, uint256 subtractedValue)
-        public
-        returns (bool)
-    {
+    function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool) {
         return super.decreaseApproval(spender, subtractedValue);
     }
 }
@@ -764,29 +644,24 @@ contract ERC677BridgeToken is
 pragma solidity 0.4.24;
 
 contract PermittableToken is ERC677BridgeToken {
-    string public constant version = "1";
+    string public constant version = '1';
 
     // EIP712 niceties
     bytes32 public DOMAIN_SEPARATOR;
     // bytes32 public constant PERMIT_TYPEHASH = keccak256("Permit(address holder,address spender,uint256 nonce,uint256 expiry,bool allowed)");
-    bytes32 public constant PERMIT_TYPEHASH =
-        0xea2aa0a1be11a07ed86d755c93467f4f82362b452371d1ba94d1715123511acb;
+    bytes32 public constant PERMIT_TYPEHASH = 0xea2aa0a1be11a07ed86d755c93467f4f82362b452371d1ba94d1715123511acb;
 
     mapping(address => uint256) public nonces;
     mapping(address => mapping(address => uint256)) public expirations;
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        uint8 _decimals,
-        uint256 _chainId
-    ) public ERC677BridgeToken(_name, _symbol, _decimals) {
+    constructor(string memory _name, string memory _symbol, uint8 _decimals, uint256 _chainId)
+        public
+        ERC677BridgeToken(_name, _symbol, _decimals)
+    {
         require(_chainId != 0);
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
-                keccak256(
-                    "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-                ),
+                keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'),
                 keccak256(bytes(_name)),
                 keccak256(bytes(version)),
                 _chainId,
@@ -803,11 +678,7 @@ contract PermittableToken is ERC677BridgeToken {
     /// @param _recipient The address of the recipient.
     /// @param _amount The value to transfer.
     /// @return Success status.
-    function transferFrom(
-        address _sender,
-        address _recipient,
-        uint256 _amount
-    ) public returns (bool) {
+    function transferFrom(address _sender, address _recipient, uint256 _amount) public returns (bool) {
         require(_sender != address(0));
         require(_recipient != address(0));
 
@@ -822,18 +693,11 @@ contract PermittableToken is ERC677BridgeToken {
                 // If allowance is limited, adjust it.
                 // In this case `transferFrom` works like the generic
                 allowed[_sender][msg.sender] = allowedAmount.sub(_amount);
-                emit Approval(
-                    _sender,
-                    msg.sender,
-                    allowed[_sender][msg.sender]
-                );
+                emit Approval(_sender, msg.sender, allowed[_sender][msg.sender]);
             } else {
                 // If allowance is unlimited by `permit`, `approve`, or `increaseAllowance`
                 // function, don't adjust it. But the expiration date must be empty or in the future
-                require(
-                    expirations[_sender][msg.sender] == 0 ||
-                        expirations[_sender][msg.sender] >= _now()
-                );
+                require(expirations[_sender][msg.sender] == 0 || expirations[_sender][msg.sender] >= _now());
             }
         } else {
             // If `_sender` is `msg.sender`,
@@ -863,11 +727,7 @@ contract PermittableToken is ERC677BridgeToken {
     /// @param _from The address of the sender.
     /// @param _to The address of the recipient.
     /// @param _amount The value to transfer.
-    function move(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) public {
+    function move(address _from, address _to, uint256 _amount) public {
         transferFrom(_from, _to, _amount);
     }
 
@@ -899,18 +759,9 @@ contract PermittableToken is ERC677BridgeToken {
 
         bytes32 digest = keccak256(
             abi.encodePacked(
-                "\x19\x01",
+                '\x19\x01',
                 DOMAIN_SEPARATOR,
-                keccak256(
-                    abi.encode(
-                        PERMIT_TYPEHASH,
-                        _holder,
-                        _spender,
-                        _nonce,
-                        _expiry,
-                        _allowed
-                    )
-                )
+                keccak256(abi.encode(PERMIT_TYPEHASH, _holder, _spender, _nonce, _expiry, _allowed))
             )
         );
 
@@ -930,15 +781,7 @@ contract PermittableToken is ERC677BridgeToken {
     }
 
     /// @dev Version of the token contract.
-    function getTokenInterfacesVersion()
-        external
-        pure
-        returns (
-            uint64 major,
-            uint64 minor,
-            uint64 patch
-        )
-    {
+    function getTokenInterfacesVersion() external pure returns (uint64 major, uint64 minor, uint64 patch) {
         return (2, 3, 0);
     }
 }

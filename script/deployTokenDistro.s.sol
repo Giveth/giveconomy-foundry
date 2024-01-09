@@ -35,9 +35,20 @@ contract deployTokenDistro is Script {
         tokenDistroProxyAdmin = new ProxyAdmin();
         // new implementation
         implementation = new TokenDistro();
-        tokenDistroProxy =
-        new TransparentUpgradeableProxy(payable(address(implementation)), address(tokenDistroProxyAdmin),
-         abi.encodeWithSelector(TokenDistro(tokenDistro).initialize.selector, totalTokens, startTime, cliffPeriod, duration, initialPercentage, givToken, cancelable));
+        tokenDistroProxy = new TransparentUpgradeableProxy(
+            payable(address(implementation)),
+            address(tokenDistroProxyAdmin),
+            abi.encodeWithSelector(
+                TokenDistro(tokenDistro).initialize.selector,
+                totalTokens,
+                startTime,
+                cliffPeriod,
+                duration,
+                initialPercentage,
+                givToken,
+                cancelable
+            )
+        );
         tokenDistro = TokenDistro(address(tokenDistroProxy));
 
         console.log('proxy admin', address(tokenDistroProxyAdmin));

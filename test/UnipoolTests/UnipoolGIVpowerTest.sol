@@ -75,9 +75,11 @@ contract UnipoolGIVpowerTest is Test {
         givethMultisig = unipoolGIVpowerProxyAdmin.owner();
         // new implementation
         implementation = new UnipoolGIVpower();
-        unipoolGIVpowerProxy =
-        new TransparentUpgradeableProxy(payable(address(implementation)), address(unipoolGIVpowerProxyAdmin),
-         abi.encodeWithSelector(UnipoolGIVpower(givPower).initialize.selector, iDistro, givToken, 14 days));
+        unipoolGIVpowerProxy = new TransparentUpgradeableProxy(
+            payable(address(implementation)),
+            address(unipoolGIVpowerProxyAdmin),
+            abi.encodeWithSelector(UnipoolGIVpower(givPower).initialize.selector, iDistro, givToken, 14 days)
+        );
         givPower = UnipoolGIVpower(address(unipoolGIVpowerProxy));
 
         // mint
@@ -97,9 +99,7 @@ contract UnipoolGIVpowerTest is Test {
 
     function getImplementationStorageData(address[] memory _users) public view returns (StorageData memory) {
         uint256[] memory usersBalances = new uint256[](_users.length);
-        uint256[] memory usersRewardsPerTokenPaid = new uint256[](
-            _users.length
-        );
+        uint256[] memory usersRewardsPerTokenPaid = new uint256[](_users.length);
         uint256[] memory usersRewards = new uint256[](_users.length);
 
         for (uint256 i = 0; i < _users.length; i++) {
