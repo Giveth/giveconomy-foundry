@@ -98,5 +98,5 @@ interface IDistro {
      */
     function claimableNow(address recipient) external view returns (uint256);
 
-    function cancelAllocation(address prevRecipient, address newRecipient) external;
+    function transferAllocation(address prevRecipient, address newRecipient) external;
 }

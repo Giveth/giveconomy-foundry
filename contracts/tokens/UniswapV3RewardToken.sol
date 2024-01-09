@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
 
-pragma solidity 0.8.6;
+pragma solidity ^0.8.6;
 
-import "openzeppelin-contracts-v4/token/ERC20/IERC20.sol";
-import "openzeppelin-contracts-upgradable-v4/access/OwnableUpgradeable.sol";
-import "../Interfaces/IDistro.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "../interfaces/IDistro.sol";
 
 contract UniswapV3RewardToken is IERC20, OwnableUpgradeable {
     uint256 public initialBalance;
