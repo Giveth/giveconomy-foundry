@@ -33,9 +33,13 @@ contract deployRelayer is Script {
         givbacksRelayerProxyAdmin = new ProxyAdmin();
         // new implementation
         implementation = new GIVbacksRelayer();
-        givbacksRelayerProxy =
-        new TransparentUpgradeableProxy(payable(address(implementation)), address(givbacksRelayerProxyAdmin),
-         abi.encodeWithSelector(GIVbacksRelayer(givbacksRelayer).initialize.selector, tokenDistro, deployer, batcherAgent));
+        givbacksRelayerProxy = new TransparentUpgradeableProxy(
+            payable(address(implementation)),
+            address(givbacksRelayerProxyAdmin),
+            abi.encodeWithSelector(
+                GIVbacksRelayer(givbacksRelayer).initialize.selector, tokenDistro, deployer, batcherAgent
+            )
+        );
         givbacksRelayer = GIVbacksRelayer(address(givbacksRelayerProxy));
         tokenDistro.grantRole(keccak256('DISTRIBUTOR_ROLE'), address(givbacksRelayer));
         tokenDistro.assign(address(givbacksRelayer), 2500000 ether);

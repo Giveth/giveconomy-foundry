@@ -1,5 +1,5 @@
 /**
- *Submitted for verification at Etherscan.io on 2021-06-07
+ * Submitted for verification at Etherscan.io on 2021-06-07
  */
 
 // File: contracts/ITokenController.sol
@@ -20,11 +20,7 @@ interface ITokenController {
     /// @param _to The destination of the transfer
     /// @param _amount The amount of the transfer
     /// @return False if the controller does not authorize the transfer
-    function onTransfer(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) external returns (bool);
+    function onTransfer(address _from, address _to, uint256 _amount) external returns (bool);
 
     /// @notice Notifies the controller about an approval allowing the
     ///  controller to react if desired
@@ -32,11 +28,7 @@ interface ITokenController {
     /// @param _spender The spender in the `approve()` call
     /// @param _amount The amount in the `approve()` call
     /// @return False if the controller does not authorize the approval
-    function onApprove(
-        address _owner,
-        address _spender,
-        uint256 _amount
-    ) external returns (bool);
+    function onApprove(address _owner, address _spender, uint256 _amount) external returns (bool);
 }
 
 // File: contracts/MiniMeToken.sol
@@ -87,12 +79,7 @@ contract Controlled {
 }
 
 contract ApproveAndCallFallBack {
-    function receiveApproval(
-        address from,
-        uint256 _amount,
-        address _token,
-        bytes _data
-    ) public;
+    function receiveApproval(address from, uint256 _amount, address _token, bytes _data) public;
 }
 
 /// @dev The actual token contract, the default controller is the msg.sender
@@ -102,7 +89,7 @@ contract MiniMeToken is Controlled {
     string public name; //The Token's name: e.g. DigixDAO Tokens
     uint8 public decimals; //Number of decimals of the smallest unit
     string public symbol; //An identifier: e.g. REP
-    string public version = "MMT_0.1"; //An arbitrary versioning scheme
+    string public version = 'MMT_0.1'; //An arbitrary versioning scheme
 
     bytes32 public nameHash; //Name Hash to generate the domain separator
 
@@ -116,20 +103,17 @@ contract MiniMeToken is Controlled {
     uint256 public constant CHAINID = 0x04;
     // bytes32 public view PERMIT_TYPEHASH =
     //      keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
-    bytes32 public constant PERMIT_TYPEHASH =
-        0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
+    bytes32 public constant PERMIT_TYPEHASH = 0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
     // bytes32 public view TRANSFER_WITH_AUTHORIZATION_TYPEHASH =
     //      keccak256("TransferWithAuthorization(address from,address to,uint256 value,uint256 validAfter,uint256 validBefore,bytes32 nonce)");
     bytes32 public constant TRANSFER_WITH_AUTHORIZATION_TYPEHASH =
         0x7c7c6cdb67a18743f49ec6fa9b35f50d52ed05cbed4cc592e13b44501c1a2267;
     // bytes32 public view EIP712DOMAIN_HASH =
     //      keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")
-    bytes32 public constant EIP712DOMAIN_HASH =
-        0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f;
+    bytes32 public constant EIP712DOMAIN_HASH = 0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f;
     // bytes32 public view VERSION_HASH =
     //      keccak256("1")
-    bytes32 public constant VERSION_HASH =
-        0xc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6;
+    bytes32 public constant VERSION_HASH = 0xc89efdaa54c0f20c7adf612882df0950f5a951637e0307cdcb4c672f298b8bc6;
 
     /// @dev `Checkpoint` is the structure that attaches a block number to a
     ///  given value, the block number attached is the one that last changed the
@@ -214,10 +198,7 @@ contract MiniMeToken is Controlled {
     /// @param _to The address of the recipient
     /// @param _amount The amount of tokens to be transferred
     /// @return Whether the transfer was successful or not
-    function transfer(address _to, uint256 _amount)
-        public
-        returns (bool success)
-    {
+    function transfer(address _to, uint256 _amount) public returns (bool success) {
         require(transfersEnabled);
         return doTransfer(msg.sender, _to, _amount);
     }
@@ -228,11 +209,7 @@ contract MiniMeToken is Controlled {
     /// @param _to The address of the recipient
     /// @param _amount The amount of tokens to be transferred
     /// @return True if the transfer was successful
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) public returns (bool success) {
+    function transferFrom(address _from, address _to, uint256 _amount) public returns (bool success) {
         // The controller of this contract can move tokens around at will,
         //  this is important to recognize! Confirm that you trust the
         //  controller of this contract, which in most situations should be
@@ -253,11 +230,7 @@ contract MiniMeToken is Controlled {
     /// @param _to The address of the recipient
     /// @param _amount The amount of tokens to be transferred
     /// @return True if the transfer was successful
-    function doTransfer(
-        address _from,
-        address _to,
-        uint256 _amount
-    ) internal returns (bool) {
+    function doTransfer(address _from, address _to, uint256 _amount) internal returns (bool) {
         if (_amount == 0) {
             return true;
         }
@@ -273,10 +246,7 @@ contract MiniMeToken is Controlled {
         // Alerts the token controller of the transfer
         if (isContract(controller)) {
             // Adding the ` == true` makes the linter shut up so...
-            require(
-                ITokenController(controller).onTransfer(_from, _to, _amount) ==
-                    true
-            );
+            require(ITokenController(controller).onTransfer(_from, _to, _amount) == true);
         }
         // First update the balance array with the new value for the address
         //  sending the tokens
@@ -293,11 +263,7 @@ contract MiniMeToken is Controlled {
 
     /// @param _owner The address that's balance is being requested
     /// @return The balance of `_owner` at the current block
-    function balanceOf(address _owner)
-        public
-        constant
-        returns (uint256 balance)
-    {
+    function balanceOf(address _owner) public view returns (uint256 balance) {
         return balanceOfAt(_owner, block.number);
     }
 
@@ -306,10 +272,7 @@ contract MiniMeToken is Controlled {
     /// @param _spender The address of the account able to transfer the tokens
     /// @param _amount The amount of tokens to be approved for transfer
     /// @return True if the approval was successful
-    function approve(address _spender, uint256 _amount)
-        public
-        returns (bool success)
-    {
+    function approve(address _spender, uint256 _amount) public returns (bool success) {
         _approve(msg.sender, _spender, _amount);
         return true;
     }
@@ -321,11 +284,7 @@ contract MiniMeToken is Controlled {
     /// @param _spender The address of the account able to transfer the tokens
     /// @param _amount The amount of tokens to be approved for transfer
     /// @return True if the approval was successful
-    function _approve(
-        address _owner,
-        address _spender,
-        uint256 _amount
-    ) private {
+    function _approve(address _owner, address _spender, uint256 _amount) private {
         require(transfersEnabled);
 
         // To change the approve amount you first have to reduce the addresses`
@@ -337,13 +296,7 @@ contract MiniMeToken is Controlled {
         // Alerts the token controller of the approve function call
         if (isContract(controller)) {
             // Adding the ` == true` makes the linter shut up so...
-            require(
-                ITokenController(controller).onApprove(
-                    _owner,
-                    _spender,
-                    _amount
-                ) == true
-            );
+            require(ITokenController(controller).onApprove(_owner, _spender, _amount) == true);
         }
         allowed[_owner][_spender] = _amount;
         Approval(_owner, _spender, _amount);
@@ -354,11 +307,7 @@ contract MiniMeToken is Controlled {
     /// @param _spender The address of the account able to transfer the tokens
     /// @return Amount of remaining tokens of _owner that _spender is allowed
     ///  to spend
-    function allowance(address _owner, address _spender)
-        public
-        constant
-        returns (uint256 remaining)
-    {
+    function allowance(address _owner, address _spender) public view returns (uint256 remaining) {
         return allowed[_owner][_spender];
     }
 
@@ -369,11 +318,10 @@ contract MiniMeToken is Controlled {
     /// @param _spender The address of the contract able to transfer the tokens
     /// @param _amount The amount of tokens to be approved for transfer
     /// @return True if the function call was successful
-    function approveAndCall(
-        ApproveAndCallFallBack _spender,
-        uint256 _amount,
-        bytes _extraData
-    ) public returns (bool success) {
+    function approveAndCall(ApproveAndCallFallBack _spender, uint256 _amount, bytes _extraData)
+        public
+        returns (bool success)
+    {
         require(approve(_spender, _amount));
 
         _spender.receiveApproval(msg.sender, _amount, this, _extraData);
@@ -383,7 +331,7 @@ contract MiniMeToken is Controlled {
 
     /// @dev This function makes it easy to get the total number of tokens
     /// @return The total number of tokens
-    function totalSupply() public constant returns (uint256) {
+    function totalSupply() public view returns (uint256) {
         return totalSupplyAt(block.number);
     }
 
@@ -399,51 +347,26 @@ contract MiniMeToken is Controlled {
         bytes32 _r,
         bytes32 _s
     ) public {
-        require(_deadline >= block.timestamp, "permit: AUTH_EXPIRED");
+        require(_deadline >= block.timestamp, 'permit: AUTH_EXPIRED');
 
-        bytes32 encodeData = keccak256(
-            abi.encode(
-                PERMIT_TYPEHASH,
-                _owner,
-                _spender,
-                _value,
-                nonces[_owner]++,
-                _deadline
-            )
-        );
+        bytes32 encodeData =
+            keccak256(abi.encode(PERMIT_TYPEHASH, _owner, _spender, _value, nonces[_owner]++, _deadline));
         _validateSignedData(_owner, encodeData, _v, _r, _s);
         _approve(_owner, _spender, _value);
     }
 
-    function getDomainSeparator() public constant returns (bytes32) {
-        return
-            keccak256(
-                abi.encode(
-                    EIP712DOMAIN_HASH,
-                    nameHash,
-                    VERSION_HASH,
-                    CHAINID,
-                    address(this)
-                )
-            );
+    function getDomainSeparator() public view returns (bytes32) {
+        return keccak256(abi.encode(EIP712DOMAIN_HASH, nameHash, VERSION_HASH, CHAINID, address(this)));
     }
 
-    function _validateSignedData(
-        address _signer,
-        bytes32 _encodeData,
-        uint8 _v,
-        bytes32 _r,
-        bytes32 _s
-    ) internal constant {
-        bytes32 digest = keccak256(
-            abi.encodePacked("\x19\x01", getDomainSeparator(), _encodeData)
-        );
+    function _validateSignedData(address _signer, bytes32 _encodeData, uint8 _v, bytes32 _r, bytes32 _s)
+        internal
+        view
+    {
+        bytes32 digest = keccak256(abi.encodePacked('\x19\x01', getDomainSeparator(), _encodeData));
         address recoveredAddress = ecrecover(digest, _v, _r, _s);
         // Explicitly disallow authorizations for address(0) as ecrecover returns address(0) on malformed messages
-        require(
-            recoveredAddress != 0 && recoveredAddress == _signer,
-            "_validateSignedData: INVALID_SIGNATURE"
-        );
+        require(recoveredAddress != 0 && recoveredAddress == _signer, '_validateSignedData: INVALID_SIGNATURE');
     }
 
     function transferWithAuthorization(
@@ -457,29 +380,12 @@ contract MiniMeToken is Controlled {
         bytes32 _r,
         bytes32 _s
     ) external {
-        require(
-            block.timestamp > _validAfter,
-            "transferWithAuthorization: AUTH_NOT_YET_VALID"
-        );
-        require(
-            block.timestamp < _validBefore,
-            "transferWithAuthorization: AUTH_EXPIRED"
-        );
-        require(
-            !authorizationState[_from][_nonce],
-            "transferWithAuthorization: AUTH_ALREADY_USED"
-        );
+        require(block.timestamp > _validAfter, 'transferWithAuthorization: AUTH_NOT_YET_VALID');
+        require(block.timestamp < _validBefore, 'transferWithAuthorization: AUTH_EXPIRED');
+        require(!authorizationState[_from][_nonce], 'transferWithAuthorization: AUTH_ALREADY_USED');
 
         bytes32 encodeData = keccak256(
-            abi.encode(
-                TRANSFER_WITH_AUTHORIZATION_TYPEHASH,
-                _from,
-                _to,
-                _value,
-                _validAfter,
-                _validBefore,
-                _nonce
-            )
+            abi.encode(TRANSFER_WITH_AUTHORIZATION_TYPEHASH, _from, _to, _value, _validAfter, _validBefore, _nonce)
         );
         _validateSignedData(_from, encodeData, _v, _r, _s);
 
@@ -497,26 +403,15 @@ contract MiniMeToken is Controlled {
     /// @param _owner The address from which the balance will be retrieved
     /// @param _blockNumber The block number when the balance is queried
     /// @return The balance at `_blockNumber`
-    function balanceOfAt(address _owner, uint256 _blockNumber)
-        public
-        constant
-        returns (uint256)
-    {
+    function balanceOfAt(address _owner, uint256 _blockNumber) public view returns (uint256) {
         // These next few lines are used when the balance of the token is
         //  requested before a check point was ever created for this token, it
         //  requires that the `parentToken.balanceOfAt` be queried at the
         //  genesis block for that token as this contains initial balance of
         //  this token
-        if (
-            (balances[_owner].length == 0) ||
-            (balances[_owner][0].fromBlock > _blockNumber)
-        ) {
+        if ((balances[_owner].length == 0) || (balances[_owner][0].fromBlock > _blockNumber)) {
             if (address(parentToken) != 0) {
-                return
-                    parentToken.balanceOfAt(
-                        _owner,
-                        min(_blockNumber, parentSnapShotBlock)
-                    );
+                return parentToken.balanceOfAt(_owner, min(_blockNumber, parentSnapShotBlock));
             } else {
                 // Has no parent
                 return 0;
@@ -531,25 +426,15 @@ contract MiniMeToken is Controlled {
     /// @notice Total amount of tokens at a specific `_blockNumber`.
     /// @param _blockNumber The block number when the totalSupply is queried
     /// @return The total amount of tokens at `_blockNumber`
-    function totalSupplyAt(uint256 _blockNumber)
-        public
-        constant
-        returns (uint256)
-    {
+    function totalSupplyAt(uint256 _blockNumber) public view returns (uint256) {
         // These next few lines are used when the totalSupply of the token is
         //  requested before a check point was ever created for this token, it
         //  requires that the `parentToken.totalSupplyAt` be queried at the
         //  genesis block for this token as that contains totalSupply of this
         //  token at this block number.
-        if (
-            (totalSupplyHistory.length == 0) ||
-            (totalSupplyHistory[0].fromBlock > _blockNumber)
-        ) {
+        if ((totalSupplyHistory.length == 0) || (totalSupplyHistory[0].fromBlock > _blockNumber)) {
             if (address(parentToken) != 0) {
-                return
-                    parentToken.totalSupplyAt(
-                        min(_blockNumber, parentSnapShotBlock)
-                    );
+                return parentToken.totalSupplyAt(min(_blockNumber, parentSnapShotBlock));
             } else {
                 return 0;
             }
@@ -581,17 +466,10 @@ contract MiniMeToken is Controlled {
         uint256 _snapshotBlock,
         bool _transfersEnabled
     ) public returns (MiniMeToken) {
-        uint256 snapshot = _snapshotBlock == 0
-            ? block.number - 1
-            : _snapshotBlock;
+        uint256 snapshot = _snapshotBlock == 0 ? block.number - 1 : _snapshotBlock;
 
         MiniMeToken cloneToken = tokenFactory.createCloneToken(
-            this,
-            snapshot,
-            _cloneTokenName,
-            _cloneDecimalUnits,
-            _cloneTokenSymbol,
-            _transfersEnabled
+            this, snapshot, _cloneTokenName, _cloneDecimalUnits, _cloneTokenSymbol, _transfersEnabled
         );
 
         cloneToken.changeController(msg.sender);
@@ -609,11 +487,7 @@ contract MiniMeToken is Controlled {
     /// @param _owner The address that will be assigned the new tokens
     /// @param _amount The quantity of tokens generated
     /// @return True if the tokens are generated correctly
-    function generateTokens(address _owner, uint256 _amount)
-        public
-        onlyController
-        returns (bool)
-    {
+    function generateTokens(address _owner, uint256 _amount) public onlyController returns (bool) {
         uint256 curTotalSupply = totalSupply();
         require(curTotalSupply + _amount >= curTotalSupply); // Check for overflow
         uint256 previousBalanceTo = balanceOf(_owner);
@@ -628,11 +502,7 @@ contract MiniMeToken is Controlled {
     /// @param _owner The address that will lose the tokens
     /// @param _amount The quantity of tokens to burn
     /// @return True if the tokens are burned correctly
-    function destroyTokens(address _owner, uint256 _amount)
-        public
-        onlyController
-        returns (bool)
-    {
+    function destroyTokens(address _owner, uint256 _amount) public onlyController returns (bool) {
         uint256 curTotalSupply = totalSupply();
         require(curTotalSupply >= _amount);
         uint256 previousBalanceFrom = balanceOf(_owner);
@@ -661,16 +531,13 @@ contract MiniMeToken is Controlled {
     /// @param checkpoints The history of values being queried
     /// @param _block The block number to retrieve the value at
     /// @return The number of tokens being queried
-    function getValueAt(Checkpoint[] storage checkpoints, uint256 _block)
-        internal
-        constant
-        returns (uint256)
-    {
+    function getValueAt(Checkpoint[] storage checkpoints, uint256 _block) internal view returns (uint256) {
         if (checkpoints.length == 0) return 0;
 
         // Shortcut for the actual value
-        if (_block >= checkpoints[checkpoints.length - 1].fromBlock)
+        if (_block >= checkpoints[checkpoints.length - 1].fromBlock) {
             return checkpoints[checkpoints.length - 1].value;
+        }
         if (_block < checkpoints[0].fromBlock) return 0;
 
         // Binary search of the value in the array
@@ -691,24 +558,15 @@ contract MiniMeToken is Controlled {
     ///  `totalSupplyHistory`
     /// @param checkpoints The history of data being updated
     /// @param _value The new number of tokens
-    function updateValueAtNow(Checkpoint[] storage checkpoints, uint256 _value)
-        internal
-    {
+    function updateValueAtNow(Checkpoint[] storage checkpoints, uint256 _value) internal {
         require(_value <= uint128(-1));
 
-        if (
-            (checkpoints.length == 0) ||
-            (checkpoints[checkpoints.length - 1].fromBlock < block.number)
-        ) {
-            Checkpoint storage newCheckPoint = checkpoints[
-                checkpoints.length++
-            ];
+        if ((checkpoints.length == 0) || (checkpoints[checkpoints.length - 1].fromBlock < block.number)) {
+            Checkpoint storage newCheckPoint = checkpoints[checkpoints.length++];
             newCheckPoint.fromBlock = uint128(block.number);
             newCheckPoint.value = uint128(_value);
         } else {
-            Checkpoint storage oldCheckPoint = checkpoints[
-                checkpoints.length - 1
-            ];
+            Checkpoint storage oldCheckPoint = checkpoints[checkpoints.length - 1];
             oldCheckPoint.value = uint128(_value);
         }
     }
@@ -716,7 +574,7 @@ contract MiniMeToken is Controlled {
     /// @dev Internal function to determine if an address is a contract
     /// @param _addr The address being queried
     /// @return True if `_addr` is a contract
-    function isContract(address _addr) internal constant returns (bool) {
+    function isContract(address _addr) internal view returns (bool) {
         uint256 size;
         if (_addr == 0) return false;
 
@@ -738,11 +596,7 @@ contract MiniMeToken is Controlled {
     function() external payable {
         require(isContract(controller));
         // Adding the ` == true` makes the linter shut up so...
-        require(
-            ITokenController(controller).proxyPayment.value(msg.value)(
-                msg.sender
-            ) == true
-        );
+        require(ITokenController(controller).proxyPayment.value(msg.value)(msg.sender) == true);
     }
 
     //////////
@@ -768,18 +622,10 @@ contract MiniMeToken is Controlled {
     ////////////////
     // Events
     ////////////////
-    event ClaimedTokens(
-        address indexed _token,
-        address indexed _controller,
-        uint256 _amount
-    );
+    event ClaimedTokens(address indexed _token, address indexed _controller, uint256 _amount);
     event Transfer(address indexed _from, address indexed _to, uint256 _amount);
     event NewCloneToken(address indexed _cloneToken, uint256 _snapshotBlock);
-    event Approval(
-        address indexed _owner,
-        address indexed _spender,
-        uint256 _amount
-    );
+    event Approval(address indexed _owner, address indexed _spender, uint256 _amount);
     event AuthorizationUsed(address indexed authorizer, bytes32 indexed nonce);
 }
 
@@ -791,11 +637,7 @@ contract MiniMeToken is Controlled {
 ///  In solidity this is the way to create a contract from a contract of the
 ///  same class
 contract MiniMeTokenFactory {
-    event NewFactoryCloneToken(
-        address indexed _cloneToken,
-        address indexed _parentToken,
-        uint256 _snapshotBlock
-    );
+    event NewFactoryCloneToken(address indexed _cloneToken, address indexed _parentToken, uint256 _snapshotBlock);
 
     /// @notice Update the DApp by creating a new token with new functionalities
     ///  the msg.sender becomes the controller of this clone token
@@ -816,21 +658,11 @@ contract MiniMeTokenFactory {
         bool _transfersEnabled
     ) public returns (MiniMeToken) {
         MiniMeToken newToken = new MiniMeToken(
-            this,
-            _parentToken,
-            _snapshotBlock,
-            _tokenName,
-            _decimalUnits,
-            _tokenSymbol,
-            _transfersEnabled
+            this, _parentToken, _snapshotBlock, _tokenName, _decimalUnits, _tokenSymbol, _transfersEnabled
         );
 
         newToken.changeController(msg.sender);
-        NewFactoryCloneToken(
-            address(newToken),
-            address(_parentToken),
-            _snapshotBlock
-        );
+        NewFactoryCloneToken(address(newToken), address(_parentToken), _snapshotBlock);
         return newToken;
     }
 }

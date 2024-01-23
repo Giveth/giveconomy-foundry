@@ -95,9 +95,7 @@ contract GIVpowerTest is Test {
 
     function getImplementationStorageData(address[] memory _users) public view returns (StorageData memory) {
         uint256[] memory usersBalances = new uint256[](_users.length);
-        uint256[] memory usersRewardsPerTokenPaid = new uint256[](
-            _users.length
-        );
+        uint256[] memory usersRewardsPerTokenPaid = new uint256[](_users.length);
         uint256[] memory usersRewards = new uint256[](_users.length);
 
         for (uint256 i = 0; i < _users.length; i++) {

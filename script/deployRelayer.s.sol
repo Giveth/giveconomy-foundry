@@ -29,9 +29,11 @@ contract deployRelayer is Script {
         givbacksRelayerProxyAdmin = new ProxyAdmin();
         // new implementation
         implementation = new GIVbacksRelayer();
-        givbacksRelayerProxy =
-        new TransparentUpgradeableProxy(payable(address(implementation)), address(givbacksRelayerProxyAdmin),
-         abi.encodeWithSelector(GIVbacksRelayer(givbacksRelayer).initialize.selector, tokenDistro, deployer, batcher));
+        givbacksRelayerProxy = new TransparentUpgradeableProxy(
+            payable(address(implementation)),
+            address(givbacksRelayerProxyAdmin),
+            abi.encodeWithSelector(GIVbacksRelayer(givbacksRelayer).initialize.selector, tokenDistro, deployer, batcher)
+        );
         givbacksRelayer = GIVbacksRelayer(address(givbacksRelayerProxy));
 
         console.log('proxy admin', address(givbacksRelayerProxyAdmin));

@@ -2,15 +2,15 @@
 
 pragma solidity 0.8.6;
 
-import "openzeppelin-contracts-v4/token/ERC20/IERC20.sol";
-import "openzeppelin-contracts-upgradable-v4/access/OwnableUpgradeable.sol";
-import "../Interfaces/IDistro.sol";
+import 'openzeppelin-contracts-v4/token/ERC20/IERC20.sol';
+import 'openzeppelin-contracts-upgradable-v4/access/OwnableUpgradeable.sol';
+import '../Interfaces/IDistro.sol';
 
 contract UniswapV3RewardToken is IERC20, OwnableUpgradeable {
     uint256 public initialBalance;
 
-    string public constant name = "Giveth Uniswap V3 Reward Token";
-    string public constant symbol = "GUR";
+    string public constant name = 'Giveth Uniswap V3 Reward Token';
+    string public constant symbol = 'GUR';
     uint8 public constant decimals = 18;
 
     IDistro public tokenDistro;
@@ -35,10 +35,7 @@ contract UniswapV3RewardToken is IERC20, OwnableUpgradeable {
     /// @param account The account that enabled the contract
     event Enabled(address account);
 
-    function initialize(IDistro _tokenDistribution, address _uniswapV3Staker)
-        public
-        initializer
-    {
+    function initialize(IDistro _tokenDistribution, address _uniswapV3Staker) public initializer {
         __Ownable_init();
         tokenDistro = _tokenDistribution;
         uniswapV3Staker = _uniswapV3Staker;
@@ -53,15 +50,8 @@ contract UniswapV3RewardToken is IERC20, OwnableUpgradeable {
         return true;
     }
 
-    function transfer(address to, uint256 value)
-        external
-        override
-        returns (bool)
-    {
-        require(
-            msg.sender == uniswapV3Staker,
-            "GivethUniswapV3Reward:transfer:ONLY_STAKER"
-        );
+    function transfer(address to, uint256 value) external override returns (bool) {
+        require(msg.sender == uniswapV3Staker, 'GivethUniswapV3Reward:transfer:ONLY_STAKER');
 
         totalSupply = totalSupply - value;
         if (!disabled) {
@@ -74,27 +64,14 @@ contract UniswapV3RewardToken is IERC20, OwnableUpgradeable {
         return true;
     }
 
-    function transferFrom(
-        address from,
-        address to,
-        uint256 value
-    ) external override returns (bool) {
-        require(
-            from == owner(),
-            "GivethUniswapV3Reward:transferFrom:ONLY_OWNER_CAN_ADD_INCENTIVES"
-        );
+    function transferFrom(address from, address to, uint256 value) external override returns (bool) {
+        require(from == owner(), 'GivethUniswapV3Reward:transferFrom:ONLY_OWNER_CAN_ADD_INCENTIVES');
 
         // Only uniswapV3Staker can do the transferFrom
-        require(
-            msg.sender == uniswapV3Staker,
-            "GivethUniswapV3Reward:transferFrom:ONLY_STAKER"
-        );
+        require(msg.sender == uniswapV3Staker, 'GivethUniswapV3Reward:transferFrom:ONLY_STAKER');
 
         // Only to uniswapV3Staker is allowed
-        require(
-            to == uniswapV3Staker,
-            "GivethUniswapV3Reward:transferFrom:ONLY_TO_STAKER"
-        );
+        require(to == uniswapV3Staker, 'GivethUniswapV3Reward:transferFrom:ONLY_TO_STAKER');
 
         totalSupply = totalSupply + value;
 
@@ -102,12 +79,7 @@ contract UniswapV3RewardToken is IERC20, OwnableUpgradeable {
         return true;
     }
 
-    function allowance(address, address spender)
-        external
-        view
-        override
-        returns (uint256)
-    {
+    function allowance(address, address spender) external view override returns (uint256) {
         if (spender == uniswapV3Staker) return type(uint256).max;
         return 0;
     }
