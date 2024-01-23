@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.6;
 
-import 'openzeppelin-contracts-v4/token/ERC20/IERC20.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 // Lightweight token modelled after UNI-LP:
 // https://github.com/Uniswap/uniswap-v2-core/blob/v1.0.1/contracts/UniswapV2ERC20.sol
