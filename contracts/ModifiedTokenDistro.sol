@@ -5,7 +5,6 @@ import '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeab
 import '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
-import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import './interfaces/IDistroModified.sol';
 
 /**
@@ -13,8 +12,7 @@ import './interfaces/IDistroModified.sol';
  * The distributor is in charge of releasing the corresponding amounts to its recipients.
  * This distributor is expected to be another smart contract, such as a merkledrop or the liquidity mining smart contract
  */
-contract TokenDistro is Initializable, IDistro, AccessControlEnumerableUpgradeable {
-    using SafeMath for uint256;
+contract TokenDistroV2 is Initializable, IDistro, AccessControlEnumerableUpgradeable {
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
     // bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
@@ -228,24 +226,7 @@ contract TokenDistro is Initializable, IDistro, AccessControlEnumerableUpgradeab
      *
      */
     function changeAddress(address newAddress) external override {
-        // require(
-        //     balances[newAddress].allocatedTokens == 0 &&
-        //         balances[newAddress].claimed == 0,
-        //     "TokenDistro::changeAddress: ADDRESS_ALREADY_IN_USE"
-        // );
-
-        require(
-            !hasRole(DISTRIBUTOR_ROLE, msg.sender) && !hasRole(DISTRIBUTOR_ROLE, newAddress),
-            'TokenDistro::changeAddress: DISTRIBUTOR_ROLE_NOT_A_VALID_ADDRESS'
-        );
-        // balance adds instead of overwrites
-        balances[newAddress].allocatedTokens += balances[msg.sender].allocatedTokens;
-        balances[msg.sender].allocatedTokens = 0;
-
-        balances[newAddress].claimed += balances[msg.sender].claimed;
-        balances[msg.sender].claimed = 0;
-
-        emit ChangeAddress(msg.sender, newAddress);
+        _transferAllocation(msg.sender, newAddress);
     }
 
     /**
@@ -299,31 +280,10 @@ contract TokenDistro is Initializable, IDistro, AccessControlEnumerableUpgradeab
      *
      */
     function transferAllocation(address prevRecipient, address newRecipient) external override {
-        require(
-            balances[prevRecipient].allocatedTokens > 0, 'TokenDistro::transferAllocation: NO_ALLOCATION_TO_TRANSFER'
-        );
+        require(cancelable, 'TokenDistro::transferAllocation: NOT_CANCELABLE');
+
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), 'TokenDistro::transferAllocation: ONLY_ADMIN_ROLE');
-
-        // require(
-        //     balances[newRecipient].allocatedTokens == 0 &&
-        //         balances[newRecipient].claimed == 0,
-        //     "TokenDistro::cancelAllocation: ADDRESS_ALREADY_IN_USE"
-        // );
-
-        require(
-            !hasRole(DISTRIBUTOR_ROLE, prevRecipient) && !hasRole(DISTRIBUTOR_ROLE, newRecipient),
-            'TokenDistro::transferAllocation: DISTRIBUTOR_ROLE_NOT_A_VALID_ADDRESS'
-        );
-        // balance adds instead of overwrites
-        balances[newRecipient].allocatedTokens =
-            balances[prevRecipient].allocatedTokens.add(balances[newRecipient].allocatedTokens);
-        balances[prevRecipient].allocatedTokens = 0;
-
-        balances[newRecipient].claimed = balances[prevRecipient].claimed.add(balances[newRecipient].claimed);
-
-        balances[prevRecipient].claimed = 0;
-
-        emit ChangeAddress(prevRecipient, newRecipient);
+        _transferAllocation(prevRecipient, newRecipient);
     }
 
     /**
@@ -355,5 +315,25 @@ contract TokenDistro is Initializable, IDistro, AccessControlEnumerableUpgradeab
         duration = newDuration;
 
         emit DurationChanged(newDuration);
+    }
+
+    function _transferAllocation(address prevRecipient, address newRecipient) internal {
+        require(
+            balances[prevRecipient].allocatedTokens > 0, 'TokenDistro::transferAllocation: NO_ALLOCATION_TO_TRANSFER'
+        );
+        require(
+            !hasRole(DISTRIBUTOR_ROLE, prevRecipient) && !hasRole(DISTRIBUTOR_ROLE, newRecipient),
+            'TokenDistro::transferAllocation: DISTRIBUTOR_ROLE_NOT_A_VALID_ADDRESS'
+        );
+        // balance adds instead of overwrites
+        balances[newRecipient].allocatedTokens =
+            balances[prevRecipient].allocatedTokens + balances[newRecipient].allocatedTokens;
+        balances[prevRecipient].allocatedTokens = 0;
+
+        balances[newRecipient].claimed = balances[prevRecipient].claimed + balances[newRecipient].claimed;
+
+        balances[prevRecipient].claimed = 0;
+
+        emit ChangeAddress(prevRecipient, newRecipient);
     }
 }
