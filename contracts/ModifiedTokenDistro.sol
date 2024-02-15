@@ -130,6 +130,7 @@ contract TokenDistroV2 is Initializable, IDistro, AccessControlEnumerableUpgrade
     function assign(address distributor, uint256 amount) external override {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), 'TokenDistro::assign: ONLY_ADMIN_ROLE');
         require(hasRole(DISTRIBUTOR_ROLE, distributor), 'TokenDistro::assign: ONLY_TO_DISTRIBUTOR_ROLE');
+        require(balances[address(this)].allocatedTokens > amount, 'TokenDistro::assign: NOT_ENOUGH_TOKENS');
 
         balances[address(this)].allocatedTokens = balances[address(this)].allocatedTokens - amount;
         balances[distributor].allocatedTokens = balances[distributor].allocatedTokens + amount;
@@ -171,7 +172,7 @@ contract TokenDistroV2 is Initializable, IDistro, AccessControlEnumerableUpgrade
      */
     function _allocate(address recipient, uint256 amount, bool claim) internal {
         require(!hasRole(DISTRIBUTOR_ROLE, recipient), 'TokenDistro::allocate: DISTRIBUTOR_NOT_VALID_RECIPIENT');
-
+        require(balances[msg.sender].allocatedTokens > amount, 'TokenDistro::allocate NOT_ENOUGH_TOKENS');
         balances[msg.sender].allocatedTokens = balances[msg.sender].allocatedTokens - amount;
 
         balances[recipient].allocatedTokens = balances[recipient].allocatedTokens + amount;
@@ -196,9 +197,10 @@ contract TokenDistroV2 is Initializable, IDistro, AccessControlEnumerableUpgrade
      * Unlike allocate method it doesn't claim recipients available balance
      */
     function _allocateMany(address[] memory recipients, uint256[] memory amounts) internal onlyDistributor {
-        require(recipients.length == amounts.length, 'TokenDistro::allocateMany: INPUT_LENGTH_NOT_MATCH');
+        uint256 length = recipients.length;
+        require(length == amounts.length, 'TokenDistro::allocateMany: INPUT_LENGTH_NOT_MATCH');
 
-        for (uint256 i = 0; i < recipients.length; i++) {
+        for (uint256 i = 0; i < length; i++) {
             _allocate(recipients[i], amounts[i], false);
         }
     }
@@ -242,6 +244,7 @@ contract TokenDistroV2 is Initializable, IDistro, AccessControlEnumerableUpgrade
      * @return Number of tokens claimable at that timestamp
      */
     function globallyClaimableAt(uint256 timestamp) public view override returns (uint256) {
+        require(duration > 0, 'TokenDistro::globallyClaimableAt: DURATION_ZERO');
         if (timestamp < startTime) return 0;
         if (timestamp < cliffTime) return initialAmount;
         if (timestamp > startTime + duration) return totalTokens;
@@ -258,9 +261,10 @@ contract TokenDistroV2 is Initializable, IDistro, AccessControlEnumerableUpgrade
     function claimableAt(address recipient, uint256 timestamp) public view override returns (uint256) {
         require(!hasRole(DISTRIBUTOR_ROLE, recipient), 'TokenDistro::claimableAt: DISTRIBUTOR_ROLE_CANNOT_CLAIM');
         require(timestamp >= getTimestamp(), 'TokenDistro::claimableAt: NOT_VALID_PAST_TIMESTAMP');
+        require(totalTokens > 0, 'TokenDistro::claimableAt: TOTAL_TOKENS_ZERO');
         uint256 unlockedAmount = (globallyClaimableAt(timestamp) * balances[recipient].allocatedTokens) / totalTokens;
-
-        return unlockedAmount - balances[recipient].claimed;
+        if (unlockedAmount > balances[recipient].claimed) return unlockedAmount - balances[recipient].claimed;
+        return 0;
     }
 
     /**
@@ -319,7 +323,9 @@ contract TokenDistroV2 is Initializable, IDistro, AccessControlEnumerableUpgrade
 
     function _transferAllocation(address prevRecipient, address newRecipient) internal {
         require(
-            balances[prevRecipient].allocatedTokens > 0, 'TokenDistro::transferAllocation: NO_ALLOCATION_TO_TRANSFER'
+            balances[prevRecipient].allocatedTokens > 0
+                && balances[prevRecipient].allocatedTokens != balances[prevRecipient].claimed,
+            'TokenDistro::transferAllocation: NO_ALLOCATION_TO_TRANSFER'
         );
         require(
             !hasRole(DISTRIBUTOR_ROLE, prevRecipient) && !hasRole(DISTRIBUTOR_ROLE, newRecipient),

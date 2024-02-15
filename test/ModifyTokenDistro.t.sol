@@ -228,7 +228,7 @@ contract TestModifyDistro is Test {
 
     function testChangeAddressWithClaim(uint256 amount1, uint256 amount2) public {
         /// @aminlatifi for some reason this does not want to work with the min bound as 1 - throws no tokens to claim error
-        amount1 = bound(amount1, 10, assignedAmount.div(2));
+        amount1 = bound(amount1, 10, (assignedAmount-1).div(2));
         amount2 = bound(amount2, 10, assignedAmount.div(2));
 
         address[] memory recipients = new address[](2);
@@ -268,47 +268,4 @@ contract TestModifyDistro is Test {
         assertEq(firstAllocatedAfterTransfer, 0);
         assertEq(firstClaimedAfterTransfer, 0);
     }
-
-    // function testCancelAllocation() public {
-    //     uint256 amount = 100000000000;
-    //     vm.prank(distributor);
-    //     tokenDistro.allocate(firstRecipient, amount, false);
-    //     (uint256 allocatedTokens,uint256 claimedTokens) = tokenDistro.balances(firstRecipient);
-    //     assertEq(allocatedTokens, amount);
-    //     assertEq(claimedTokens, 0);
-    //     vm.prank(givethMultisig);
-    //     tokenDistro.cancelAllocation(firstRecipient);
-    //     (uint256 allocatedTokensAfterCancel, uint256 claimedTokensAfterCancel) = tokenDistro.balances(firstRecipient);
-    //     assertEq(allocatedTokensAfterCancel, 0);
-    //     assertEq(claimedTokensAfterCancel, 0);
-    // }
-
-    // function testCancelAllocationWithClaim() public {
-    //     uint256 amount = 100000000000;
-    //     vm.prank(distributor);
-    //     tokenDistro.allocate(firstRecipient, amount, true);
-
-    //     skip(14 days);
-    //     vm.prank(firstRecipient);
-    //     tokenDistro.claim();
-    //     (,uint256 claimedTokensAfterClaim) = tokenDistro.balances(firstRecipient);
-    //     vm.prank(givethMultisig);
-    //     tokenDistro.cancelAllocation(firstRecipient);
-    //     (uint256 allocatedTokensAfterCancel, uint256 claimedTokensAfterCancel) = tokenDistro.balances(firstRecipient);
-    //     assertEq(allocatedTokensAfterCancel, claimedTokensAfterClaim);
-    //     assertEq(claimedTokensAfterCancel, claimedTokensAfterClaim);
-    // }
-
-    // function testCancelAllocationRevert() public {
-    //     testCancelAllocationWithClaim();
-
-    //     skip(14 days);
-
-    //     console.log('claimable for first recipient',tokenDistro.claimableNow(firstRecipient));
-    //     // vm.expectRevert("TokenDistroV2::claim: NOT_ENOUGH_TOKENS_TO_CLAIM");
-
-    //     // vm.prank(firstRecipient);
-    //     // tokenDistro.claim();
-
-    // }
 }
