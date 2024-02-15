@@ -228,7 +228,7 @@ contract TestModifyDistro is Test {
 
     function testChangeAddressWithClaim(uint256 amount1, uint256 amount2) public {
         /// @aminlatifi for some reason this does not want to work with the min bound as 1 - throws no tokens to claim error
-        amount1 = bound(amount1, 10, (assignedAmount-1).div(2));
+        amount1 = bound(amount1, 10, (assignedAmount - 1).div(2));
         amount2 = bound(amount2, 10, assignedAmount.div(2));
 
         address[] memory recipients = new address[](2);
