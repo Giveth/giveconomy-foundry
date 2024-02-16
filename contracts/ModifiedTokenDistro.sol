@@ -282,6 +282,7 @@ contract TokenDistroV2 is Initializable, IDistro, AccessControlEnumerableUpgrade
      *
      * Emits a {ChangeAddress} event.
      *
+     * Formerly called cancelAllocation, this is an admin only function and should only be called manually
      */
     function transferAllocation(address prevRecipient, address newRecipient) external override {
         require(cancelable, 'TokenDistro::transferAllocation: NOT_CANCELABLE');
