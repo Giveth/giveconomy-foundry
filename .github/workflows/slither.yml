@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v4
         with: 
-          node-version: '18'
+          node-version: '20'
 
       - uses: actions/checkout@v3
         with:
@@ -24,7 +24,7 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: nightly
+          version: 2.0.0
 
       - name: Install deps
         run: |
@@ -38,9 +38,9 @@ jobs:
         with:
           sarif: results.sarif
           target: 'contracts/'
-          node-version: '18'
+          node-version: '20'
 
       - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: ${{ steps.slither.outputs.sarif }}
