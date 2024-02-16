@@ -17,7 +17,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - run: pwd
+      - run: ls --all
+      - run: ls ../ --all
       - name: Run Slither
         uses: crytic/slither-action@v0.3.1
         id: slither
