@@ -126,7 +126,7 @@ contract TestModifyDistro is Test {
     }
 
     function testTransferAllocationWithClaim(uint256 amount1, uint256 amount2) public {
-        amount1 = bound(amount1, 10, assignedAmount.div(2));
+        amount1 = bound(amount1, 10, (assignedAmount - 1).div(2));
         amount2 = bound(amount2, 10, assignedAmount.div(2));
 
         address[] memory recipients = new address[](2);
