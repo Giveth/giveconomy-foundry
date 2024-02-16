@@ -13,6 +13,9 @@ jobs:
     name: Slither check
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/setup-node@v4
+        with: node-version: '18'
+
       - uses: actions/checkout@v3
         with:
           submodules: recursive
@@ -34,6 +37,7 @@ jobs:
         with:
           sarif: results.sarif
           target: 'contracts/'
+          node-version: '18'
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v2
