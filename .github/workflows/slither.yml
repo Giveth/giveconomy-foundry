@@ -13,32 +13,19 @@ jobs:
     name: Slither check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@v4
-        with: 
-          node-version: '20'
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: 0.2.0
-
-      - name: Install deps
-        run: |
-          forge --version
-          forge install
-
       - name: Run Slither
-        uses: crytic/slither-action@main
+        uses: crytic/slither-action@v0.3.1
         id: slither
-        continue-on-error: true
         with:
           sarif: results.sarif
           target: 'contracts/'
           node-version: '20'
+          fail-on: none
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v3
