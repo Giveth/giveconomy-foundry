@@ -17,15 +17,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - run: ls --all
-      - run: ls ../ --all
+     
       - name: Run Slither
-        uses: crytic/slither-action@v0.3.1
+        uses: crytic/slither-action@v0.3.0
         id: slither
         with:
           sarif: results.sarif
           target: 'contracts/'
-          node-version: '20'
           fail-on: none
 
       - name: Upload SARIF file
