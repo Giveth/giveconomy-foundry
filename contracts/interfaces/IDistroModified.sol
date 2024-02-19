@@ -99,4 +99,6 @@ interface IDistro {
     function claimableNow(address recipient) external view returns (uint256);
 
     function transferAllocation(address prevRecipient, address newRecipient) external;
+
+    function sendPraiseRewards(address[] memory recipients, uint256[] memory amounts) external;
 }
