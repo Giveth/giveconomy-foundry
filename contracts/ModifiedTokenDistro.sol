@@ -130,7 +130,6 @@ contract TokenDistroV1 is Initializable, IDistro, AccessControlEnumerableUpgrade
     function assign(address distributor, uint256 amount) external override {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), 'TokenDistro::assign: ONLY_ADMIN_ROLE');
         require(hasRole(DISTRIBUTOR_ROLE, distributor), 'TokenDistro::assign: ONLY_TO_DISTRIBUTOR_ROLE');
-        require(balances[address(this)].allocatedTokens > amount, 'TokenDistro::assign: NOT_ENOUGH_TOKENS');
 
         balances[address(this)].allocatedTokens = balances[address(this)].allocatedTokens - amount;
         balances[distributor].allocatedTokens = balances[distributor].allocatedTokens + amount;
@@ -172,7 +171,6 @@ contract TokenDistroV1 is Initializable, IDistro, AccessControlEnumerableUpgrade
      */
     function _allocate(address recipient, uint256 amount, bool claim) internal {
         require(!hasRole(DISTRIBUTOR_ROLE, recipient), 'TokenDistro::allocate: DISTRIBUTOR_NOT_VALID_RECIPIENT');
-        require(balances[msg.sender].allocatedTokens > amount, 'TokenDistro::allocate NOT_ENOUGH_TOKENS');
         balances[msg.sender].allocatedTokens = balances[msg.sender].allocatedTokens - amount;
 
         balances[recipient].allocatedTokens = balances[recipient].allocatedTokens + amount;
@@ -244,7 +242,6 @@ contract TokenDistroV1 is Initializable, IDistro, AccessControlEnumerableUpgrade
      * @return Number of tokens claimable at that timestamp
      */
     function globallyClaimableAt(uint256 timestamp) public view override returns (uint256) {
-        require(duration > 0, 'TokenDistro::globallyClaimableAt: DURATION_ZERO');
         if (timestamp < startTime) return 0;
         if (timestamp < cliffTime) return initialAmount;
         if (timestamp > startTime + duration) return totalTokens;
@@ -262,8 +259,8 @@ contract TokenDistroV1 is Initializable, IDistro, AccessControlEnumerableUpgrade
         require(!hasRole(DISTRIBUTOR_ROLE, recipient), 'TokenDistro::claimableAt: DISTRIBUTOR_ROLE_CANNOT_CLAIM');
         require(timestamp >= getTimestamp(), 'TokenDistro::claimableAt: NOT_VALID_PAST_TIMESTAMP');
         uint256 unlockedAmount = (globallyClaimableAt(timestamp) * balances[recipient].allocatedTokens) / totalTokens;
-        if (unlockedAmount > balances[recipient].claimed) return unlockedAmount - balances[recipient].claimed;
-        return 0;
+
+        return unlockedAmount - balances[recipient].claimed;
     }
 
     /**
