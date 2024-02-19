@@ -12,7 +12,7 @@ import './interfaces/IDistroModified.sol';
  * The distributor is in charge of releasing the corresponding amounts to its recipients.
  * This distributor is expected to be another smart contract, such as a merkledrop or the liquidity mining smart contract
  */
-contract TokenDistroV2 is Initializable, IDistro, AccessControlEnumerableUpgradeable {
+contract TokenDistroV1 is Initializable, IDistro, AccessControlEnumerableUpgradeable {
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
     // bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
@@ -261,7 +261,6 @@ contract TokenDistroV2 is Initializable, IDistro, AccessControlEnumerableUpgrade
     function claimableAt(address recipient, uint256 timestamp) public view override returns (uint256) {
         require(!hasRole(DISTRIBUTOR_ROLE, recipient), 'TokenDistro::claimableAt: DISTRIBUTOR_ROLE_CANNOT_CLAIM');
         require(timestamp >= getTimestamp(), 'TokenDistro::claimableAt: NOT_VALID_PAST_TIMESTAMP');
-        require(totalTokens > 0, 'TokenDistro::claimableAt: TOTAL_TOKENS_ZERO');
         uint256 unlockedAmount = (globallyClaimableAt(timestamp) * balances[recipient].allocatedTokens) / totalTokens;
         if (unlockedAmount > balances[recipient].claimed) return unlockedAmount - balances[recipient].claimed;
         return 0;
@@ -324,9 +323,7 @@ contract TokenDistroV2 is Initializable, IDistro, AccessControlEnumerableUpgrade
 
     function _transferAllocation(address prevRecipient, address newRecipient) internal {
         require(
-            balances[prevRecipient].allocatedTokens > 0
-                && balances[prevRecipient].allocatedTokens != balances[prevRecipient].claimed,
-            'TokenDistro::transferAllocation: NO_ALLOCATION_TO_TRANSFER'
+            balances[prevRecipient].allocatedTokens > 0, 'TokenDistro::transferAllocation: NO_ALLOCATION_TO_TRANSFER'
         );
         require(
             !hasRole(DISTRIBUTOR_ROLE, prevRecipient) && !hasRole(DISTRIBUTOR_ROLE, newRecipient),
