@@ -339,11 +339,4 @@ contract TokenDistro is Initializable, IDistro, AccessControlEnumerableUpgradeab
 
         emit DurationChanged(newDuration);
     }
-
-    event PraiseRewardPaid(address distributor);
-
-    function sendPraiseRewards(address[] memory recipients, uint256[] memory amounts) external {
-        _allocateMany(recipients, amounts);
-        emit PraiseRewardPaid(msg.sender);
-    }
 }
