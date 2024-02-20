@@ -212,7 +212,7 @@ contract TokenDistroV1 is Initializable, IDistro, AccessControlEnumerableUpgrade
         emit GivBackPaid(msg.sender);
     }
 
-    function sendPraiseRewards(address[] memory recipients, uint256[] memory amounts) external {
+    function sendPraiseRewards(address[] memory recipients, uint256[] memory amounts) external override {
         _allocateMany(recipients, amounts);
         emit PraiseRewardPaid(msg.sender);
     }
