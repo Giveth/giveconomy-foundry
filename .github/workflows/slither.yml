@@ -18,10 +18,9 @@ jobs:
       - name: Run Slither
         uses: crytic/slither-action@v0.3.1
         id: slither
-        continue-on-error: true
         with:
           sarif: results.sarif
-          target: "contracts/"
+          target: "./"
           fail-on: none
 
       - name: Upload SARIF file
