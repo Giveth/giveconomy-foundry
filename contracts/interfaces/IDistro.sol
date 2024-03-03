@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 
-pragma solidity =0.8.10;
+pragma solidity ^0.8.10;
 
 interface IDistro {
     /**
@@ -100,5 +100,5 @@ interface IDistro {
      */
     function claimableNow(address recipient) external view returns (uint256);
 
-    function cancelAllocation(address prevRecipient, address newRecipient) external;
+    function transferAllocation(address prevRecipient, address newRecipient) external;
 }
