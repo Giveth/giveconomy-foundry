@@ -16,7 +16,7 @@ jobs:
           submodules: recursive
 
       - name: Run Slither
-        uses: crytic/slither-action@v0.3.0
+        uses: crytic/slither-action@v0.3.1
         id: slither
         with:
           sarif: results.sarif
