@@ -10,9 +10,9 @@ import '@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.so
 import '@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol';
 import 'forge-std/Test.sol';
 import 'forge-std/console.sol';
-import '../contracts/ModifiedTokenDistro.sol';
+import '../contracts/TokenDistro.sol';
 
-contract TestModifyDistro is Test {
+contract TokenDistroTransferAllocation is Test {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     using SafeMath for uint256;
 
@@ -27,8 +27,8 @@ contract TestModifyDistro is Test {
     // deploy the token distro
     TransparentUpgradeableProxy tokenDistroProxy;
     IDistro tokenDistroInterface;
-    TokenDistroV1 tokenDistro;
-    TokenDistroV1 tokenDistroImplementation;
+    TokenDistro tokenDistro;
+    TokenDistro tokenDistroImplementation;
     uint256 assignedAmount = 10000000000000000000000000;
     uint256 forkBlock = 22501098;
 
@@ -36,7 +36,7 @@ contract TestModifyDistro is Test {
         uint256 forkId = vm.createFork('https://rpc.ankr.com/gnosis', forkBlock); //https://xdai-archive.blockscout.com/
         vm.selectFork(forkId);
         proxyAdmin = ProxyAdmin(address(0x076C250700D210e6cf8A27D1EB1Fd754FB487986));
-        tokenDistro = TokenDistroV1(address(0xc0dbDcA66a0636236fAbe1B3C16B1bD4C84bB1E1));
+        tokenDistro = TokenDistro(address(0xc0dbDcA66a0636236fAbe1B3C16B1bD4C84bB1E1));
         tokenDistroProxy = TransparentUpgradeableProxy(payable(address(0xc0dbDcA66a0636236fAbe1B3C16B1bD4C84bB1E1)));
         givethMultisig = 0x4D9339dd97db55e3B9bCBE65dE39fF9c04d1C2cd;
         givToken = IERC20Upgradeable(address(0x4f4F9b8D5B4d0Dc10506e5551B0513B61fD59e75));
@@ -48,7 +48,7 @@ contract TestModifyDistro is Test {
 
     function setUp() public {
         vm.startPrank(givethMultisig);
-        tokenDistroImplementation = new TokenDistroV1();
+        tokenDistroImplementation = new TokenDistro();
         proxyAdmin.upgrade(tokenDistroProxy, address(tokenDistroImplementation));
         tokenDistro.grantRole(keccak256('DISTRIBUTOR_ROLE'), distributor);
         tokenDistro.assign(distributor, assignedAmount);
