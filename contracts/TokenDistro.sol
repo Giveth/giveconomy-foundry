@@ -42,6 +42,11 @@ contract TokenDistro is Initializable, IDistro, AccessControlEnumerableUpgradeab
     event GivBackPaid(address distributor);
 
     /**
+     * @dev Emitted when the DISTRIBUTOR allocate an amount of praise rewards to a recipient
+     */
+    event PraiseRewardPaid(address distributor);
+
+    /**
      * @dev Emitted when the duration is changed
      */
     event DurationChanged(uint256 newDuration);
@@ -205,6 +210,11 @@ contract TokenDistro is Initializable, IDistro, AccessControlEnumerableUpgradeab
     function sendGIVbacks(address[] memory recipients, uint256[] memory amounts) external override {
         _allocateMany(recipients, amounts);
         emit GivBackPaid(msg.sender);
+    }
+
+    function sendPraiseRewards(address[] memory recipients, uint256[] memory amounts) external override {
+        _allocateMany(recipients, amounts);
+        emit PraiseRewardPaid(msg.sender);
     }
 
     /**
