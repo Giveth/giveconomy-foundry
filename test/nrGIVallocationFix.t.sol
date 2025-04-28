@@ -29,7 +29,7 @@
 //     bytes32 distributorRole = 0xfbd454f36a7e1a388bd6fc3ab10d434aa4578f811acbbcf33afb1c697486313c;
 
 //     constructor() {
-//         uint256 forkId = vm.createFork('https://rpc.ankr.com/gnosis'); //https://xdai-archive.blockscout.com/
+//         uint256 forkId = vm.createFork(vm.envString('GNOSIS_RPC_URL')); //https://xdai-archive.blockscout.com/
 //         vm.selectFork(forkId);
 //         tokenDistro = TokenDistro(address(0xc0dbDcA66a0636236fAbe1B3C16B1bD4C84bB1E1));
 //         givethMultisig = 0x4D9339dd97db55e3B9bCBE65dE39fF9c04d1C2cd;

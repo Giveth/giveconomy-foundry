@@ -33,7 +33,7 @@ contract TokenDistroTransferAllocation is Test {
     uint256 forkBlock = 22501098;
 
     constructor() {
-        uint256 forkId = vm.createFork('https://rpc.ankr.com/gnosis', forkBlock); //https://xdai-archive.blockscout.com/
+        uint256 forkId = vm.createFork(vm.envString('GNOSIS_RPC_URL'), forkBlock); //https://xdai-archive.blockscout.com/
         vm.selectFork(forkId);
         proxyAdmin = ProxyAdmin(address(0x076C250700D210e6cf8A27D1EB1Fd754FB487986));
         tokenDistro = TokenDistro(address(0xc0dbDcA66a0636236fAbe1B3C16B1bD4C84bB1E1));
