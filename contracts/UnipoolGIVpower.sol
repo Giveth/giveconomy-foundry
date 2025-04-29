@@ -10,6 +10,10 @@ import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
     using SafeMathUpgradeable for uint256;
 
+    /// @dev Version of the implementation contract, should be changed on each upgrade
+    /// @notice 1.2.0 - Added forceUnlock function
+    string public constant VERSION = '1.2.0';
+
     /// @dev Start time of the first round
     uint256 public constant INITIAL_DATE = 1654012800; // block 22501098
     /// @notice Duration of each round
@@ -263,5 +267,12 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
     /// Token is not transferable
     function decreaseAllowance(address, uint256) external pure returns (bool) {
         revert TokenNonTransferable();
+    }
+
+    /// @notice Returns the version of the current implementation contract
+    /// @dev This version is immutable for each implementation and should be updated when deploying new implementations
+    /// @return The semantic version string of the current implementation
+    function getVersion() external pure returns (string memory) {
+        return VERSION;
     }
 }
