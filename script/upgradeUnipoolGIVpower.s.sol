@@ -5,26 +5,20 @@ import 'forge-std/console.sol';
 import 'forge-std/Script.sol';
 import '@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol';
 import '@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol';
-import '../contracts/UnipoolGIVpower.sol';
-import '../contracts/interfaces/IDistro.sol';
+import './hardcode-upgrade/UnipoolGIVpower.sol';
+import './hardcode-upgrade/interfaces/IDistro.sol';
 
-
-contract UpgradeUnipoolGIVpower is Script {
-/// @notice Op Sepolia addresses
-address proxyAdminOpSepoliaAddress = 0x3b197F5cDa3516bD49e193df6F1273f3f16d414a;
-address unipoolProxyOpSepoliaAddress = 0xE6836325B13819CF38f030108255A5213491A725;
-address iDistroOpSepoliaAddress = 0x301C739CF6bfb6B47A74878BdEB13f92F13Ae5E7;
-    
+contract UpgradeGardenUnipool is Script {
     ProxyAdmin unipoolProxyAdmin;
-    ITransparentUpgradeableProxy unipoolProxy;
+    TransparentUpgradeableProxy unipoolProxy;
     UnipoolGIVpower implementation;
     UnipoolGIVpower givpower;
     IDistro iDistro;
 
     function run() public {
-        unipoolProxyAdmin = ProxyAdmin(proxyAdminOpSepoliaAddress);
-        iDistro = IDistro(iDistroOpSepoliaAddress);
-        unipoolProxy = ITransparentUpgradeableProxy(payable(unipoolProxyOpSepoliaAddress));
+        unipoolProxyAdmin = ProxyAdmin(address(0x91c5C402B0B514f2D09d84b03b6C9f17Bd689e2D));
+        iDistro = IDistro(address(0x8D2cBce8ea0256bFFBa6fa4bf7CEC46a1d9b43f6));
+        unipoolProxy = TransparentUpgradeableProxy(payable(0x632AC305ed88817480d12155A7F1244cC182C298));
         givpower = UnipoolGIVpower(address(unipoolProxy));
         // new implementation
 
@@ -34,6 +28,7 @@ address iDistroOpSepoliaAddress = 0x301C739CF6bfb6B47A74878BdEB13f92F13Ae5E7;
         implementation = new UnipoolGIVpower();
 
         unipoolProxyAdmin.upgrade(unipoolProxy, address(implementation));
+        givpower.setTokenDistro(iDistro);
 
         vm.stopBroadcast();
 
