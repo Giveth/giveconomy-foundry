@@ -1,36 +1,46 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.10;
 
+import '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol';
 import '@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol';
 import '@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol';
 import 'forge-std/Test.sol';
 import 'forge-std/console.sol';
 import 'solmate/utils/FixedPointMathLib.sol';
+import '../../contracts/UnipoolGIVpower.sol';
+import '../../contracts/UnipoolTokenDistributor.sol';
+import '../interfaces/IL2StandardERC20.sol';
 
-import 'contracts/GIVpower.sol';
-import 'contracts/GardenUnipoolTokenDistributor.sol';
-import './interfaces/IERC20Bridged.sol';
+contract UnipoolGIVpowerTest is Test {
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
-contract GIVpowerTest is Test {
     uint256 public constant MAX_GIV_BALANCE = 10 ** 28; // 10 Billion, Total minted giv is 1B at the moment
 
-    ProxyAdmin gardenUnipoolProxyAdmin;
-    TransparentUpgradeableProxy gardenUnipoolProxy;
-    GIVpower implementation;
-    GIVpower givPower;
-    ITokenManager tokenManager;
-    IERC20Bridged givToken;
+    UnipoolGIVpower implementation;
+    UnipoolGIVpower givPower;
+    ProxyAdmin unipoolGIVpowerProxyAdmin;
+    TransparentUpgradeableProxy unipoolGIVpowerProxy;
+    IERC20Upgradeable givToken;
+    IL2StandardERC20 bridgedGivToken;
     IERC20 gGivToken;
-    address givethMultisig;
+    address givethMultisig = 0x4D9339dd97db55e3B9bCBE65dE39fF9c04d1C2cd;
+    IDistro iDistro = IDistro(0xE3Ac7b3e6B4065f4765d76fDC215606483BF3bD1);
+    ProxyAdmin masterProxyAdmin = ProxyAdmin(0x2f2c819210191750F2E11F7CfC5664a0eB4fd5e6);
+    address rewardDistributor = address(uint160(1));
+
+    // token
+    address givTokenAddressOptimism = 0x528CDc92eAB044E1E39FE43B9514bfdAB4412B98;
+
+    // bridge
+    address optimismL2Bridge = 0x4200000000000000000000000000000000000010;
 
     // accounts
     address sender = address(1);
     address senderWithNoBalance = address(2);
-    address omniBridge = 0xf6A78083ca3e2a662D6dd1703c939c8aCE2e268d;
+    address proxyAdminAddress = address(3);
     address[] testUsers = [0xB8306b6d3BA7BaB841C02f0F92b8880a4760199A, 0x975f6807E8406191D1C951331eEa4B26199b37ff];
 
     struct StorageData {
-        address tokenManager;
         address tokenDistro;
         uint256 duration;
         address rewardDistribution;
@@ -50,45 +60,39 @@ contract GIVpowerTest is Test {
     event Transfer(address indexed from, address indexed to, uint256 amount);
     event TokenLocked(address indexed account, uint256 amount, uint256 rounds, uint256 untilRound);
     event TokenUnlocked(address indexed account, uint256 amount, uint256 round);
+    event DepositTokenDeposited(address indexed account, uint256 amount);
+    event DepositTokenWithdrawn(address indexed account, uint256 amount);
 
     constructor() {
-        uint256 forkId = vm.createFork('https://rpc.ankr.com/gnosis', 22501098); //https://xdai-archive.blockscout.com/
+        uint256 forkId = vm.createFork('https://mainnet.optimism.io');
         vm.selectFork(forkId);
-        gardenUnipoolProxyAdmin = ProxyAdmin(address(0x076C250700D210e6cf8A27D1EB1Fd754FB487986));
-        gardenUnipoolProxy = TransparentUpgradeableProxy(payable(0xD93d3bDBa18ebcB3317a57119ea44ed2Cf41C2F2));
-
         // wrap in ABI to support easier calls
-        givPower = GIVpower(address(gardenUnipoolProxy));
-
-        tokenManager = ITokenManager(givPower.getTokenManager());
-
-        givToken = IERC20Bridged(address(tokenManager.wrappableToken()));
-
-        gGivToken = IERC20(address(tokenManager.token()));
-
-        givethMultisig = gardenUnipoolProxyAdmin.owner();
     }
 
     function setUp() public virtual {
+        givToken = IERC20Upgradeable(givTokenAddressOptimism);
+        bridgedGivToken = IL2StandardERC20(givTokenAddressOptimism);
         // new implementation
-        implementation = new GIVpower();
-
-        // upgrade to new implementation
-        vm.prank(givethMultisig);
-        gardenUnipoolProxyAdmin.upgrade(gardenUnipoolProxy, address(implementation));
+        implementation = new UnipoolGIVpower();
+        unipoolGIVpowerProxy = new TransparentUpgradeableProxy(
+            payable(address(implementation)),
+            address(masterProxyAdmin),
+            abi.encodeWithSelector(UnipoolGIVpower(givPower).initialize.selector, iDistro, givToken, 14 days)
+        );
+        givPower = UnipoolGIVpower(address(unipoolGIVpowerProxy));
+        givPower.setRewardDistribution(rewardDistributor);
 
         // mint
-        vm.prank(omniBridge);
-        givToken.mint(sender, 100 ether);
+        vm.prank(optimismL2Bridge);
+        bridgedGivToken.mint(sender, 100 ether);
 
         // labels
         vm.label(sender, 'sender');
         vm.label(senderWithNoBalance, 'senderWithNoBalance');
         vm.label(givethMultisig, 'givethMultisig');
-        vm.label(address(gardenUnipoolProxyAdmin), 'ProxyAdmin');
-        vm.label(address(gardenUnipoolProxy), 'Proxy');
+        vm.label(address(unipoolGIVpowerProxyAdmin), 'ProxyAdmin');
+        vm.label(address(unipoolGIVpowerProxy), 'Proxy');
         vm.label(address(givPower), 'GIVpower');
-        vm.label(address(tokenManager), 'TokenManager');
         vm.label(address(givToken), 'GivethToken');
         vm.label(address(gGivToken), 'gGivToken');
     }
@@ -105,7 +109,6 @@ contract GIVpowerTest is Test {
         }
 
         return StorageData({
-            tokenManager: givPower.getTokenManager(),
             tokenDistro: address(givPower.tokenDistro()),
             duration: givPower.duration(),
             rewardDistribution: givPower.rewardDistribution(),

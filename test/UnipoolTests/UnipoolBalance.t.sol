@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.10;
 
-import './GIVpowerTest.sol';
+import './UnipoolGIVpowerTest.sol';
 
-contract BalanceTest is GIVpowerTest {
+contract UnipoolBalanceTest is UnipoolGIVpowerTest {
     uint256 givPowerInitialTotalSupply;
 
     function setUp() public override {
         super.setUp();
 
-        vm.startPrank(omniBridge);
-        givToken.mint(sender, MAX_GIV_BALANCE - givToken.balanceOf(sender));
+        vm.startPrank(optimismL2Bridge);
+        bridgedGivToken.mint(sender, MAX_GIV_BALANCE - givToken.balanceOf(sender));
         vm.stopPrank();
 
         givPowerInitialTotalSupply = givPower.totalSupply();
@@ -18,45 +18,31 @@ contract BalanceTest is GIVpowerTest {
 
     function testInitialBalance() public {
         assertEq(givToken.balanceOf(sender), MAX_GIV_BALANCE);
-        assertEq(gGivToken.balanceOf(sender), 0);
         assertEq(givPower.balanceOf(sender), 0);
         assertEq(givPower.userLocks(sender), 0);
 
         assertEq(givToken.balanceOf(senderWithNoBalance), 0);
-        assertEq(gGivToken.balanceOf(senderWithNoBalance), 0);
         assertEq(givPower.balanceOf(senderWithNoBalance), 0);
         assertEq(givPower.userLocks(senderWithNoBalance), 0);
     }
 
+    // this is testing
     function testDirectTransfer(uint256 amount) public {
         vm.assume(amount <= 100 ether);
         vm.assume(amount > 0);
 
         vm.startPrank(sender);
-        givToken.approve(address(tokenManager), amount);
+        givToken.approve(address(givPower), amount);
 
-        tokenManager.wrap(amount);
+        givPower.stake(amount);
 
         assertEq(givToken.balanceOf(sender), MAX_GIV_BALANCE - amount);
-        assertEq(gGivToken.balanceOf(sender), amount);
         assertEq(givPower.balanceOf(sender), amount);
         assertEq(givPower.userLocks(sender), 0);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount);
 
-        gGivToken.transfer(senderWithNoBalance, amount);
-
-        assertEq(givToken.balanceOf(sender), MAX_GIV_BALANCE - amount);
-        assertEq(gGivToken.balanceOf(sender), 0);
-        assertEq(givPower.balanceOf(sender), 0);
-        assertEq(givPower.userLocks(sender), 0);
-
-        assertEq(givToken.balanceOf(senderWithNoBalance), 0);
-        assertEq(gGivToken.balanceOf(senderWithNoBalance), amount);
-        assertEq(givPower.balanceOf(senderWithNoBalance), amount);
-        assertEq(givPower.userLocks(senderWithNoBalance), 0);
-
-        // The same as previous check
-        assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount);
+        vm.expectRevert(UnipoolGIVpower.TokenNonTransferable.selector);
+        givPower.transfer(senderWithNoBalance, amount);
 
         vm.stopPrank();
     }
@@ -67,10 +53,9 @@ contract BalanceTest is GIVpowerTest {
         rounds = uint8(bound(rounds, 1, maxLockRounds));
 
         vm.startPrank(sender);
-        givToken.approve(address(tokenManager), amount);
-        tokenManager.wrap(amount);
+        givToken.approve(address(givPower), amount);
+        givPower.stake(amount);
 
-        assertEq(gGivToken.balanceOf(sender), amount);
         assertEq(givPower.balanceOf(sender), amount);
         assertEq(givPower.userLocks(sender), 0);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount);
@@ -80,7 +65,6 @@ contract BalanceTest is GIVpowerTest {
         uint256 unlockRound = givPower.currentRound() + rounds;
         givPower.lock(amount, rounds);
 
-        assertEq(gGivToken.balanceOf(sender), amount);
         assertEq(givPower.balanceOf(sender), amount + lockReward);
         assertEq(givPower.userLocks(sender), amount);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount + lockReward);
@@ -91,7 +75,6 @@ contract BalanceTest is GIVpowerTest {
         unlockAccounts[0] = sender;
         givPower.unlock(unlockAccounts, unlockRound);
 
-        assertEq(gGivToken.balanceOf(sender), amount);
         assertEq(givPower.balanceOf(sender), amount);
         assertEq(givPower.userLocks(sender), 0);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount);
@@ -111,14 +94,8 @@ contract BalanceTest is GIVpowerTest {
         assertEq(givPower.userLocks(sender), lockAmount);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount + lockReward);
 
-        gGivToken.transfer(senderWithNoBalance, amount - lockAmount);
-
-        assertEq(gGivToken.balanceOf(sender), lockAmount);
-        assertEq(gGivToken.balanceOf(senderWithNoBalance), amount - lockAmount);
-        assertEq(givPower.balanceOf(sender), lockAmount + lockReward);
-        assertEq(givPower.balanceOf(senderWithNoBalance), amount - lockAmount);
+        assertEq(givPower.balanceOf(sender), lockReward + amount);
         assertEq(givPower.userLocks(sender), lockAmount);
-        assertEq(givPower.userLocks(senderWithNoBalance), 0);
 
         // Must not change on transfer
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount + lockReward);
@@ -126,39 +103,30 @@ contract BalanceTest is GIVpowerTest {
         skip(givPower.ROUND_DURATION() * (rounds + 1));
         givPower.unlock(unlockAccounts, unlockRound);
 
-        assertEq(gGivToken.balanceOf(sender), lockAmount);
-        assertEq(gGivToken.balanceOf(senderWithNoBalance), amount - lockAmount);
-        assertEq(givPower.balanceOf(sender), lockAmount);
-        assertEq(givPower.balanceOf(senderWithNoBalance), amount - lockAmount);
+        // assertion failures start again here
+        assertEq(givPower.balanceOf(sender), amount);
         assertEq(givPower.userLocks(sender), 0);
-        assertEq(givPower.userLocks(senderWithNoBalance), 0);
 
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount);
 
-        gGivToken.transfer(senderWithNoBalance, lockAmount);
+        givPower.withdraw(amount);
 
-        assertEq(gGivToken.balanceOf(sender), 0);
-        assertEq(gGivToken.balanceOf(senderWithNoBalance), amount);
         assertEq(givPower.balanceOf(sender), 0);
-        assertEq(givPower.balanceOf(senderWithNoBalance), amount);
+        // assertEq(givPower.balanceOf(senderWithNoBalance), amount);
 
-        assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount);
+        assertEq(givPower.totalSupply(), givPowerInitialTotalSupply);
 
         vm.stopPrank();
 
-        vm.startPrank(senderWithNoBalance);
+        // vm.startPrank(senderWithNoBalance);
 
-        // Don't test transfers again
-        tokenManager.unwrap(amount / 2);
-        assertEq(gGivToken.balanceOf(senderWithNoBalance), amount - amount / 2);
-        assertEq(givPower.balanceOf(senderWithNoBalance), amount - amount / 2);
-        assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount - amount / 2);
+        // // Don't test transfers again
+        // assertEq(givPower.balanceOf(senderWithNoBalance), amount - amount / 2);
+        // assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount - amount / 2);
 
-        tokenManager.unwrap(amount - amount / 2);
-        assertEq(gGivToken.balanceOf(senderWithNoBalance), 0);
-        assertEq(givPower.balanceOf(senderWithNoBalance), 0);
+        // assertEq(givPower.balanceOf(senderWithNoBalance), 0);
 
-        assertEq(givPower.totalSupply(), givPowerInitialTotalSupply);
+        // assertEq(givPower.totalSupply(), givPowerInitialTotalSupply);
     }
 
     function testTwoAccountLock(uint256 amount1, uint8 rounds1, uint256 amount2, uint8 rounds2) public {
@@ -186,18 +154,18 @@ contract BalanceTest is GIVpowerTest {
         vm.stopPrank();
 
         vm.startPrank(user1);
-        givToken.approve(address(tokenManager), amount1);
-        tokenManager.wrap(amount1);
+        givToken.approve(address(givPower), amount1);
+        givPower.stake(amount1);
+
         assertEq(givToken.balanceOf(user1), 0);
-        assertEq(gGivToken.balanceOf(user1), amount1);
         assertEq(givPower.balanceOf(user1), amount1);
         assertEq(givPower.userLocks(user1), 0);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount1);
         vm.stopPrank();
 
         vm.startPrank(user2);
-        givToken.approve(address(tokenManager), amount2);
-        tokenManager.wrap(amount2);
+        givToken.approve(address(givPower), amount2);
+        givPower.stake(amount2);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount1 + amount2);
         vm.stopPrank();
 
@@ -209,8 +177,8 @@ contract BalanceTest is GIVpowerTest {
 
         vm.prank(user1);
         givPower.lock(amount1, rounds1);
+
         assertEq(givToken.balanceOf(user1), 0);
-        assertEq(gGivToken.balanceOf(user1), amount1);
         assertEq(givPower.balanceOf(user1), power1);
         assertEq(givPower.userLocks(user1), amount1);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + power1 + amount2);
@@ -218,7 +186,6 @@ contract BalanceTest is GIVpowerTest {
         vm.prank(user2);
         givPower.lock(amount2, rounds2);
         assertEq(givToken.balanceOf(user2), 0);
-        assertEq(gGivToken.balanceOf(user2), amount2);
         assertEq(givPower.balanceOf(user2), power2);
         assertEq(givPower.userLocks(user2), amount2);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + power1 + power2);
@@ -229,7 +196,6 @@ contract BalanceTest is GIVpowerTest {
 
         givPower.unlock(unlockAccounts, untilRound1);
         assertEq(givToken.balanceOf(user1), 0);
-        assertEq(gGivToken.balanceOf(user1), amount1);
         assertEq(givPower.balanceOf(user1), amount1);
         assertEq(givPower.userLocks(user1), 0);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount1 + power2);
@@ -240,7 +206,6 @@ contract BalanceTest is GIVpowerTest {
 
         givPower.unlock(unlockAccounts, untilRound2);
         assertEq(givToken.balanceOf(user2), 0);
-        assertEq(gGivToken.balanceOf(user2), amount2);
         assertEq(givPower.balanceOf(user2), amount2);
         assertEq(givPower.userLocks(user2), 0);
         assertEq(givPower.totalSupply(), givPowerInitialTotalSupply + amount1 + amount2);

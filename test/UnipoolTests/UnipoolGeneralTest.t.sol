@@ -4,58 +4,28 @@ pragma solidity =0.8.10;
 import '@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol';
 import '@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol';
 import 'forge-std/console.sol';
+import '../interfaces/IERC20Bridged.sol';
+import './UnipoolGIVpowerTest.sol';
 
-import 'contracts/GIVpower.sol';
-import 'contracts/GardenUnipoolTokenDistributor.sol';
-import './interfaces/IERC20Bridged.sol';
-import './GIVpowerTest.sol';
-
-contract GeneralTest is GIVpowerTest {
+contract GeneralTest is UnipoolGIVpowerTest {
     StorageData storageDataBeforeUpgrade;
 
     function setUp() public override {
-        storageDataBeforeUpgrade = getImplementationStorageData(testUsers);
         super.setUp();
     }
 
-    function testImplementationStorage() public {
-        StorageData memory storageDataAfterUpgrade = getImplementationStorageData(testUsers);
-
-        assertEq(givPower.ROUND_DURATION(), 14 days);
-        assertEq(givPower.MAX_LOCK_ROUNDS(), 26);
-
-        assertEq(storageDataBeforeUpgrade.tokenManager, storageDataAfterUpgrade.tokenManager);
-        assertEq(storageDataBeforeUpgrade.tokenDistro, storageDataAfterUpgrade.tokenDistro);
-        assertEq(storageDataBeforeUpgrade.duration, storageDataAfterUpgrade.duration);
-        assertEq(storageDataBeforeUpgrade.rewardDistribution, storageDataAfterUpgrade.rewardDistribution);
-        assertEq(storageDataBeforeUpgrade.periodFinish, storageDataAfterUpgrade.periodFinish);
-        assertEq(storageDataBeforeUpgrade.rewardRate, storageDataAfterUpgrade.rewardRate);
-        assertEq(storageDataBeforeUpgrade.lastUpdateTime, storageDataAfterUpgrade.lastUpdateTime);
-        assertEq(storageDataBeforeUpgrade.rewardPerTokenStored, storageDataAfterUpgrade.rewardPerTokenStored);
-        assertEq(storageDataBeforeUpgrade.totalSupply, storageDataAfterUpgrade.totalSupply);
-
-        for (uint256 i = 0; i < storageDataBeforeUpgrade.usersBalances.length; i++) {
-            assertEq(storageDataBeforeUpgrade.usersBalances[i], storageDataAfterUpgrade.usersBalances[i]);
-            assertEq(
-                storageDataBeforeUpgrade.usersRewardsPerTokenPaid[i],
-                storageDataAfterUpgrade.usersRewardsPerTokenPaid[i]
-            );
-            assertEq(storageDataBeforeUpgrade.usersRewards[i], storageDataAfterUpgrade.usersRewards[i]);
-        }
-    }
-
     function testZeroLockRound() public {
-        vm.expectRevert(GIVpower.ZeroLockRound.selector);
+        vm.expectRevert(UnipoolGIVpower.ZeroLockRound.selector);
         givPower.lock(1 ether, 0);
     }
 
     function testLockRoundLimit() public {
-        vm.expectRevert(GIVpower.LockRoundLimit.selector);
+        vm.expectRevert(UnipoolGIVpower.LockRoundLimit.selector);
         givPower.lock(1 ether, 27);
     }
 
     function testNotEnoughBalanceToLock() public {
-        vm.expectRevert(GIVpower.NotEnoughBalanceToLock.selector);
+        vm.expectRevert(UnipoolGIVpower.NotEnoughBalanceToLock.selector);
         vm.prank(senderWithNoBalance);
         givPower.lock(2 ether, 2);
     }
@@ -66,17 +36,17 @@ contract GeneralTest is GIVpowerTest {
         uint256 numberOfRounds = 2;
 
         vm.startPrank(sender);
-        givToken.approve(address(tokenManager), wrapAmount);
-        tokenManager.wrap(lockAmount);
+        givToken.approve(address(givPower), wrapAmount);
+        givPower.stake(lockAmount);
         givPower.lock(lockAmount, numberOfRounds);
 
-        vm.expectRevert(GIVpower.NotEnoughBalanceToLock.selector);
+        vm.expectRevert(UnipoolGIVpower.NotEnoughBalanceToLock.selector);
         givPower.lock(1 ether, numberOfRounds);
         vm.stopPrank();
     }
 
     function testWrapLockUnwrapUnlockProperly() public {
-        uint256 wrapAmount = 20 ether;
+        uint256 stakeAmount = 20 ether;
         uint256 lockAmount = 10 ether;
         uint256 numberOfRounds = 1;
         address[] memory accounts = new address[](1);
@@ -88,30 +58,23 @@ contract GeneralTest is GIVpowerTest {
 
         uint256 initialTotalSupply = givPower.totalSupply();
         uint256 initialUnipoolBalance = givPower.balanceOf(sender);
-        uint256 initialgGivBalance = gGivToken.balanceOf(sender);
-
-        // Before lock unipool balance should be same as gGiv balance
-        assertEq(initialgGivBalance, initialgGivBalance);
 
         vm.startPrank(sender);
-        givToken.approve(address(tokenManager), wrapAmount);
-
-        /// WRAP
+        givToken.approve(address(givPower), stakeAmount);
 
         vm.expectEmit(true, true, true, true);
-        emit Staked(sender, wrapAmount);
+        emit Staked(sender, stakeAmount);
 
         vm.expectEmit(true, true, true, true, address(givPower));
-        emit Transfer(address(0), sender, wrapAmount);
+        emit Transfer(address(0), sender, stakeAmount);
 
-        vm.expectEmit(true, true, true, true, address(gGivToken));
-        emit Transfer(address(0), sender, wrapAmount);
+        vm.expectEmit(true, true, true, true, address(givPower));
+        emit DepositTokenDeposited(sender, stakeAmount);
 
-        tokenManager.wrap(wrapAmount);
+        givPower.stake(stakeAmount);
 
-        assertEq(givPower.balanceOf(sender), initialUnipoolBalance + wrapAmount);
-        assertEq(gGivToken.balanceOf(sender), initialgGivBalance + wrapAmount);
-        assertEq(givPower.totalSupply(), initialTotalSupply + wrapAmount);
+        assertEq(givPower.balanceOf(sender), initialUnipoolBalance + stakeAmount);
+        assertEq(givPower.totalSupply(), initialTotalSupply + stakeAmount);
 
         /// LOCK
 
@@ -126,22 +89,23 @@ contract GeneralTest is GIVpowerTest {
 
         givPower.lock(lockAmount, numberOfRounds);
 
-        assertEq(givPower.balanceOf(sender), wrapAmount + powerIncreaseAfterLock);
-        // gGIV balance should not change after lock
-        assertEq(gGivToken.balanceOf(sender), initialgGivBalance + wrapAmount);
+        assertEq(givPower.balanceOf(sender), stakeAmount + powerIncreaseAfterLock);
 
         /// UNWRAP
 
         vm.expectEmit(true, true, true, true);
-        emit Withdrawn(sender, wrapAmount - lockAmount);
+        emit Withdrawn(sender, stakeAmount - lockAmount);
 
         vm.expectEmit(true, true, true, true, address(givPower));
-        emit Transfer(sender, address(0), wrapAmount - lockAmount);
+        emit Transfer(sender, address(0), stakeAmount - lockAmount);
 
-        vm.expectEmit(true, true, true, true, address(gGivToken));
-        emit Transfer(sender, address(0), wrapAmount - lockAmount);
+        vm.expectEmit(true, true, true, true, address(givToken));
+        emit Transfer(address(givPower), sender, stakeAmount - lockAmount);
 
-        tokenManager.unwrap(wrapAmount - lockAmount);
+        vm.expectEmit(true, true, true, true, address(givPower));
+        emit DepositTokenWithdrawn(sender, stakeAmount - lockAmount);
+
+        givPower.withdraw(stakeAmount - lockAmount);
 
         skip(14 days * (numberOfRounds + 1));
 
@@ -160,14 +124,14 @@ contract GeneralTest is GIVpowerTest {
 
         assertEq(givPower.balanceOf(sender), lockAmount);
 
-        tokenManager.unwrap(lockAmount);
+        givPower.withdraw(lockAmount);
     }
 
     function testCannotUnlockUntilRoundIsFinished() public {
         address[] memory accounts = new address[](1);
         uint256 round = givPower.currentRound();
 
-        vm.expectRevert(GIVpower.CannotUnlockUntilRoundIsFinished.selector);
+        vm.expectRevert(UnipoolGIVpower.CannotUnlockUntilRoundIsFinished.selector);
         givPower.unlock(accounts, round);
     }
 
@@ -176,26 +140,25 @@ contract GeneralTest is GIVpowerTest {
         assertEq(givPower.symbol(), 'POW');
         assertEq(givPower.decimals(), 18);
         assertEq(givPower.balanceOf(address(0)), 0);
-        assertFalse(givPower.totalSupply() == 0);
 
         assertEq(givPower.allowance(givethMultisig, givethMultisig), 0);
 
-        vm.expectRevert(GIVpower.TokenNonTransferable.selector);
+        vm.expectRevert(UnipoolGIVpower.TokenNonTransferable.selector);
         givPower.approve(givethMultisig, 1);
 
-        vm.expectRevert(GIVpower.TokenNonTransferable.selector);
+        vm.expectRevert(UnipoolGIVpower.TokenNonTransferable.selector);
         givPower.increaseAllowance(givethMultisig, 1);
 
-        vm.expectRevert(GIVpower.TokenNonTransferable.selector);
+        vm.expectRevert(UnipoolGIVpower.TokenNonTransferable.selector);
         givPower.decreaseAllowance(givethMultisig, 1);
 
-        vm.expectRevert(GIVpower.TokenNonTransferable.selector);
+        vm.expectRevert(UnipoolGIVpower.TokenNonTransferable.selector);
         givPower.transfer(givethMultisig, 1);
 
-        vm.expectRevert(GIVpower.TokenNonTransferable.selector);
+        vm.expectRevert(UnipoolGIVpower.TokenNonTransferable.selector);
         givPower.transferFrom(givethMultisig, givethMultisig, 1);
 
-        vm.expectRevert(GIVpower.TokenNonTransferable.selector);
+        vm.expectRevert(UnipoolGIVpower.TokenNonTransferable.selector);
         givPower.transfer(givethMultisig, 1);
     }
 
@@ -238,8 +201,8 @@ contract GeneralTest is GIVpowerTest {
         }
 
         vm.startPrank(sender);
-        givToken.approve(address(tokenManager), wrapAmount);
-        tokenManager.wrap(lockAmount);
+        givToken.approve(address(givPower), wrapAmount);
+        givPower.stake(lockAmount);
         givPower.lock(lockAmount, numberOfRounds);
         vm.stopPrank();
 
@@ -251,7 +214,7 @@ contract GeneralTest is GIVpowerTest {
         address[] memory accounts = new address[](1);
         accounts[0] = sender;
 
-        vm.expectRevert(GIVpower.CannotUnlockUntilRoundIsFinished.selector);
+        vm.expectRevert(UnipoolGIVpower.CannotUnlockUntilRoundIsFinished.selector);
         givPower.unlock(accounts, round);
 
         passedSeconds = roundHasStartedInSeconds();
@@ -264,7 +227,7 @@ contract GeneralTest is GIVpowerTest {
         // Still not 2 complete rounds has passed since lock time!!
         assertEq(givPower.currentRound(), lockTimeRound + 2);
 
-        vm.expectRevert(GIVpower.CannotUnlockUntilRoundIsFinished.selector);
+        vm.expectRevert(UnipoolGIVpower.CannotUnlockUntilRoundIsFinished.selector);
         givPower.unlock(accounts, round);
 
         skip(14 days);

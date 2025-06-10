@@ -1,22 +1,22 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.10;
 
-import './GIVpowerTest.sol';
+import './UnipoolGIVpowerTest.sol';
 
 // To test Lock Edge Cases
-contract LockTest is GIVpowerTest {
+contract LockTest is UnipoolGIVpowerTest {
     function setUp() public override {
         super.setUp();
 
-        vm.startPrank(omniBridge);
-        givToken.mint(sender, MAX_GIV_BALANCE - givToken.balanceOf(sender));
+        vm.startPrank(optimismL2Bridge);
+        bridgedGivToken.mint(sender, MAX_GIV_BALANCE - givToken.balanceOf(sender));
         vm.stopPrank();
     }
 
     function testZeroAmountLock(uint8 rounds) public {
         rounds = uint8(bound(rounds, 1, givPower.MAX_LOCK_ROUNDS()));
 
-        vm.expectRevert(GIVpower.ZeroLockAmount.selector);
+        vm.expectRevert(UnipoolGIVpower.ZeroLockAmount.selector);
 
         vm.prank(sender);
         givPower.lock(0, rounds);
@@ -25,7 +25,7 @@ contract LockTest is GIVpowerTest {
     function testZeroRoundLock(uint256 amount) public {
         amount = bound(amount, 1, MAX_GIV_BALANCE);
 
-        vm.expectRevert(GIVpower.ZeroLockRound.selector);
+        vm.expectRevert(UnipoolGIVpower.ZeroLockRound.selector);
 
         vm.prank(sender);
         givPower.lock(amount, 0);
@@ -35,7 +35,7 @@ contract LockTest is GIVpowerTest {
         amount = bound(amount, 1, MAX_GIV_BALANCE);
         vm.assume(rounds > givPower.MAX_LOCK_ROUNDS());
 
-        vm.expectRevert(GIVpower.LockRoundLimit.selector);
+        vm.expectRevert(UnipoolGIVpower.LockRoundLimit.selector);
 
         vm.prank(sender);
         givPower.lock(amount, rounds);
@@ -47,8 +47,8 @@ contract LockTest is GIVpowerTest {
 
         vm.startPrank(sender);
 
-        givToken.approve(address(tokenManager), amount);
-        tokenManager.wrap(amount);
+        givToken.approve(address(givPower), amount);
+        givPower.stake(amount);
 
         uint256 untilRound = givPower.currentRound() + rounds;
         uint256 powerIncreaseAfterLock = givPower.calculatePower(amount, rounds) - amount;

@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.10;
 
-import './GIVpowerTest.sol';
+import './UnipoolGIVpowerTest.sol';
 
-contract LockRounds is GIVpowerTest {
+contract LockRounds is UnipoolGIVpowerTest {
     function setUp() public override {
         super.setUp();
-        vm.startPrank(omniBridge);
-        givToken.mint(sender, MAX_GIV_BALANCE - givToken.balanceOf(sender));
+        vm.startPrank(optimismL2Bridge);
+        bridgedGivToken.mint(sender, MAX_GIV_BALANCE - givToken.balanceOf(sender));
         vm.stopPrank();
     }
 
@@ -24,7 +24,7 @@ contract LockRounds is GIVpowerTest {
 
         uint256 round = givPower.currentRound();
 
-        vm.expectRevert(GIVpower.CannotUnlockUntilRoundIsFinished.selector);
+        vm.expectRevert(UnipoolGIVpower.CannotUnlockUntilRoundIsFinished.selector);
         givPower.unlock(accounts, round);
 
         // One second before round ends (at the edge of next round)
@@ -32,7 +32,7 @@ contract LockRounds is GIVpowerTest {
 
         assertEq(round, givPower.currentRound());
 
-        vm.expectRevert(GIVpower.CannotUnlockUntilRoundIsFinished.selector);
+        vm.expectRevert(UnipoolGIVpower.CannotUnlockUntilRoundIsFinished.selector);
         givPower.unlock(accounts, round);
 
         // Move one second forward (beginning of the next round)
@@ -53,8 +53,8 @@ contract LockRounds is GIVpowerTest {
 
         vm.startPrank(sender);
 
-        givToken.approve(address(tokenManager), amount);
-        tokenManager.wrap(amount);
+        givToken.approve(address(givPower), amount);
+        givPower.stake(amount);
         givPower.lock(amount, rounds);
 
         uint256 untilRound = givPower.currentRound() + rounds;
@@ -69,25 +69,19 @@ contract LockRounds is GIVpowerTest {
         address[] memory accounts = new address[](1);
         accounts[0] = sender;
 
-        vm.expectRevert(GIVpower.CannotUnlockUntilRoundIsFinished.selector);
+        vm.expectRevert(UnipoolGIVpower.CannotUnlockUntilRoundIsFinished.selector);
         givPower.unlock(accounts, untilRound);
 
-        vm.expectRevert(GIVpower.TokensAreLocked.selector);
-        gGivToken.transfer(senderWithNoBalance, amount);
-
-        vm.expectRevert(GIVpower.TokensAreLocked.selector);
-        tokenManager.unwrap(amount);
+        vm.expectRevert(UnipoolGIVpower.TokensAreLocked.selector);
+        givPower.withdraw(amount);
 
         skip(rounds * roundDuration);
 
-        vm.expectRevert(GIVpower.CannotUnlockUntilRoundIsFinished.selector);
+        vm.expectRevert(UnipoolGIVpower.CannotUnlockUntilRoundIsFinished.selector);
         givPower.unlock(accounts, untilRound);
 
-        vm.expectRevert(GIVpower.TokensAreLocked.selector);
-        gGivToken.transfer(senderWithNoBalance, amount);
-
-        vm.expectRevert(GIVpower.TokensAreLocked.selector);
-        tokenManager.unwrap(amount);
+        vm.expectRevert(UnipoolGIVpower.TokensAreLocked.selector);
+        givPower.withdraw(amount);
 
         skip(roundDuration - passedSeconds);
 
@@ -122,8 +116,8 @@ contract LockRounds is GIVpowerTest {
 
         vm.startPrank(sender);
 
-        givToken.approve(address(tokenManager), amount1 + amount2);
-        tokenManager.wrap(amount1 + amount2);
+        givToken.approve(address(givPower), amount1 + amount2);
+        givPower.stake(amount1 + amount2);
 
         uint256 untilRound1 = givPower.currentRound() + rounds1;
         uint256 untilRound2 = givPower.currentRound() + rounds2;
@@ -142,7 +136,7 @@ contract LockRounds is GIVpowerTest {
         emit TokenUnlocked(sender, amount1, untilRound1);
         givPower.unlock(accounts, untilRound1);
 
-        vm.expectRevert(GIVpower.CannotUnlockUntilRoundIsFinished.selector);
+        vm.expectRevert(UnipoolGIVpower.CannotUnlockUntilRoundIsFinished.selector);
         givPower.unlock(accounts, untilRound2);
 
         skip(roundDuration * (rounds2 - rounds1));
