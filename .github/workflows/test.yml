@@ -33,3 +33,5 @@ jobs:
         run: |
           forge test -vvv --ffi
         id: test
+        env:
+          GNOSIS_RPC_URL: ${{ secrets.GNOSIS_RPC_URL }}

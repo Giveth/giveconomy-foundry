@@ -3,7 +3,7 @@ pragma solidity =0.8.10;
 
 import './UnipoolGIVpowerTest.sol';
 
-contract LockRounds is UnipoolGIVpowerTest {
+contract UnipoolLockRounds is UnipoolGIVpowerTest {
     function setUp() public override {
         super.setUp();
         vm.startPrank(optimismL2Bridge);
@@ -11,6 +11,7 @@ contract LockRounds is UnipoolGIVpowerTest {
         vm.stopPrank();
     }
 
+    /// @notice Test that the unlock function reverts if the round is not finished
     function testUnlockInsideRound() public {
         uint256 roundDuration = givPower.ROUND_DURATION();
         address[] memory accounts = new address[](1);
@@ -42,6 +43,53 @@ contract LockRounds is UnipoolGIVpowerTest {
         givPower.unlock(accounts, round);
     }
 
+    function testForceUnlockInsideRound(uint256 amount, uint8 rounds) public {
+        uint256 maxLockRounds = givPower.MAX_LOCK_ROUNDS();
+        uint256 roundDuration = givPower.ROUND_DURATION();
+
+        rounds = uint8(bound(rounds, 1, maxLockRounds));
+        amount = bound(amount, 1, MAX_GIV_BALANCE);
+
+        givPower.calculatePower(amount, rounds) - amount;
+
+        vm.startPrank(sender);
+
+        uint256 untilRound = givPower.currentRound() + rounds;
+        uint256 passedSeconds = this.roundHasStartedInSeconds();
+
+        givToken.approve(address(givPower), amount);
+        givPower.stake(amount);
+
+        vm.expectEmit(true, true, true, true);
+        emit TokenLocked(sender, amount, rounds, untilRound);
+        givPower.lock(amount, rounds);
+
+        assertGt(
+            roundDuration,
+            passedSeconds,
+            'Seconds passed from the start of round should be less than the round duration'
+        );
+
+        address[] memory accounts = new address[](1);
+        accounts[0] = sender;
+
+        // Revvert with public unlock
+        vm.expectRevert(UnipoolGIVpower.CannotUnlockUntilRoundIsFinished.selector);
+        givPower.unlock(accounts, untilRound);
+
+        // Pass with force unlock
+        vm.startPrank(givPower.owner());
+        vm.expectEmit(true, true, true, true);
+        emit TokenUnlocked(sender, amount, untilRound);
+        givPower.forceUnlock(accounts, untilRound);
+        vm.stopPrank();
+
+        // Check that tokens are unlocked
+        assertEq(givPower.balanceOf(sender), amount);
+    }
+
+    /// @notice Tests the unlock function to ensure it reverts if the round is not finished.
+    /// This test is fuzzed with varying amounts and rounds.
     function testUnlockAdvanced(uint256 amount, uint8 rounds) public {
         uint256 maxLockRounds = givPower.MAX_LOCK_ROUNDS();
         uint256 roundDuration = givPower.ROUND_DURATION();

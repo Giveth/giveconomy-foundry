@@ -10,6 +10,10 @@ import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
     using SafeMathUpgradeable for uint256;
 
+    /// @dev Version of the implementation contract, should be changed on each upgrade
+    /// @notice 1.2.0 - Added forceUnlock function
+    string public constant VERSION = '1.2.0';
+
     /// @dev Start time of the first round
     uint256 public constant INITIAL_DATE = 1654012800; // block 22501098
     /// @notice Duration of each round
@@ -136,7 +140,8 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
         super.exit();
     }
 
-    /// @notice Unlock tokens belongs to accountswhich are locked till the end of round
+    /// @notice Unlock tokens belongs to accounts which are locked till the end of round
+    /// @dev Open to public to unlock tokens of rounds that have ended
     /// @param accounts List of accounts to unlock their tokens
     /// @param round The round number token are locked till the end of
     function unlock(address[] calldata accounts, uint256 round) external {
@@ -144,6 +149,21 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
             revert CannotUnlockUntilRoundIsFinished();
         }
 
+        _unlock(accounts, round);
+    }
+
+    /// @notice Force unlock tokens belongs to accounts which are locked. The round does not need to be ended.
+    /// @dev Only owner can force unlock tokens
+    /// @param accounts List of accounts to unlock their tokens
+    /// @param round The round number token are locked till the end of
+    function forceUnlock(address[] calldata accounts, uint256 round) external onlyOwner {
+        _unlock(accounts, round);
+    }
+
+    /// @dev Internal function to unlock tokens and power for a specific account and round
+    /// @param accounts List of accounts to unlock their tokens
+    /// @param round The round number token are locked till the end of
+    function _unlock(address[] calldata accounts, uint256 round) internal {
         for (uint256 i = 0; i < accounts.length;) {
             address _account = accounts[i];
             UserLock storage _userLock = userLocks[_account];
@@ -247,5 +267,12 @@ contract UnipoolGIVpower is UnipoolTokenDistributor, IERC20MetadataUpgradeable {
     /// Token is not transferable
     function decreaseAllowance(address, uint256) external pure returns (bool) {
         revert TokenNonTransferable();
+    }
+
+    /// @notice Returns the version of the current implementation contract
+    /// @dev This version is immutable for each implementation and should be updated when deploying new implementations
+    /// @return The semantic version string of the current implementation
+    function getVersion() external pure returns (string memory) {
+        return VERSION;
     }
 }
